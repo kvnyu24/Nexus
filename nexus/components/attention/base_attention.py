@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple, Union
+from ...core.base import NexusModule
+
 
 class BaseAttention(nn.Module):
     def __init__(

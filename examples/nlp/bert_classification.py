@@ -1,6 +1,8 @@
 from nexus.models.nlp import BERTModel
 from nexus.components.attention import MultiHeadAttention
 from nexus.training import Trainer
+from nexus.utils import ExperimentManager
+
 
 # Configure and create model
 config = {

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, List, Tuple
 from ....core.base import NexusModule
+from torch.nn import functional as F
 
 class RegionProposalNetwork(NexusModule):
     def __init__(self, config: dict):

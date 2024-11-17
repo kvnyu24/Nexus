@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from torch.nn import functional as F
 from ....core.base import NexusModule
 from ....components.blocks import ResidualBlock
 
