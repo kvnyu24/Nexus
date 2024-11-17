@@ -1,11 +1,10 @@
-from nexus.models.vision.vae import EnhancedVAE
+from nexus.models.cv.vae import EnhancedVAE
 from nexus.training import Trainer
+from nexus.data import Dataset, DataLoader, Compose, Resize, ToTensor, Normalize
 import torch
 import torch.nn.functional as F
 import torchvision
-from torchvision import transforms
 from torchvision.datasets import MNIST
-from torch.utils.data import DataLoader
 from typing import Dict
 
 # Configure VAE model
@@ -19,6 +18,34 @@ config = {
 
 # Initialize model
 vae = EnhancedVAE(config)
+
+# Create transforms using Nexus data transforms
+transform = Compose([
+    Resize(28),
+    ToTensor(),
+    Normalize(mean=[0.5], std=[0.5])
+])
+
+# Load MNIST dataset using torchvision but with Nexus transforms
+train_dataset = MNIST(root='./data', train=True, transform=transform, download=True)
+val_dataset = MNIST(root='./data', train=False, transform=transform, download=True)
+
+# Use Nexus DataLoader instead of torch's DataLoader
+train_loader = DataLoader(
+    dataset=train_dataset,
+    batch_size=128,
+    shuffle=True,
+    num_workers=4,
+    pin_memory=True
+)
+
+val_loader = DataLoader(
+    dataset=val_dataset,
+    batch_size=128,
+    shuffle=False,
+    num_workers=4,
+    pin_memory=True
+)
 
 # Create custom trainer for VAE
 class VAETrainer(Trainer):
@@ -67,30 +94,21 @@ class VAETrainer(Trainer):
             
             return {"val_loss": val_loss.item()}
 
-# Load MNIST dataset
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])
-
-mnist_train = MNIST(root='./data', train=True, transform=transform, download=True)
-mnist_val = MNIST(root='./data', train=False, transform=transform, download=True)
-
-train_loader = DataLoader(mnist_train, batch_size=128, shuffle=True)
-val_loader = DataLoader(mnist_val, batch_size=128, shuffle=False)
-
-# Initialize trainer
+# Initialize trainer with checkpointing
 trainer = VAETrainer(
     model=vae,
     optimizer="adam",
     learning_rate=1e-3,
-    device="cuda" if torch.cuda.is_available() else "cpu"
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    checkpoint_dir="checkpoints/vae"
 )
 
 # Train model
 trainer.train(
-    train_dataset=train_loader,
-    eval_dataset=val_loader,
+    train_dataset=train_dataset,
+    eval_dataset=val_dataset,
+    train_loader=train_loader,
+    eval_loader=val_loader,
     num_epochs=50,
     eval_frequency=5
 )
@@ -108,4 +126,4 @@ with torch.no_grad():
         "vae_samples.png",
         nrow=4,
         normalize=True
-    ) 
+    )

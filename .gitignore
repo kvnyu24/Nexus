@@ -78,6 +78,7 @@ tensorboard/
 events.out.tfevents.*
 
 # Datasets
+data/
 data/*.tar.gz
 data/*.gz
 data/*.zip
