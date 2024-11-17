@@ -5,8 +5,9 @@ from nexus.data import Dataset, Compose, Resize, RandomCrop, RandomHorizontalFli
 from nexus.training.losses import FocalLoss
 from nexus.utils.gpu import GPUManager, AutoDevice
 import torchvision.datasets as datasets
+import torch
 
-# Initialize GPU manager
+# Initialize GPU manager with MPS handling
 gpu_manager = GPUManager()
 optimal_device = gpu_manager.get_optimal_device()
 
@@ -14,8 +15,10 @@ optimal_device = gpu_manager.get_optimal_device()
 config = ConfigManager.load_config("configs/vit_base.yaml")
 config_dict = vars(config)
 
-# Create model and move to optimal GPU
+# Create model and explicitly set dtype for MPS
 model = VisionTransformer(config_dict)
+if optimal_device.type == 'mps':
+    model = model.to(torch.float32)
 model = model.to(optimal_device)
 
 # Create transforms following ViT paper
@@ -51,11 +54,18 @@ eval_dataset = datasets.CIFAR10(
 # Update model configuration for CIFAR-10
 config_dict['num_classes'] = 10
 
-# Create trainer with GPU support
+# Create trainer with MPS-specific settings
 trainer = Trainer(
     model=model,
-    device=optimal_device  # Pass the optimal device to trainer
+    device=optimal_device,
+    optimizer="adam",
+    learning_rate=config.learning_rate * (1.0 if optimal_device.type != 'mps' else 0.1)  # Adjust LR for MPS
 )
+
+# Add progress tracking for MPS
+if optimal_device.type == 'mps':
+    trainer.logger.info("Training on Apple Silicon (MPS)")
+    trainer.logger.info("Using float32 precision")
 
 # Print GPU memory info before training
 if gpu_manager.initialized:
@@ -83,3 +93,6 @@ with AutoDevice(model):  # Ensures model is on optimal device
 
 # Plot training metrics
 trainer.plot_metrics(['loss', 'accuracy'], save_path='training_metrics.png')
+
+# Save the trained model
+torch.save(model.state_dict(), "vit_cifar10.pth")

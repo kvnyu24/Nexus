@@ -97,6 +97,10 @@ class VisionTransformer(NexusModule):
         self.head = nn.Linear(self.embed_dim, self.num_classes)
         
     def forward(self, image: torch.Tensor, **kwargs) -> Dict[str, torch.Tensor]:
+        # Ensure input is float32 for MPS compatibility
+        if image.device.type == 'mps':
+            image = image.to(torch.float32)
+        
         B = image.shape[0]
         
         # Patch embedding
@@ -107,7 +111,7 @@ class VisionTransformer(NexusModule):
         x = torch.cat((cls_tokens, x), dim=1)
         x = x + self.pos_embed
         
-        # Apply transformer layers
+        # Apply transformer layers with explicit dtype handling
         for layer in self.transformer_layers:
             x = layer(x)
         

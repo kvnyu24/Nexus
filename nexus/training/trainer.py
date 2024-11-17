@@ -2,19 +2,22 @@ import torch
 from typing import Optional, Dict, Any
 from torch.utils.data import DataLoader
 from ..utils.logging import Logger
+from .checkpointing import CheckpointMixin
 
-class Trainer:
+class Trainer(CheckpointMixin):
     def __init__(
         self,
         model: torch.nn.Module,
         optimizer: str = "adam",
         learning_rate: float = 1e-3,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",
-        logger: Optional[Logger] = None
+        logger: Optional[Logger] = None,
+        checkpoint_dir: Optional[str] = None
     ):
         self.model = model
         self.device = device
         self.logger = logger or Logger()
+        self.checkpoint_dir = checkpoint_dir or "checkpoints"
         
         # Setup optimizer
         self.optimizer = self._setup_optimizer(optimizer, learning_rate)
@@ -54,9 +57,10 @@ class Trainer:
         num_epochs=10,
         loss_fn=None,
         scheduler=None,
+        checkpoint_frequency: int = 1,
         **kwargs
     ):
-        """Train the model."""
+        """Train the model with checkpointing support."""
         train_loader = DataLoader(
             train_dataset,
             batch_size=batch_size,
@@ -161,3 +165,23 @@ class Trainer:
                 accuracy = 100. * correct / total
                 avg_eval_loss = eval_loss / len(eval_loader)
                 self.logger.info(f"Eval Loss: {avg_eval_loss:.4f}, Accuracy: {accuracy:.2f}%")
+            
+            # Save checkpoint if needed
+            if checkpoint_frequency > 0 and (epoch + 1) % checkpoint_frequency == 0:
+                metrics = {
+                    "epoch": epoch + 1,
+                    "train_loss": avg_loss,
+                    "learning_rate": self.optimizer.param_groups[0]['lr']
+                }
+                if eval_dataset:
+                    metrics.update({
+                        "eval_loss": avg_eval_loss,
+                        "accuracy": accuracy
+                    })
+                    
+                checkpoint_path = self.save_checkpoint(
+                    self.checkpoint_dir,
+                    epoch + 1,
+                    metrics
+                )
+                self.logger.info(f"Saved checkpoint to {checkpoint_path}")

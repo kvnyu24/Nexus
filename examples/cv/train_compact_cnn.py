@@ -10,7 +10,8 @@ config = {
     "dropout": 0.2,
     "batch_size": 64,
     "learning_rate": 0.001,
-    "num_epochs": 30
+    "num_epochs": 30,
+    "checkpoint_frequency": 5
 }
 
 # Create transforms
@@ -46,20 +47,22 @@ eval_dataset = datasets.CIFAR10(
 # Create model
 model = CompactCNN(config)
 
-# Create trainer
+# Create trainer with checkpoint directory
 trainer = Trainer(
     model=model,
     optimizer="adam",
-    learning_rate=config["learning_rate"]
+    learning_rate=config["learning_rate"],
+    checkpoint_dir="checkpoints/compact_cnn"
 )
 
-# Train model
+# Train model with checkpointing
 trainer.train(
     train_dataset=train_dataset,
     eval_dataset=eval_dataset,
     batch_size=config["batch_size"],
-    num_epochs=config["num_epochs"]
+    num_epochs=config["num_epochs"],
+    checkpoint_frequency=config["checkpoint_frequency"]
 )
 
-# Save the trained model
+# Save the final trained model
 torch.save(model.state_dict(), "compact_cnn.pth") 

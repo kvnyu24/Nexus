@@ -2,18 +2,21 @@ import torch
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from typing import Optional, Dict, Any
+from .checkpointing import CheckpointMixin
 
-class DistributedTrainer:
+class DistributedTrainer(CheckpointMixin):
     def __init__(
         self,
         model: torch.nn.Module,
         rank: int,
         world_size: int,
-        backend: str = "nccl"
+        backend: str = "nccl",
+        checkpoint_dir: Optional[str] = None
     ):
         self.rank = rank
         self.world_size = world_size
         self.backend = backend
+        self.checkpoint_dir = checkpoint_dir or "checkpoints"
         
         # Initialize distributed process group
         dist.init_process_group(
@@ -43,3 +46,15 @@ class DistributedTrainer:
         
     def cleanup(self):
         dist.destroy_process_group() 
+        
+    def save_checkpoint(self, *args, **kwargs):
+        """Override to only save on rank 0."""
+        if self.rank == 0:
+            return super().save_checkpoint(*args, **kwargs)
+        return None
+        
+    def load_checkpoint(self, checkpoint_path: str):
+        """Load checkpoint on all ranks."""
+        checkpoint = super().load_checkpoint(checkpoint_path)
+        dist.barrier()  # Ensure all processes load the checkpoint
+        return checkpoint 
