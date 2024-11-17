@@ -3,28 +3,33 @@ from nexus.training import Trainer, CosineWarmupScheduler
 from nexus.core.config import ConfigManager
 from nexus.data import Dataset, Compose, Resize, RandomCrop, RandomHorizontalFlip, ToTensor, Normalize
 from nexus.training.losses import FocalLoss
+from nexus.utils.gpu import GPUManager, AutoDevice
 import torchvision.datasets as datasets
+
+# Initialize GPU manager
+gpu_manager = GPUManager()
+optimal_device = gpu_manager.get_optimal_device()
 
 # Load configuration
 config = ConfigManager.load_config("configs/vit_base.yaml")
-# Convert SimpleNamespace to dictionary
 config_dict = vars(config)
 
-# Create model
+# Create model and move to optimal GPU
 model = VisionTransformer(config_dict)
+model = model.to(optimal_device)
 
 # Create transforms following ViT paper
 train_transform = Compose([
-    Resize(config.image_size),  # 224 from config
+    Resize(config.image_size),
     RandomCrop(config.image_size, padding=4),
     RandomHorizontalFlip(),
     ToTensor(),
-    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])  # ViT standard normalization
+    Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
 
 eval_transform = Compose([
     Resize(config.image_size),
-    ToTensor(), 
+    ToTensor(),
     Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
 ])
 
@@ -44,25 +49,37 @@ eval_dataset = datasets.CIFAR10(
 )
 
 # Update model configuration for CIFAR-10
-config_dict['num_classes'] = 10  # CIFAR-10 has 10 classes
+config_dict['num_classes'] = 10
 
-# Create trainer with custom scheduler
-trainer = Trainer(model=model)
+# Create trainer with GPU support
+trainer = Trainer(
+    model=model,
+    device=optimal_device  # Pass the optimal device to trainer
+)
+
+# Print GPU memory info before training
+if gpu_manager.initialized:
+    memory_info = gpu_manager.get_gpu_memory_info()
+    for gpu in memory_info:
+        print(f"GPU {gpu['device']}: {gpu['free']:.2f}MB free / {gpu['total']:.2f}MB total")
+
+# Create scheduler
 scheduler = CosineWarmupScheduler(
     trainer.optimizer,
-    warmup_steps=config.warmup_steps,  # 10000 from config
-    max_steps=config.max_steps  # 100000 from config
+    warmup_steps=config.warmup_steps,
+    max_steps=config.max_steps
 )
 
 # Train with custom loss
-trainer.train(
-    train_dataset=train_dataset,
-    eval_dataset=eval_dataset,
-    loss_fn=FocalLoss(gamma=2.0),
-    scheduler=scheduler,
-    batch_size=config.batch_size,  # 32 from config
-    num_epochs=100
-)
+with AutoDevice(model):  # Ensures model is on optimal device
+    trainer.train(
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        loss_fn=FocalLoss(gamma=2.0),
+        scheduler=scheduler,
+        batch_size=config.batch_size,
+        num_epochs=100
+    )
 
 # Plot training metrics
 trainer.plot_metrics(['loss', 'accuracy'], save_path='training_metrics.png')
