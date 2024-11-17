@@ -1,8 +1,11 @@
-from nexus.models.vision.nerf.nerf import EnhancedNeRF, NeRFRenderer
-from nexus.training import Trainer, CosineWarmupScheduler
+from nexus.models.cv.nerf import NeRFNetwork, NeRFRenderer
+from nexus.training import Trainer
 import torch
+import torch.nn.functional as F
 import numpy as np
 from typing import Dict
+from nexus.data import NeRFDataset
+
 # Configure NeRF model
 config = {
     "pos_encoding_dims": 10,
@@ -11,7 +14,7 @@ config = {
 }
 
 # Initialize model
-nerf = EnhancedNeRF(config)
+nerf = NeRFNetwork(config)
 
 # Create custom trainer for NeRF
 class NeRFTrainer(Trainer):
@@ -48,6 +51,13 @@ trainer = NeRFTrainer(
     optimizer="adam",
     learning_rate=5e-4,
     device="cuda" if torch.cuda.is_available() else "cpu"
+)
+
+# Initialize dataset
+nerf_dataset = NeRFDataset(
+    root_dir='./data/nerf_synthetic/lego',
+    split='train',
+    img_wh=(400, 400)  # Reduce resolution for faster training
 )
 
 # Train model (assuming you have a dataset)

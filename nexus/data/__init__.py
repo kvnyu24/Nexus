@@ -11,6 +11,7 @@ from .transforms import (
     Normalize,
     ToTensor
 )
+from .datasets.nerf_dataset import NeRFDataset
 
 __all__ = [
     # Core data classes
@@ -26,5 +27,6 @@ __all__ = [
     'RandomVerticalFlip',
     'RandomRotation',
     'Normalize',
-    'ToTensor'
+    'ToTensor',
+    'NeRFDataset'
 ]
