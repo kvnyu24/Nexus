@@ -51,9 +51,10 @@ def main():
         model = model.to(torch.float32)
         config.batch_size = min(config.batch_size, 64)
         config.learning_rate *= 0.1
-    
-    # Ensure model parameters are float32 before training
-    model = model.to(torch.float32)
+    elif device.type == 'cuda':
+        model = model.to(torch.float16)  # Use FP16 for CUDA
+    else:  # CPU
+        model = model.to(torch.float32)
     
     # Move model to device after setting dtype
     model = model.to(device)
@@ -91,6 +92,16 @@ def main():
     # Update model configuration for CIFAR-10
     config_dict['num_classes'] = 10
     
+    # Create a custom collate function to ensure proper tensor types
+    def collate_fn(batch):
+        # Determine dtype based on device
+        dtype = torch.float16 if device.type == 'cuda' else torch.float32
+        
+        # Ensure images are the correct dtype and on the device
+        images = torch.stack([item[0] for item in batch]).to(dtype=dtype, device=device)
+        labels = torch.tensor([item[1] for item in batch], dtype=torch.long, device=device)
+        return {'image': images, 'labels': labels}
+    
     # Create trainer with the model after dtype and device setup
     trainer = Trainer(
         model=model,
@@ -116,13 +127,6 @@ def main():
         warmup_steps=config.warmup_steps,
         max_steps=config.max_steps
     )
-    
-    # Create a custom collate function to ensure proper tensor types
-    def collate_fn(batch):
-        # Ensure images are float32 and on the correct device
-        images = torch.stack([item[0] for item in batch]).to(torch.float32)
-        labels = torch.tensor([item[1] for item in batch], dtype=torch.long)
-        return {'image': images, 'labels': labels}
     
     # Train with custom loss
     with AutoDevice(model):
