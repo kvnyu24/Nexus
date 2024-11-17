@@ -3,6 +3,7 @@ import torch
 import torchvision.datasets as datasets
 from ..data import Dataset, Compose, Resize, ToTensor, Normalize
 from .model_benchmarks import ModelBenchmark, BenchmarkConfig
+from torch.nn import functional as F
 
 class ImageClassificationBenchmark:
     def __init__(self, model, dataset, metrics=None):
