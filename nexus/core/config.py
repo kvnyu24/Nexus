@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 import yaml
 import json
+from types import SimpleNamespace
 
 
 @dataclass
@@ -27,15 +28,18 @@ class ModelConfig:
 
 class ConfigManager:
     @staticmethod
-    def load_config(config_path: str) -> Dict[str, Any]:
+    def load_config(config_path: str) -> SimpleNamespace:
         if config_path.endswith('.yaml') or config_path.endswith('.yml'):
             with open(config_path, 'r') as f:
-                return yaml.safe_load(f)
+                config_dict = yaml.safe_load(f)
         elif config_path.endswith('.json'):
             with open(config_path, 'r') as f:
-                return json.load(f)
+                config_dict = json.load(f)
         else:
             raise ValueError(f"Unsupported config file format: {config_path}")
+            
+        # Convert dict to SimpleNamespace for dot notation access
+        return SimpleNamespace(**config_dict)
     
     @staticmethod
     def save_config(config: Dict[str, Any], save_path: str):

@@ -33,10 +33,11 @@ class Trainer:
         self.optimizer.zero_grad()
         
         # Move batch to device
-        batch = {k: v.to(self.device) for k, v in batch.items()}
+        batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
+                for k, v in batch.items()}
         
         # Forward pass
-        outputs = self.model(**batch)
+        outputs = self.model(batch['image'])
         loss = outputs["loss"]
         
         # Backward pass
@@ -44,3 +45,113 @@ class Trainer:
         self.optimizer.step()
         
         return {"loss": loss.item()} 
+
+    def train(
+        self,
+        train_dataset,
+        eval_dataset=None,
+        batch_size=32,
+        num_epochs=10,
+        loss_fn=None,
+        scheduler=None,
+        **kwargs
+    ):
+        """Train the model."""
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=True
+        )
+        
+        if eval_dataset:
+            eval_loader = DataLoader(
+                eval_dataset,
+                batch_size=batch_size,
+                shuffle=False
+            )
+        
+        # Use CrossEntropyLoss as default if no loss_fn provided
+        if loss_fn is None:
+            loss_fn = torch.nn.CrossEntropyLoss()
+        
+        for epoch in range(num_epochs):
+            self.model.train()
+            total_loss = 0
+            num_batches = len(train_loader)
+            
+            # Add progress tracking
+            for batch_idx, batch in enumerate(train_loader):
+                # Handle both tuple and dict style batches
+                if isinstance(batch, (list, tuple)):
+                    images, labels = batch
+                    batch = {'image': images, 'label': labels}
+                
+                # Move batch to device
+                batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
+                        for k, v in batch.items()}
+                
+                # Forward pass
+                outputs = self.model(**batch)
+                # Calculate loss using the loss function
+                loss = loss_fn(outputs['logits'], batch['label'])
+                
+                # Backward pass
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+                
+                if scheduler:
+                    scheduler.step()
+                
+                total_loss += loss.item()
+                
+                # Log batch-level progress
+                if (batch_idx + 1) % kwargs.get('log_interval', 10) == 0:
+                    self.logger.info(
+                        f"Epoch [{epoch+1}/{num_epochs}] "
+                        f"Batch [{batch_idx+1}/{num_batches}] "
+                        f"Loss: {loss.item():.4f}"
+                    )
+            
+            # Log epoch-level metrics
+            avg_loss = total_loss / len(train_loader)
+            metrics = {
+                "epoch": epoch + 1,
+                "train_loss": avg_loss,
+                "learning_rate": self.optimizer.param_groups[0]['lr']
+            }
+            
+            # Log metrics
+            self.logger.info(
+                f"Epoch {epoch+1}/{num_epochs} "
+                f"Average Loss: {avg_loss:.4f} "
+                f"LR: {metrics['learning_rate']:.6f}"
+            )
+            
+            # Evaluation
+            if eval_dataset:
+                self.model.eval()
+                eval_loss = 0
+                correct = 0
+                total = 0
+                
+                with torch.no_grad():
+                    for batch in eval_loader:
+                        batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
+                                for k, v in batch.items()}
+                        outputs = self.model(**batch)
+                        
+                        if loss_fn:
+                            loss = loss_fn(outputs['logits'], batch['label'])
+                        else:
+                            loss = outputs.get('loss', 0)
+                            
+                        eval_loss += loss.item()
+                        
+                        _, predicted = outputs['logits'].max(1)
+                        total += batch['label'].size(0)
+                        correct += predicted.eq(batch['label']).sum().item()
+                
+                accuracy = 100. * correct / total
+                avg_eval_loss = eval_loss / len(eval_loader)
+                self.logger.info(f"Eval Loss: {avg_eval_loss:.4f}, Accuracy: {accuracy:.2f}%")

@@ -1,6 +1,6 @@
 import torch
 import torchvision.transforms as T
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 import numpy as np
 from PIL import Image
 
@@ -26,9 +26,10 @@ class Resize(Transform):
         return self.transform(x)
 
 class RandomCrop(Transform):
-    def __init__(self, size: Union[int, Tuple[int, int]]):
+    def __init__(self, size: Union[int, Tuple[int, int]], padding: Optional[int] = None):
         self.size = size if isinstance(size, tuple) else (size, size)
-        self.transform = T.RandomCrop(self.size)
+        self.padding = padding
+        self.transform = T.RandomCrop(self.size, padding=padding)
         
     def __call__(self, x: Image.Image) -> Image.Image:
         return self.transform(x)

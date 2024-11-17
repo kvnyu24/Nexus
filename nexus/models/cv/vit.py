@@ -4,6 +4,38 @@ from typing import Dict, Any
 from ...components.attention import MultiHeadSelfAttention
 from ...core.base import NexusModule
 
+class TransformerBlock(nn.Module):
+    def __init__(self, dim: int, num_heads: int, mlp_ratio: float = 4.0, dropout: float = 0.0):
+        super().__init__()
+        
+        # Multi-head self attention
+        self.attention = MultiHeadSelfAttention(
+            hidden_size=dim,
+            num_heads=num_heads,
+            dropout=dropout
+        )
+        self.norm1 = nn.LayerNorm(dim)
+        
+        # MLP block
+        mlp_hidden_dim = int(dim * mlp_ratio)
+        self.mlp = nn.Sequential(
+            nn.Linear(dim, mlp_hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(mlp_hidden_dim, dim),
+            nn.Dropout(dropout)
+        )
+        self.norm2 = nn.LayerNorm(dim)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Attention block
+        x = x + self.attention(self.norm1(x))
+        
+        # MLP block
+        x = x + self.mlp(self.norm2(x))
+        
+        return x
+
 class PatchEmbedding(nn.Module):
     def __init__(self, image_size: int, patch_size: int, in_channels: int, embed_dim: int):
         super().__init__()
@@ -64,11 +96,11 @@ class VisionTransformer(NexusModule):
         self.norm = nn.LayerNorm(self.embed_dim)
         self.head = nn.Linear(self.embed_dim, self.num_classes)
         
-    def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
-        B = x.shape[0]
+    def forward(self, image: torch.Tensor, **kwargs) -> Dict[str, torch.Tensor]:
+        B = image.shape[0]
         
         # Patch embedding
-        x = self.patch_embed(x)
+        x = self.patch_embed(image)
         
         # Add cls token and position embedding
         cls_tokens = self.cls_token.expand(B, -1, -1)

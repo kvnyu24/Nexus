@@ -77,6 +77,13 @@ tensorboard/
 *.ckpt
 events.out.tfevents.*
 
+# Datasets
+data/*.tar.gz
+data/*.gz
+data/*.zip
+data/cifar*
+data/imagenet*
+
 # Misc
 .env
 *.log
