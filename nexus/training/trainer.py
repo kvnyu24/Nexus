@@ -137,6 +137,12 @@ class Trainer:
                 
                 with torch.no_grad():
                     for batch in eval_loader:
+                        # Handle both tuple and dict style batches
+                        if isinstance(batch, (list, tuple)):
+                            images, labels = batch
+                            batch = {'image': images, 'label': labels}
+                        
+                        # Move batch to device
                         batch = {k: v.to(self.device) if isinstance(v, torch.Tensor) else v 
                                 for k, v in batch.items()}
                         outputs = self.model(**batch)
