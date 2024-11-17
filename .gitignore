@@ -16,33 +16,71 @@ parts/
 sdist/
 var/
 wheels/
+share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
+.python-version
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
 
 # Virtual Environment
 venv/
 env/
 ENV/
+.env
+.venv
+env.bak/
+venv.bak/
 
 # IDE
 .idea/
 .vscode/
 *.swp
 *.swo
+*~
+.*.sw[po]
+.project
+.pydevproject
+.settings
+.DS_Store
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# # Jupyter Notebook
+# .ipynb_checkpoints
+# *.ipynb
 
 # Training artifacts
 runs/
 checkpoints/
 .cache/
 wandb/
+logs/
+tensorboard/
+*.ckpt
+events.out.tfevents.*
 
-# Data
-data/
-datasets/
-*.h5
-*.pkl
-*.pth
+# Misc
+.env
+*.log
+*.bak
+tmp/
+temp/
+.DS_Store
