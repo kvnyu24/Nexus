@@ -6,6 +6,7 @@ import torch
 import torch.nn as nn
 from typing import Optional, Dict, Any
 
+
 # Model configuration
 config = {
     "vocab_size": 50000,
