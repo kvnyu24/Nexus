@@ -1,8 +1,11 @@
-from nexus.models.vision.vae import VAE
+from nexus.models.vision.vae import EnhancedVAE
 from nexus.training import Trainer
-from nexus.training.losses import KLDivergenceLoss
 import torch
 import torch.nn.functional as F
+import torchvision
+from torchvision import transforms
+from torchvision.datasets import MNIST
+from torch.utils.data import DataLoader
 from typing import Dict
 
 # Configure VAE model
@@ -10,11 +13,12 @@ config = {
     "input_dim": 784,  # 28x28 for MNIST
     "hidden_dim": 400,
     "latent_dim": 20,
-    "beta": 1.0  # Beta-VAE parameter
+    "beta": 1.0,  # Beta-VAE parameter
+    "architecture": "mlp"
 }
 
 # Initialize model
-vae = VAE(config)
+vae = EnhancedVAE(config)
 
 # Create custom trainer for VAE
 class VAETrainer(Trainer):
@@ -22,7 +26,8 @@ class VAETrainer(Trainer):
         self.optimizer.zero_grad()
         
         # Extract batch data
-        x = batch["images"].to(self.device)
+        x, _ = batch
+        x = x.to(self.device)
         x_flat = x.view(x.size(0), -1)
         
         # Forward pass
@@ -51,7 +56,8 @@ class VAETrainer(Trainer):
     
     def validation_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         with torch.no_grad():
-            x = batch["images"].to(self.device)
+            x, _ = batch
+            x = x.to(self.device)
             x_flat = x.view(x.size(0), -1)
             
             outputs = self.model(x_flat)
@@ -60,6 +66,18 @@ class VAETrainer(Trainer):
             val_loss = F.mse_loss(reconstructed, x_flat)
             
             return {"val_loss": val_loss.item()}
+
+# Load MNIST dataset
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
+
+mnist_train = MNIST(root='./data', train=True, transform=transform, download=True)
+mnist_val = MNIST(root='./data', train=False, transform=transform, download=True)
+
+train_loader = DataLoader(mnist_train, batch_size=128, shuffle=True)
+val_loader = DataLoader(mnist_val, batch_size=128, shuffle=False)
 
 # Initialize trainer
 trainer = VAETrainer(
@@ -71,9 +89,8 @@ trainer = VAETrainer(
 
 # Train model
 trainer.train(
-    train_dataset=mnist_train,
-    eval_dataset=mnist_val,
-    batch_size=128,
+    train_dataset=train_loader,
+    eval_dataset=val_loader,
     num_epochs=50,
     eval_frequency=5
 )
@@ -82,7 +99,7 @@ trainer.train(
 with torch.no_grad():
     # Sample from latent space
     z = torch.randn(16, config["latent_dim"]).to(trainer.device)
-    samples = vae.decode(z)
+    samples = vae.decoder(z)
     samples = samples.view(-1, 1, 28, 28)  # Reshape for MNIST
     
     # Save generated samples
