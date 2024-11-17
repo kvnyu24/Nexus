@@ -13,3 +13,5 @@ isort>=5.9.3
 flake8>=3.9.2
 mypy>=0.910
 annoy>=1.17.0
+gym>=0.21.0
+flash-attn>=2.0.0
