@@ -2,7 +2,12 @@ from .trainer import Trainer
 
 from .losses import (
     ContrastiveLoss,
-    FocalLoss
+    FocalLoss,
+    CircleLoss,
+    TripletLoss,
+    NTXentLoss,
+    WingLoss,
+    DiceLoss
 )
 
 from .scheduler import (
@@ -16,6 +21,11 @@ __all__ = [
     # Losses
     'ContrastiveLoss',
     'FocalLoss',
+    'CircleLoss',
+    'TripletLoss',
+    'NTXentLoss',
+    'WingLoss',
+    'DiceLoss',
     
     # Learning rate schedulers
     'CosineWarmupScheduler'
