@@ -15,6 +15,12 @@ class BaseAttention(nn.Module):
         attention_scale: float = None
     ):
         super().__init__()
+        
+        if hidden_size % num_heads != 0:
+            raise ValueError(
+                f"hidden_size {hidden_size} must be divisible by num_heads {num_heads}"
+            )
+            
         self.hidden_size = hidden_size
         self.num_heads = num_heads
         self.head_dim = hidden_size // num_heads
@@ -31,6 +37,15 @@ class BaseAttention(nn.Module):
         nn.init.xavier_uniform_(self.qkv_proj.weight)
         nn.init.xavier_uniform_(self.out_proj.weight)
         
+        # Try importing flash attention if requested
+        if use_flash_attention:
+            try:
+                from flash_attn import flash_attn_func
+                self.flash_attn_func = flash_attn_func
+            except ImportError:
+                self.use_flash_attention = False
+                print("Flash Attention not available, falling back to standard attention")
+        
     def _reshape_for_attention(self, x: torch.Tensor) -> torch.Tensor:
         batch_size = x.size(0)
         return x.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
@@ -41,7 +56,13 @@ class BaseAttention(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         return_attention: bool = False
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
-        batch_size = hidden_states.size(0)
+        batch_size, seq_length, _ = hidden_states.size()
+        
+        # Input validation
+        if attention_mask is not None and attention_mask.dim() != 2:
+            raise ValueError(
+                f"attention_mask should be 2D, got {attention_mask.dim()}D"
+            )
         
         # Unified QKV projection
         qkv = self.qkv_proj(hidden_states)
@@ -54,16 +75,17 @@ class BaseAttention(nn.Module):
         
         if self.use_flash_attention and torch.cuda.is_available():
             # Use Flash Attention if available
-            from flash_attn import flash_attn_func
-            output = flash_attn_func(q, k, v, dropout_p=self.dropout.p)
+            output = self.flash_attn_func(q, k, v, dropout_p=self.dropout.p)
             attention_weights = None
         else:
             # Standard scaled dot-product attention
             attention_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
             
             if attention_mask is not None:
+                # Expand mask for multiple heads
+                expanded_mask = attention_mask.unsqueeze(1).unsqueeze(2)
                 attention_scores = attention_scores.masked_fill(
-                    attention_mask.unsqueeze(1).unsqueeze(2) == 0,
+                    expanded_mask == 0,
                     float("-inf")
                 )
             

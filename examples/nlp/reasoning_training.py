@@ -5,6 +5,8 @@ from nexus.utils.metrics import MetricsCalculator
 import torch
 import torch.nn as nn
 from typing import Optional, Dict, Any
+import torch.nn.functional as F
+from nexus.data.text_processor import TextProcessor, ReasoningDataset
 
 
 # Model configuration
@@ -16,6 +18,33 @@ config = {
     "max_seq_length": 512,
     "dropout": 0.1
 }
+
+# Add after config and before model initialization
+step_weights = [1.0, 1.0, 1.0]  # Equal weighting for each reasoning step
+
+def calculate_step_loss(step_output: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
+    """Calculate loss for a single reasoning step"""
+    return F.cross_entropy(
+        step_output.view(-1, config["vocab_size"]),
+        labels.view(-1),
+        ignore_index=-100  # Standard padding index
+    )
+
+# Initialize text processor and datasets
+processor = TextProcessor(
+    vocab_size=config["vocab_size"],
+    max_length=config["max_seq_length"]
+)
+
+# Sample data for demonstration
+sample_texts = [
+    "Example text 1",
+    "Example text 2",
+    "Example text 3"
+]
+
+train_dataset = ReasoningDataset(sample_texts, processor)
+eval_dataset = ReasoningDataset(sample_texts[:1], processor)  # Smaller eval set
 
 # Initialize model with chain of thoughts
 model = ReasoningLLM(config)
