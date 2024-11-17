@@ -17,11 +17,18 @@ config_dict = vars(config)
 
 # Create model and explicitly set dtype for MPS
 model = VisionTransformer(config_dict)
+
+# Ensure model is using float32 for MPS compatibility
 if optimal_device.type == 'mps':
     model = model.to(torch.float32)
+    # Adjust batch size for M2 GPU memory constraints
+    config.batch_size = min(config.batch_size, 64)
+    # Adjust learning rate for MPS
+    config.learning_rate *= 0.1
+
 model = model.to(optimal_device)
 
-# Create transforms following ViT paper
+# Create transforms with MPS-specific normalization
 train_transform = Compose([
     Resize(config.image_size),
     RandomCrop(config.image_size, padding=4),
@@ -62,9 +69,10 @@ trainer = Trainer(
     learning_rate=config.learning_rate * (1.0 if optimal_device.type != 'mps' else 0.1)  # Adjust LR for MPS
 )
 
-# Add progress tracking for MPS
+# Add MPS-specific logging
 if optimal_device.type == 'mps':
     trainer.logger.info("Training on Apple Silicon (MPS)")
+    trainer.logger.info(f"Using batch size: {config.batch_size}")
     trainer.logger.info("Using float32 precision")
 
 # Print GPU memory info before training

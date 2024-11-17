@@ -39,12 +39,13 @@ class BaseAttention(nn.Module):
         
         # Try importing flash attention if requested
         if use_flash_attention:
-            try:
-                from flash_attn import flash_attn_func
-                self.flash_attn_func = flash_attn_func
-            except ImportError:
-                self.use_flash_attention = False
-                print("Flash Attention not available, falling back to standard attention")
+            if torch.cuda.is_available():
+                try:
+                    from flash_attn import flash_attn_func
+                    self.flash_attn_func = flash_attn_func
+                except ImportError:
+                    self.use_flash_attention = False
+                    print("Flash Attention not available, falling back to standard attention")
         
     def _reshape_for_attention(self, x: torch.Tensor) -> torch.Tensor:
         batch_size = x.size(0)

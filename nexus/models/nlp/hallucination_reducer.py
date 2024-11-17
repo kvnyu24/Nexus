@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, List, Union
 from ...core.base import NexusModule
 from ...components.attention import MultiHeadSelfAttention, CrossAttention, FlashAttention
 from .chain_of_thoughts import ChainOfThoughtModule
-from .rag import RAGModule, EnhancedRAGModule, DocumentEncoder
+from .rag import EnhancedRAGModule, DocumentEncoder
 
 class FactVerifier(nn.Module):
     def __init__(self, hidden_size: int, num_heads: int = 8, dropout: float = 0.1):

@@ -4,12 +4,14 @@ from typing import Union, List, Optional
 import pynvml
 import os
 from .logging import Logger
+from .apple_gpu import AppleGPUManager
 
 class GPUManager:
     def __init__(self):
         self.initialized = False
         self.logger = Logger("GPUManager")
         self.device_type = self._detect_device_type()
+        self.apple_gpu = AppleGPUManager() if self.device_type == 'mps' else None
         
     def _detect_device_type(self) -> str:
         # Check for Apple Silicon
@@ -63,8 +65,8 @@ class GPUManager:
         
     def get_optimal_device(self) -> torch.device:
         if self.device_type == 'mps':
-            # Set default dtype for MPS
-            torch.set_default_dtype(torch.float32)
+            # Use Apple Silicon GPU
+            torch.set_default_dtype(torch.float32)  # Ensure proper dtype for MPS
             return torch.device('mps')
         elif self.device_type == 'cuda' and torch.cuda.is_available():
             memory_info = self.get_gpu_memory_info()
