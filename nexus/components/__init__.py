@@ -1,6 +1,24 @@
-from .attention import MultiHeadSelfAttention, FlashAttention
+from .attention import (
+    MultiHeadSelfAttention,
+    FlashAttention,
+    CrossAttention,
+    MemoryEfficientAttention
+)
+from .blocks import (
+    MultiModalTransformerBlock,
+    ResidualBlock,
+    InvertedResidualBlock
+)
 
 __all__ = [
+    # Attention mechanisms
     'MultiHeadSelfAttention',
-    'FlashAttention'
+    'FlashAttention',
+    'CrossAttention',
+    'MemoryEfficientAttention',
+    
+    # Transformer blocks
+    'MultiModalTransformerBlock',
+    'ResidualBlock',
+    'InvertedResidualBlock'
 ]
