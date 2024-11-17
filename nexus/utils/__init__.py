@@ -6,6 +6,7 @@ from .metrics import (
     MetricsCalculator
 )
 from .logging import Logger
+from .profiler import ModelProfiler
 
 __all__ = [
     # GPU utilities
@@ -16,5 +17,8 @@ __all__ = [
     'MetricsCalculator',
     
     # Logging utilities
-    'Logger'
+    'Logger',
+    
+    # Profiling utilities
+    'ModelProfiler'
 ]
