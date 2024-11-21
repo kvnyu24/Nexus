@@ -13,7 +13,8 @@ setup(
         "tqdm>=4.62.0",
         "pillow>=8.3.0",
         "scikit-learn>=0.24.0",
-        "faiss-cpu>=1.7.0"
+        "faiss-cpu>=1.7.0",
+        "datasets>=2.14.0"
     ],
     author="Your Name",
     author_email="your.email@example.com",
