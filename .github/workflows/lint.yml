@@ -1,0 +1,35 @@
+name: Lint
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy
+    
+    - name: Run black
+      run: black --check nexus/
+    
+    - name: Run isort
+      run: isort --check-only nexus/
+    
+    - name: Run flake8
+      run: flake8 nexus/
+    
+    - name: Run mypy
+      run: mypy nexus/
