@@ -62,20 +62,24 @@ def train_nerf():
         device="cuda" if torch.cuda.is_available() else "cpu"
     )
 
-    # Initialize dataset
+    # Initialize dataset with multiprocessing
     nerf_dataset = NeRFDataset(
         root_dir='./data/nerf_synthetic/lego',
         split='train',
-        img_wh=(400, 400)  # Reduce resolution for faster training
+        img_wh=(400, 400),
+        precache_rays=True,  # Enable ray precaching
+        num_workers=8  # Adjust based on your CPU
     )
 
-    # Create data loader using Nexus DataLoader
+    # Create data loader with optimized settings
     train_loader = DataLoader(
         dataset=nerf_dataset,
-        batch_size=1,  # Process one image at a time
+        batch_size=1,
         shuffle=True,
-        num_workers=4,
-        pin_memory=True
+        num_workers=8,
+        pin_memory=True,
+        collate_fn=NeRFDataset.collate_fn,
+        persistent_workers=True  # Keep worker processes alive between epochs
     )
 
     # Define number of training epochs
