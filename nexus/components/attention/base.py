@@ -55,12 +55,13 @@ class UnifiedAttention(nn.Module):
         q, k, v = self._reshape_qkv(x)
         
         if self.use_flash_attention and torch.cuda.is_available():
-            from flash_attn import flash_attn_func
-            output = flash_attn_func(
-                q, k, v,
-                dropout_p=self.dropout.p,
-                causal=self.causal
+            from ...components.attention.efficient_attention import FlashAttention
+            flash_attn = FlashAttention(
+                hidden_size=self.hidden_size,
+                num_heads=self.num_heads,
+                batch_size=x.size(0)
             )
+            output = flash_attn(q, k, v)
             attention_weights = None
         else:
             # Standard scaled dot-product attention

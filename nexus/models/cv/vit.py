@@ -1,18 +1,26 @@
 import torch
 import torch.nn as nn
 from typing import Dict, Any
-from ...components.attention import MultiHeadSelfAttention
+from ...components.attention import UnifiedAttention
 from ...core.base import NexusModule
 
 class TransformerBlock(nn.Module):
-    def __init__(self, dim: int, num_heads: int, mlp_ratio: float = 4.0, dropout: float = 0.0):
+    def __init__(
+        self,
+        dim: int,
+        num_heads: int,
+        mlp_ratio: float = 4.0,
+        dropout: float = 0.0,
+        use_flash_attention: bool = False
+    ):
         super().__init__()
         
-        # Multi-head self attention
-        self.attention = MultiHeadSelfAttention(
+        # Multi-head self attention with optional flash attention
+        self.attention = UnifiedAttention(
             hidden_size=dim,
             num_heads=num_heads,
-            dropout=dropout
+            dropout=dropout,
+            use_flash_attention=use_flash_attention
         )
         self.norm1 = nn.LayerNorm(dim)
         
@@ -28,12 +36,8 @@ class TransformerBlock(nn.Module):
         self.norm2 = nn.LayerNorm(dim)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Attention block
         x = x + self.attention(self.norm1(x))
-        
-        # MLP block
         x = x + self.mlp(self.norm2(x))
-        
         return x
 
 class PatchEmbedding(nn.Module):
@@ -59,6 +63,9 @@ class PatchEmbedding(nn.Module):
 class VisionTransformer(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
+
+        use_flash_attention = config.get("use_flash_attention", False)
+
         
         self.image_size = config["image_size"]
         self.patch_size = config["patch_size"]
@@ -88,7 +95,8 @@ class VisionTransformer(NexusModule):
                 dim=self.embed_dim,
                 num_heads=self.num_heads,
                 mlp_ratio=self.mlp_ratio,
-                dropout=self.dropout
+                dropout=self.dropout,
+                use_flash_attention=use_flash_attention
             ) for _ in range(self.num_layers)
         ])
         

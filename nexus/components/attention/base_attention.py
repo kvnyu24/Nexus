@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple, Union
 from ...core.base import NexusModule
+from ...components.attention.efficient_attention import FlashAttention
 
 
 class BaseAttention(nn.Module):
@@ -41,8 +42,11 @@ class BaseAttention(nn.Module):
         if use_flash_attention:
             if torch.cuda.is_available():
                 try:
-                    from flash_attn import flash_attn_func
-                    self.flash_attn_func = flash_attn_func
+                    self.flash_attn_func = FlashAttention(
+                        hidden_size=hidden_size,
+                        num_heads=num_heads,
+                        batch_size=1  # Default batch size
+                    ).forward
                 except ImportError:
                     self.use_flash_attention = False
                     print("Flash Attention not available, falling back to standard attention")
