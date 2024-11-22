@@ -27,6 +27,10 @@ class NeRFTrainer(Trainer):
         ray_directions = batch["ray_directions"].to(self.device)
         target_rgb = batch["target_rgb"].to(self.device)
         
+        # Reshape ray directions to remove extra dimensions
+        ray_directions = ray_directions.squeeze(0).squeeze(0)  # Remove batch dims
+        ray_origins = ray_origins.squeeze(0).squeeze(0)  # Remove batch dims
+        
         # Render rays
         outputs = self.model.render_rays(
             ray_origins=ray_origins,
