@@ -7,6 +7,7 @@ from .efficient_net import *
 from .detr import *
 from .swin_transformer import *
 from .atom_tracker import *
+from .city_reconstruction import *
 
 __all__ = [
     'VisionTransformer',
@@ -17,5 +18,6 @@ __all__ = [
     'EfficientNet',
     'DETR',
     'SwinTransformer',
-    'ATOMTracker'
+    'ATOMTracker',
+    'CityReconstructionModel'
 ]
