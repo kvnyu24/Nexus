@@ -28,7 +28,7 @@ __all__ = [
     'SwinTransformer',
 
     'ATOMTracker',
-    
+
     'CityReconstructionModel',
     'PedestrianReID',
 
