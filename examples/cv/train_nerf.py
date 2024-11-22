@@ -82,12 +82,13 @@ def train_nerf():
     device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
     nerf = NeRFNetwork(config).to(device)
 
-    # Initialize trainer with device
+    # Initialize trainer with device and checkpoint directory
     trainer = NeRFTrainer(
         model=nerf,
         optimizer="adam",
         learning_rate=5e-4,
-        device=device
+        device=device,
+        checkpoint_dir="checkpoints/nerf"  # Add checkpoint directory
     )
 
     # Initialize dataset (removed device parameter)
@@ -110,14 +111,38 @@ def train_nerf():
         persistent_workers=True if device.type == "cpu" else False
     )
 
-    # Define number of training epochs
+    # Define number of training epochs and checkpoint frequency
     num_epochs = 100
+    checkpoint_frequency = 5  # Save checkpoint every 5 epochs
 
-    # Training loop
+    # Training loop with checkpointing
     for epoch in range(num_epochs):
+        epoch_loss = 0
+        num_batches = 0
+
         for batch in train_loader:
             loss_dict = trainer.train_step(batch)
+            epoch_loss += loss_dict['loss']
+            num_batches += 1
             print(f"Epoch {epoch}, Loss: {loss_dict['loss']:.4f}")
+
+        # Calculate average epoch loss
+        avg_epoch_loss = epoch_loss / num_batches
+
+        # Save checkpoint if needed
+        if (epoch + 1) % checkpoint_frequency == 0:
+            metrics = {
+                "epoch": epoch + 1,
+                "train_loss": avg_epoch_loss,
+                "learning_rate": trainer.optimizer.param_groups[0]['lr']
+            }
+            
+            checkpoint_path = trainer.save_checkpoint(
+                trainer.checkpoint_dir,
+                epoch + 1,
+                metrics
+            )
+            print(f"Saved checkpoint to {checkpoint_path}")
 
 def train_distributed_nerf(rank, world_size):
     # Initialize distributed trainer
