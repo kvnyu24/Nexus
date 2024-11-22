@@ -1,0 +1,14 @@
+# AlphaFold Configuration
+model_type: "alphafold"
+hidden_size: 256
+num_layers: 8
+num_heads: 8
+dropout: 0.1
+msa_vocab_size: 21
+
+# Training parameters
+batch_size: 1
+learning_rate: 0.0001
+weight_decay: 0.01
+warmup_steps: 1000
+max_steps: 100000
