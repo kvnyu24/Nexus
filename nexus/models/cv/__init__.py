@@ -8,6 +8,7 @@ from .detr import *
 from .swin_transformer import *
 from .atom_tracker import *
 from .city_reconstruction import *
+from .reid import *
 
 __all__ = [
     'VisionTransformer',
@@ -19,5 +20,6 @@ __all__ = [
     'DETR',
     'SwinTransformer',
     'ATOMTracker',
-    'CityReconstructionModel'
+    'CityReconstructionModel',
+    'PedestrianReID'
 ]
