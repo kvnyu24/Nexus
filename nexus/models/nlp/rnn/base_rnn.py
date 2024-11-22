@@ -104,9 +104,76 @@ class BaseRNN(NexusModule):
         hidden_state: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
         """
-        Base forward pass. Should be overridden by specific RNN implementations.
+        Base forward pass implementation with common RNN processing logic.
+        
+        Args:
+            input_ids: Input token ids of shape (batch_size, seq_len)
+            attention_mask: Optional mask of shape (batch_size, seq_len)
+            hidden_state: Optional initial hidden state
+            
+        Returns:
+            Dictionary containing model outputs
         """
-        raise NotImplementedError("Forward pass must be implemented by subclass")
+        # Validate inputs
+        self._validate_input(input_ids, attention_mask, hidden_state)
+        
+        # Get embeddings
+        embeddings = self.token_embedding(input_ids)
+        
+        # Initialize hidden state if not provided
+        if hidden_state is None:
+            hidden_state = self._init_hidden(input_ids.size(0), input_ids.device)
+        
+        # Handle attention mask and prepare packed sequence if needed
+        if attention_mask is not None:
+            lengths = attention_mask.sum(dim=1).clamp(min=1)
+            try:
+                packed_embeddings = nn.utils.rnn.pack_padded_sequence(
+                    embeddings,
+                    lengths.cpu(),
+                    batch_first=True,
+                    enforce_sorted=False
+                )
+                # Process through RNN (to be implemented by subclass)
+                packed_output, final_state = self._forward_rnn(
+                    packed_embeddings, 
+                    hidden_state
+                )
+                # Unpack sequence
+                output, _ = nn.utils.rnn.pad_packed_sequence(
+                    packed_output,
+                    batch_first=True,
+                    padding_value=0.0
+                )
+            except Exception:
+                # Fallback if packing fails
+                output, final_state = self._forward_rnn(embeddings, hidden_state)
+        else:
+            # Process without packing
+            output, final_state = self._forward_rnn(embeddings, hidden_state)
+        
+        # Apply layer normalization
+        output = self.layer_norm(output)
+        
+        # Generate logits
+        logits = self.output(output)
+        
+        return {
+            "logits": logits,
+            "hidden_states": output,
+            "last_hidden_state": final_state
+        }
+
+    def _forward_rnn(
+        self,
+        embeddings: torch.Tensor,
+        hidden_state: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Abstract method for RNN-specific forward pass.
+        Must be implemented by subclasses.
+        """
+        raise NotImplementedError("_forward_rnn must be implemented by subclass")
         
     def generate(
         self,
