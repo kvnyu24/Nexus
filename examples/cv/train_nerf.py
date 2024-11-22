@@ -22,64 +22,92 @@ class NeRFTrainer(Trainer):
     def train_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         self.optimizer.zero_grad()
         
-        # Extract batch data
+        # Move batch data to device after loading
         ray_origins = batch["ray_origins"].to(self.device)
         ray_directions = batch["ray_directions"].to(self.device)
         target_rgb = batch["target_rgb"].to(self.device)
         
         # Reshape ray directions to remove extra dimensions
-        ray_directions = ray_directions.squeeze(0).squeeze(0)  # Remove batch dims
-        ray_origins = ray_origins.squeeze(0).squeeze(0)  # Remove batch dims
+        ray_directions = ray_directions.squeeze(0).squeeze(0)
+        ray_origins = ray_origins.squeeze(0).squeeze(0)
         
-        # Render rays
-        outputs = self.model.render_rays(
-            ray_origins=ray_origins,
-            ray_directions=ray_directions,
-            near=2.0,
-            far=6.0,
-            num_samples=64,
-            noise_std=0.0
-        )
+        # Ensure target_rgb has correct shape and channels
+        # Remove alpha channel if present and reshape
+        if target_rgb.shape[-1] == 4:
+            target_rgb = target_rgb[..., :3]  # Keep only RGB channels
+        target_rgb = target_rgb.squeeze(0)  # Remove batch dimension if present
         
-        # Compute loss
-        loss = F.mse_loss(outputs["rgb"], target_rgb)
+        # Split rays into chunks to avoid OOM
+        chunk_size = 4096
+        total_loss = 0
+        num_chunks = ray_origins.shape[0] // chunk_size + (1 if ray_origins.shape[0] % chunk_size != 0 else 0)
         
-        # Backward pass
-        loss.backward()
+        for i in range(num_chunks):
+            start_idx = i * chunk_size
+            end_idx = min((i + 1) * chunk_size, ray_origins.shape[0])
+            
+            chunk_origins = ray_origins[start_idx:end_idx]
+            chunk_directions = ray_directions[start_idx:end_idx]
+            chunk_target = target_rgb[start_idx:end_idx]
+            
+            # Render rays for this chunk
+            outputs = self.model.render_rays(
+                ray_origins=chunk_origins,
+                ray_directions=chunk_directions,
+                near=2.0,
+                far=6.0,
+                num_samples=64,
+                noise_std=0.0
+            )
+            
+            # Ensure output and target shapes match
+            chunk_target = chunk_target.view(-1, 3)  # Reshape to [N, 3]
+            output_rgb = outputs["rgb"].view(-1, 3)  # Ensure output is [N, 3]
+            
+            # Compute loss for this chunk
+            loss = F.mse_loss(output_rgb, chunk_target)
+            total_loss += loss.item() * (end_idx - start_idx)
+            
+            # Backward pass for this chunk
+            loss.backward()
+        
+        # Average loss and update parameters
+        avg_loss = total_loss / ray_origins.shape[0]
         self.optimizer.step()
         
-        return {"loss": loss.item()}
+        return {"loss": avg_loss}
 
 def train_nerf():
     # Initialize model
-    nerf = NeRFNetwork(config)
+    device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+    nerf = NeRFNetwork(config).to(device)
 
-    # Initialize trainer
+    # Initialize trainer with device
     trainer = NeRFTrainer(
         model=nerf,
         optimizer="adam",
         learning_rate=5e-4,
-        device="cuda" if torch.cuda.is_available() else "cpu"
+        device=device
     )
 
-    # Initialize dataset with multiprocessing
+    # Initialize dataset (removed device parameter)
     nerf_dataset = NeRFDataset(
         root_dir='./data/nerf_synthetic/lego',
         split='train',
         img_wh=(400, 400),
-        precache_rays=True,  # Enable ray precaching
-        num_workers=8  # Adjust based on your CPU
+        precache_rays=True,
+        num_workers=8
     )
 
-    # Create data loader with optimized settings
+    # Create data loader
     train_loader = DataLoader(
         dataset=nerf_dataset,
         batch_size=1,
         shuffle=True,
-        num_workers=8,
-        pin_memory=True,
+        num_workers=8 if device.type == "cpu" else 0,
+        pin_memory=True if device.type != "cpu" else False,
         collate_fn=NeRFDataset.collate_fn,
-        persistent_workers=True  # Keep worker processes alive between epochs
+        persistent_workers=True if device.type == "cpu" else False
     )
 
     # Define number of training epochs
