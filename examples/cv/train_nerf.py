@@ -113,7 +113,7 @@ def train_nerf():
 
     # Define number of training epochs and checkpoint frequency
     num_epochs = 100
-    checkpoint_frequency = 5  # Save checkpoint every 5 epochs
+    checkpoint_frequency = 1  # Save checkpoint every 5 epochs
 
     # Training loop with checkpointing
     for epoch in range(num_epochs):

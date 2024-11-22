@@ -1,6 +1,6 @@
 from nexus.models.nlp import RAGModule, EdgeLLM
 from nexus.training import Trainer
-from nexus.data import TextProcessor
+from nexus.data import TextProcessor, TextDataset
 import torch
 
 # Configuration
