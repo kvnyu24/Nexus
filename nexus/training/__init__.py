@@ -7,7 +7,11 @@ from .losses import (
     TripletLoss,
     NTXentLoss,
     WingLoss,
-    DiceLoss
+    DiceLoss,
+    InfoNCELoss,
+    AdaCosLoss,
+    PolyLoss,
+    WeightedFocalLoss
 )
 
 from .scheduler import (
@@ -26,6 +30,10 @@ __all__ = [
     'NTXentLoss',
     'WingLoss',
     'DiceLoss',
+    'InfoNCELoss',
+    'AdaCosLoss',
+    'PolyLoss',
+    'WeightedFocalLoss',
     
     # Learning rate schedulers
     'CosineWarmupScheduler'
