@@ -1,11 +1,12 @@
-from .vit import VisionTransformer
-from .compact_cnn import CompactCNN
-from .mask_rcnn.mask_rcnn import MaskRCNN
+from .vit import *
+from .compact_cnn import *
+from .mask_rcnn import *
 from .nerf import *
 from .vae import *
-from .efficient_net import EfficientNet
-from .detr import DETR
-from .swin_transformer import SwinTransformer
+from .efficient_net import *
+from .detr import *
+from .swin_transformer import *
+from .atom_tracker import *
 
 __all__ = [
     'VisionTransformer',
@@ -15,5 +16,6 @@ __all__ = [
     'EnhancedVAE',
     'EfficientNet',
     'DETR',
-    'SwinTransformer'
+    'SwinTransformer',
+    'ATOMTracker'
 ]
