@@ -4,15 +4,17 @@ from .rag import CrossAttentionFusion, EnhancedRAGModule, EfficientRetriever, Do
 from .hallucination_reducer import HallucinationReducer
 from .t5 import EnhancedT5
 from .longformer import Longformer
+from .lstm import EnhancedLSTM
 
 __all__ = [
     'EdgeLLM',
     'ChainOfThoughtModule',
     'CrossAttentionFusion',
     'EnhancedRAGModule',
-    'HallucinationReducer',
     'EfficientRetriever',
     'DocumentEncoder',
+    'HallucinationReducer',
     'EnhancedT5',
-    'Longformer'
+    'Longformer',
+    'EnhancedLSTM'
 ] 
