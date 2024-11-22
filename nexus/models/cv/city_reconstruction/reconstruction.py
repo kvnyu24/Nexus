@@ -32,7 +32,7 @@ class CityReconstructionModel(NexusModule):
         
     def _build_backbone(self, config: Dict[str, Any]) -> nn.Module:
         # Reuse FPN backbone architecture
-        from ..mask_rcnn.backbone import FPNBackbone
+        from ..rcnn.backbone import FPNBackbone
         return FPNBackbone(config)
         
     def forward(
