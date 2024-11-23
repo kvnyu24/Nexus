@@ -17,10 +17,18 @@ class AutonomousDrivingSystem(NexusModule):
         
         # Validate configuration
         self._validate_config(config)
+
+        # Vision backbone (FPN)
+        self.fpn_backbone = FPNBackbone(config)
+
         
         # Perception stack
         self.scene_understanding = SceneUnderstandingModule(config)
         self.perception = EnhancedPerceptionModule(config)
+
+        # Agent interaction
+        self.interaction_module = InteractionModule(config)
+
         
         # Prediction stack
         self.motion_prediction = MotionPredictionModule(config)
@@ -63,10 +71,14 @@ class AutonomousDrivingSystem(NexusModule):
         self,
         images: torch.Tensor,
         agent_states: torch.Tensor,
+        other_agents: Optional[torch.Tensor] = None,
         motion_history: Optional[torch.Tensor] = None,
         route_info: Optional[Dict[str, torch.Tensor]] = None,
         attention_mask: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
+        # Extract FPN features
+        fpn_features = self.fpn_backbone(images)
+
         # Scene understanding and perception
         scene_outputs = self.scene_understanding(images, attention_mask)
         perception_outputs = self.perception(images)
@@ -78,17 +90,32 @@ class AutonomousDrivingSystem(NexusModule):
                 perception_outputs["features"]["p5"]
             ], dim=-1)
         )
+
+        # Agent interaction processing
+        if other_agents is not None:
+            interaction_outputs = self.interaction_module(
+                agent_states,
+                other_agents,
+                attention_mask=attention_mask
+            )
+            interaction_features = interaction_outputs["interaction_features"]
+        else:
+            interaction_features = torch.zeros_like(perception_features)
+            interaction_outputs = {}
+
         
         # Motion and behavior prediction
         motion_outputs = self.motion_prediction(
             motion_history,
             scene_context=perception_features,
+            interaction_context=interaction_features,
             attention_mask=attention_mask
         )
         
         behavior_outputs = self.behavior_prediction(
             agent_states,
             scene_context=perception_features,
+            interaction_context=interaction_features,
             attention_mask=attention_mask
         )
         
@@ -106,7 +133,8 @@ class AutonomousDrivingSystem(NexusModule):
             route_info=route_info,
             traffic_info={
                 "attention_mask": attention_mask,
-                "scene_context": perception_features
+                "scene_context": perception_features,
+                "interaction_context": interaction_features
             }
         )
         
@@ -123,6 +151,7 @@ class AutonomousDrivingSystem(NexusModule):
             perception_features,
             prediction_features,
             global_context,
+            interaction_features,
             attention_mask=attention_mask
         )
         
@@ -132,10 +161,12 @@ class AutonomousDrivingSystem(NexusModule):
         return {
             **scene_outputs,
             **perception_outputs,
+            **interaction_outputs,
             **motion_outputs,
             **behavior_outputs,
             **planning_outputs,
             **decision_outputs,
+            "fpn_features": fpn_features,
             "safety_score": safety_score,
             "attention_weights": attention_weights,
             "global_context": global_context
