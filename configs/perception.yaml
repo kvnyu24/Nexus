@@ -1,0 +1,23 @@
+# Enhanced Perception Configuration
+model_type: "perception"
+hidden_dim: 256
+num_heads: 8
+dropout: 0.1
+
+# FPN Configuration
+fpn_channels: [256, 256, 256, 256]
+use_nvlm: true
+
+# NVLM Configuration
+nvlm_config:
+  hidden_size: 512
+  num_layers: 6
+  num_heads: 8
+  dropout: 0.1
+
+# Training Configuration
+batch_size: 8
+learning_rate: 0.0001
+weight_decay: 0.01
+warmup_steps: 1000
+max_steps: 100000 

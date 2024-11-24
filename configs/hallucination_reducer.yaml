@@ -1,0 +1,21 @@
+# Hallucination Reducer Configuration
+model_type: "hallucination_reducer"
+hidden_size: 768
+num_heads: 8
+dropout: 0.1
+vocab_size: 50000
+
+# RAG Configuration
+num_retrieved_docs: 5
+max_doc_length: 512
+
+# Fact Verification
+verification_threshold: 0.8
+max_reasoning_steps: 3
+
+# Training Configuration
+batch_size: 16
+learning_rate: 0.0001
+weight_decay: 0.01
+warmup_steps: 1000
+max_steps: 100000 

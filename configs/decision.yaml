@@ -1,0 +1,18 @@
+# Decision Making Configuration
+model_type: "decision"
+hidden_dim: 256
+num_actions: 9
+dropout: 0.1
+memory_size: 1000
+
+# Feature Processing
+feature_fusion: true
+use_safety_head: true
+safety_threshold: 0.95
+
+# Training Configuration
+batch_size: 32
+learning_rate: 0.0001
+weight_decay: 0.01
+warmup_steps: 1000
+max_steps: 100000 

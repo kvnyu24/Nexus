@@ -1,0 +1,18 @@
+# Enhanced RAG Configuration
+model_type: "rag"
+hidden_size: 768
+num_heads: 8
+num_retrieval_docs: 5
+dropout: 0.1
+
+# Document processing
+max_doc_length: 512
+doc_stride: 128
+max_query_length: 64
+
+# Training parameters
+batch_size: 16
+learning_rate: 0.0001
+weight_decay: 0.01
+warmup_steps: 1000
+max_steps: 50000 

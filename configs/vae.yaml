@@ -1,0 +1,19 @@
+# Enhanced VAE Configuration
+model_type: "vae"
+architecture: "conv"
+in_channels: 3
+hidden_dims: [32, 64, 128, 256, 512]
+latent_dim: 128
+beta: 1.0
+
+# Architecture specific
+dropout: 0.1
+activation: "relu"
+normalize_inputs: true
+
+# Training parameters
+batch_size: 64
+learning_rate: 0.001
+weight_decay: 0.00001
+warmup_steps: 1000
+max_steps: 100000 

@@ -1,0 +1,19 @@
+# Temporal ReID Configuration
+model_type: "temporal_reid"
+hidden_dim: 512
+feature_dim: 2048
+num_classes: 1000
+sequence_length: 8
+num_heads: 8
+
+# Backbone Configuration
+in_channels: 3
+base_channels: 64
+dropout: 0.5
+
+# Training Configuration
+batch_size: 32
+learning_rate: 0.0003
+weight_decay: 0.0005
+warmup_steps: 500
+max_steps: 50000 

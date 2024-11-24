@@ -1,0 +1,19 @@
+# Falcon Configuration
+model_type: "falcon"
+vocab_size: 65024
+hidden_size: 2048
+num_layers: 32
+num_heads: 32
+
+# Model Specific
+parallel_attn: true
+alibi: true
+multi_query: true
+head_dim: 64
+
+# Training Configuration
+batch_size: 1
+learning_rate: 0.0001
+weight_decay: 0.1
+warmup_steps: 2000
+max_steps: 500000 
