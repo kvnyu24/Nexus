@@ -1,0 +1,25 @@
+# Qwen Configuration
+model_type: "qwen"
+vocab_size: 151936
+hidden_size: 4096
+num_layers: 32
+num_heads: 32
+intermediate_size: 11008
+max_seq_length: 32768
+rope_theta: 10000.0
+use_dynamic_ntk: true
+use_logn_attn: true
+use_flash_attn: true
+
+# Architecture specific
+kv_channels: 128
+rotary_percentage: 0.25
+parallel_attn: true
+bias: true
+
+# Training parameters
+batch_size: 32
+learning_rate: 0.0001
+weight_decay: 0.01
+warmup_steps: 2000
+max_steps: 50000
