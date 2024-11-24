@@ -4,6 +4,8 @@ from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
 from ..cv.rcnn import FPNBackbone
 from torch.nn import functional as F
+from nexus.models.nvlm.base import NVLMMixin
+from nexus.models.nvlm.processor import NVLMProcessor
 
 class MultiTaskPerceptionHead(nn.Module):
     def __init__(self, in_channels: int, config: Dict[str, Any]):
@@ -35,32 +37,30 @@ class MultiTaskPerceptionHead(nn.Module):
             nn.Conv2d(hidden_dim, 4 + config.get("num_classes", 80), 1)
         )
 
-class EnhancedPerceptionModule(NexusModule):
+class EnhancedPerceptionModule(NexusModule, NVLMMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Reuse FPN backbone (similar to MaskRCNN pattern)
+        # Original perception initialization
         self.backbone = FPNBackbone(config)
-        
-        # Multi-task heads
         self.perception_heads = nn.ModuleDict({
             level: MultiTaskPerceptionHead(256, config)
             for level in ['p2', 'p3', 'p4', 'p5']
         })
         
-        # Feature fusion
-        self.fusion = nn.ModuleDict({
-            'segmentation': nn.Conv2d(256 * 4, 256, 1),
-            'depth': nn.Conv2d(256 * 4, 256, 1),
-            'detection': nn.Conv2d(256 * 4, 256, 1)
-        })
-        
+        # Initialize NVLM if configured
+        if config.get("use_nvlm", False):
+            self.init_nvlm(config.get("nvlm_config", {}))
+    
     def forward(
         self,
         images: torch.Tensor,
-        camera_params: Optional[Dict[str, torch.Tensor]] = None
+        text_features: Optional[torch.Tensor] = None,
+        **kwargs
     ) -> Dict[str, torch.Tensor]:
-        # Extract multi-scale features
+        outputs = {}
+        
+        # Original perception forward pass
         features = self.backbone(images)
         
         # Process each scale
@@ -76,9 +76,23 @@ class EnhancedPerceptionModule(NexusModule):
                 )
         
         # Fuse multi-scale predictions
-        outputs = {}
         for task in ['segmentation', 'depth', 'detection']:
             fused = self.fusion[task](torch.cat(multi_scale_outputs[task], dim=1))
             outputs[f"{task}_logits"] = fused
             
+        # Add NVLM processing if enabled
+        if hasattr(self, "vision_encoder"):
+            visual_features = NVLMProcessor.process_visual_features(
+                images, self.vision_encoder, self.downsample,
+                self.tile_embeddings, self.max_tiles
+            )
+            
+            if self.arch_type == "cross":
+                for layer in self.cross_attention:
+                    visual_features = layer(text_features, visual_features)
+                outputs["visual_features"] = visual_features
+            else:
+                visual_features = self.projector(visual_features)
+                outputs["visual_embeddings"] = visual_features
+                
         return outputs
