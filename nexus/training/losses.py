@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict, Any
 import math
 
 class FocalLoss(nn.Module):
@@ -456,3 +456,90 @@ class WeightedFocalLoss(nn.Module):
             return focal_loss.sum()
         return focal_loss
     
+class SFTLoss(nn.Module):
+    def __init__(self, alpha: float = 0.3, beta: float = 0.2):
+        super().__init__()
+        self.alpha = alpha  # Weight for verification loss
+        self.beta = beta   # Weight for quality loss
+        self.ce_loss = nn.CrossEntropyLoss()
+        
+    def forward(
+        self,
+        logits: torch.Tensor,
+        labels: torch.Tensor,
+        verification_scores: torch.Tensor,
+        quality_scores: Optional[torch.Tensor] = None,
+        attention_mask: Optional[torch.Tensor] = None
+    ) -> Dict[str, torch.Tensor]:
+        # Calculate main supervised loss
+        supervised_loss = self.ce_loss(logits.view(-1, logits.size(-1)), labels.view(-1))
+        
+        # Calculate verification-based loss
+        verification_loss = -torch.log(verification_scores + 1e-10).mean()
+        
+        losses = {
+            "supervised_loss": supervised_loss,
+            "verification_loss": verification_loss * self.alpha,
+            "total_loss": supervised_loss + (verification_loss * self.alpha)
+        }
+        
+        # Add quality loss if provided
+        if quality_scores is not None:
+            quality_loss = -torch.log(quality_scores + 1e-10).mean()
+            losses["quality_loss"] = quality_loss * self.beta
+            losses["total_loss"] = losses["total_loss"] + (quality_loss * self.beta)
+            
+        return losses
+    
+
+class EnhancedSFTLoss(nn.Module):
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__()
+        
+        # Loss weights following AdvancedDistillationModule pattern
+        self.alpha = config.get("response_loss_weight", 1.0)
+        self.beta = config.get("quality_loss_weight", 0.1)
+        self.gamma = config.get("hallucination_loss_weight", 0.3)
+        
+        # Temperature scaling following StableDiffusion pattern
+        self.register_buffer("temperature", torch.ones(1))
+        
+    def forward(
+        self,
+        logits: torch.Tensor,
+        labels: torch.Tensor,
+        quality_scores: torch.Tensor,
+        hallucination_scores: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None
+    ) -> Dict[str, torch.Tensor]:
+        # Response generation loss
+        response_loss = F.cross_entropy(
+            logits.view(-1, logits.size(-1)),
+            labels.view(-1),
+            reduction='none'
+        )
+        
+        if attention_mask is not None:
+            response_loss = response_loss * attention_mask.view(-1)
+            
+        response_loss = response_loss.mean()
+        
+        # Quality assessment loss following AlphaFold pattern
+        quality_loss = -torch.log(quality_scores + 1e-10).mean()
+        
+        # Hallucination reduction loss
+        hallucination_loss = -torch.log(hallucination_scores + 1e-10).mean()
+        
+        # Combine losses
+        total_loss = (
+            self.alpha * response_loss +
+            self.beta * quality_loss +
+            self.gamma * hallucination_loss
+        )
+        
+        return {
+            "response_loss": response_loss,
+            "quality_loss": quality_loss,
+            "hallucination_loss": hallucination_loss,
+            "total_loss": total_loss
+        }
