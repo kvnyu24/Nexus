@@ -11,6 +11,7 @@ from . import diffusion
 from . import nvlm 
 from . import autonomous
 from . import nsm
+from . import ssm
 
 __all__ = ['cv', 
            'nlp', 
@@ -24,5 +25,6 @@ __all__ = ['cv',
            'diffusion', 
            'nvlm', 
            'autonomous',
-           'nsm'
+           'nsm',
+           'ssm'
            ]
