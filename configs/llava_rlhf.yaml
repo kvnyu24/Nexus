@@ -1,0 +1,25 @@
+# LLaVA-RLHF Configuration
+model_type: "llava_rlhf"
+hidden_size: 768
+num_heads: 12
+max_seq_length: 1024
+reward_scale: 0.1
+kl_coef: 0.1
+bank_size: 10000
+
+# Vision configuration
+vision_config:
+  hidden_size: 1024
+  num_layers: 12
+  num_heads: 16
+  patch_size: 16
+  image_size: 224
+
+# Language configuration
+language_config:
+  vocab_size: 32000
+  hidden_size: 768
+  num_layers: 12
+  num_heads: 12
+  intermediate_size: 3072
+  max_seq_length: 1024 
