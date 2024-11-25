@@ -12,6 +12,7 @@ from . import nvlm
 from . import autonomous
 from . import nsm
 from . import ssm
+from . import multimodal
 
 __all__ = ['cv', 
            'nlp', 
@@ -26,5 +27,6 @@ __all__ = ['cv',
            'nvlm', 
            'autonomous',
            'nsm',
-           'ssm'
+           'ssm',
+           'multimodal'
            ]

@@ -51,6 +51,17 @@ class PaLME(NexusModule):
         self.num_layers = config["num_layers"]
         self.num_heads = config.get("num_heads", 8)
         
+        # Add position embeddings
+        self.max_seq_length = config.get("max_seq_length", 1024)
+        self.position_embedding = nn.Parameter(
+            torch.zeros(1, self.max_seq_length, self.hidden_dim)
+        )
+        
+        # Add layer normalizations
+        self.pre_vision_norm = nn.LayerNorm(self.hidden_dim)
+        self.pre_language_norm = nn.LayerNorm(self.hidden_dim)
+        self.final_norm = nn.LayerNorm(self.hidden_dim)
+        
         # Vision components
         self.vision_encoder = VisionEncoder(
             input_channels=config.get("input_channels", 3),
@@ -77,13 +88,11 @@ class PaLME(NexusModule):
             )
         })
         
-        # Feature bank (following EnhancedReID pattern)
+        # Add feature bank with configurable size
+        self.bank_size = config.get("bank_size", 10000)
         self.register_buffer(
             "feature_bank",
-            torch.zeros(
-                config.get("bank_size", 10000),
-                self.hidden_dim
-            )
+            torch.zeros(self.bank_size, self.hidden_dim)
         )
         self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
         
@@ -120,20 +129,21 @@ class PaLME(NexusModule):
     ) -> Dict[str, torch.Tensor]:
         outputs = {}
         
-        # Process visual input
+        # Process visual input with normalization
         if images is not None:
             visual_features = self.vision_encoder(images)
+            visual_features = self.pre_vision_norm(visual_features)
             outputs["visual_features"] = visual_features
             
-        # Process text input
+        # Process text input with position embeddings
         if text_tokens is not None:
-            text_features = self.language_encoder(
-                text_tokens,
-                attention_mask=attention_mask
-            )
+            text_features = self.language_encoder(text_tokens, attention_mask)
+            seq_length = text_features.size(1)
+            text_features = text_features + self.position_embedding[:, :seq_length]
+            text_features = self.pre_language_norm(text_features)
             outputs["text_features"] = text_features
             
-        # Cross-modal fusion when both modalities are present
+        # Enhanced cross-modal fusion
         if images is not None and text_tokens is not None:
             # Vision-guided language features
             vision_text_features = self.cross_attention['vision_to_text'](
@@ -149,12 +159,12 @@ class PaLME(NexusModule):
                 text_features
             )[0]
             
-            # Fuse features
-            fused_features = vision_text_features + text_vision_features
+            # Fuse and normalize features
+            fused_features = self.final_norm(vision_text_features + text_vision_features)
             outputs["fused_features"] = fused_features
             
-            # Update feature bank
-            self.update_feature_bank(fused_features)
+            # Update feature bank with new mechanism
+            self._update_feature_bank(fused_features)
             
             # Generate task-specific outputs
             outputs.update({
@@ -163,4 +173,22 @@ class PaLME(NexusModule):
                 "action_logits": self.task_heads["action_prediction"](fused_features)
             })
             
-        return outputs 
+        return outputs
+
+    def _update_feature_bank(self, features: torch.Tensor) -> None:
+        """Update feature bank with circular buffer mechanism"""
+        batch_size = features.size(0)
+        ptr = int(self.bank_ptr)
+        
+        # Implement circular buffer
+        if ptr + batch_size > self.bank_size:
+            # Handle wraparound
+            first_part = self.bank_size - ptr
+            self.feature_bank[ptr:] = features[:first_part].detach()
+            self.feature_bank[:batch_size-first_part] = features[first_part:].detach()
+            ptr = batch_size - first_part
+        else:
+            self.feature_bank[ptr:ptr + batch_size] = features.detach()
+            ptr = (ptr + batch_size) % self.bank_size
+            
+        self.bank_ptr[0] = ptr
