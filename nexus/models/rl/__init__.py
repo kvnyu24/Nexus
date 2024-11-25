@@ -3,5 +3,6 @@ from .ddqn import *
 from .dueling_dqn import *
 from .ppo import *
 from .a2c import *
+from .prm import *
 
-__all__ = ['DQNAgent', 'DoubleDQNAgent', 'DuelingDQNAgent', 'PPOAgent', 'A2CAgent'] 
+__all__ = ['DQNAgent', 'DoubleDQNAgent', 'DuelingDQNAgent', 'PPOAgent', 'A2CAgent', 'PRMAgent'] 

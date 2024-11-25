@@ -35,9 +35,20 @@ else
     pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 fi
 
+# Verify PyTorch installation and wait for it to be accessible
+echo "Verifying PyTorch installation..."
+python3 -c "import torch; print(f'PyTorch version: {torch.__version__}')" || exit 1
+sleep 2  # Give time for the installation to fully complete
+
+# Install torch-scatter with the correct version
+echo "Installing torch-scatter..."
+TORCH_VERSION=$(python3 -c "import torch; print(torch.__version__.split('+')[0])")
+CUDA_VERSION=$(python3 -c "import torch; print('cpu' if not torch.cuda.is_available() else 'cu' + torch.version.cuda.replace('.',''))")
+pip install torch-scatter -f https://data.pyg.org/whl/torch-${TORCH_VERSION}+${CUDA_VERSION}.html
+
 # Install other requirements
 echo "Installing other requirements..."
-pip install -r <(grep -v "torch" requirements.txt)
+pip install -r <(grep -v "torch\|torch-scatter" requirements.txt)
 
 # Install development package in editable mode
 echo "Installing nexus in development mode..."
