@@ -1,8 +1,28 @@
 from . import cv
 from . import nlp
 from . import rl
-from .protein.alphafold import AlphaFold
+from . import gnn
+from . import moe
+from . import protein
 from . import agents
-from .chemistry.atom_tracker import AtomTracker
+from . import chemistry
+from . import gan 
+from . import diffusion
+from . import nvlm 
+from . import autonomous
+from . import nsm
 
-__all__ = ['cv', 'nlp', 'rl', 'AlphaFold', 'agents', 'AtomTracker']
+__all__ = ['cv', 
+           'nlp', 
+           'rl', 
+           'AlphaFold', 
+           'agents', 
+           'AtomTracker', 
+           'protein', 
+           'chemistry', 
+           'gan', 
+           'diffusion', 
+           'nvlm', 
+           'autonomous',
+           'nsm'
+           ]
