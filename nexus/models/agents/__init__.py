@@ -1,6 +1,7 @@
-from .agent_town import AgentTown, AgentBehavior, SocialAgent
-from .interaction import InteractionModule, DialogueManager
-from .environment import VirtualEnvironment, ObjectRegistry
+from .agent_town import *
+from .interaction import *
+from .environment import *
+from .enhanced_agent import *
 
 __all__ = [
     'AgentTown',
@@ -9,5 +10,6 @@ __all__ = [
     'InteractionModule',
     'DialogueManager',
     'VirtualEnvironment',
-    'ObjectRegistry'
+    'ObjectRegistry',
+    'EnhancedSocialAgent',
 ]
