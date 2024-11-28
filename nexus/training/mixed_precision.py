@@ -1,11 +1,12 @@
 import torch
 from torch.cuda.amp import autocast, GradScaler
 from typing import Dict, Any, Optional
+from nexus.core.base import NexusModule
 
 class MixedPrecisionTrainer:
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: NexusModule,
         optimizer: torch.optim.Optimizer,
         scaler: Optional[GradScaler] = None
     ):

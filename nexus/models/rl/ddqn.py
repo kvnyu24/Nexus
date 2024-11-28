@@ -5,7 +5,7 @@ from typing import Dict, Any, List, Tuple
 from ...core.base import NexusModule
 import numpy as np
 
-class DoubleDQNNetwork(nn.Module):
+class DoubleDQNNetwork(NexusModule):
     def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 128):
         super().__init__()
         self.network = nn.Sequential(

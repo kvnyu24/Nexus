@@ -2,6 +2,7 @@ import torch
 from nexus.utils.logging import Logger
 from typing import Dict, Type
 import os
+from nexus.core.base import NexusModule
 
 class AppleGPUManager:
     def __init__(self):
@@ -52,7 +53,7 @@ class AppleGPUManager:
             self.logger.warning(f"Failed to get memory info: {e}")
             return {"available": 0, "total": 0, "used": 0}
             
-    def optimize_for_metal(self, model: torch.nn.Module) -> torch.nn.Module:
+    def optimize_for_metal(self, model: NexusModule) -> NexusModule:
         """Apply Metal-specific optimizations to the model"""
         if not self.initialized:
             return model
@@ -65,7 +66,7 @@ class AppleGPUManager:
         
         return model
 
-    def create_optimizer(self, model: torch.nn.Module, 
+    def create_optimizer(self, model: NexusModule, 
                         optimizer_class: Type[torch.optim.Optimizer],
                         **kwargs) -> torch.optim.Optimizer:
         """Create an optimizer optimized for Metal"""
@@ -99,7 +100,7 @@ class AppleGPUManager:
             self.logger.warning(f"Failed to get memory info: {e}")
             return {"available": 0, "total": 0, "used": 0}
             
-    def optimize_for_metal(self, model: torch.nn.Module) -> torch.nn.Module:
+    def optimize_for_metal(self, model: NexusModule) -> NexusModule:
         """Apply Metal-specific optimizations to the model"""
         if not self.initialized:
             return model
@@ -112,7 +113,7 @@ class AppleGPUManager:
         
         return model
 
-    def create_optimizer(self, model: torch.nn.Module, 
+    def create_optimizer(self, model: NexusModule, 
                         optimizer_class: Type[torch.optim.Optimizer],
                         **kwargs) -> torch.optim.Optimizer:
         """Create an optimizer optimized for Metal"""

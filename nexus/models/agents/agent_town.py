@@ -6,7 +6,7 @@ from .interaction import InteractionModule
 from .environment import VirtualEnvironment
 from .proactive_agent import ProactiveAgent
 
-class AgentBehavior(nn.Module):
+class AgentBehavior(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         self.hidden_dim = config["hidden_dim"]
@@ -24,7 +24,7 @@ class AgentBehavior(nn.Module):
         combined = torch.cat([state, context], dim=-1)
         return self.behavior_net(combined)
 
-class SocialAgent(nn.Module):
+class SocialAgent(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         self.hidden_dim = config["hidden_dim"]

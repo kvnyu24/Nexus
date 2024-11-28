@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from ....core.base import NexusModule
 from ....components.attention import MultiHeadSelfAttention
 
-class ReIDBackbone(nn.Module):
+class ReIDBackbone(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         

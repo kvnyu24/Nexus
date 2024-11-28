@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, Tuple
 from .base_llm import BaseLLM, BaseLLMConfig
 import math
+from nexus.core.base import NexusModule
 
 class LlamaConfig(BaseLLMConfig):
     """Configuration class for LLaMA model"""
@@ -30,7 +31,7 @@ class LlamaConfig(BaseLLMConfig):
         self.rope_scaling = rope_scaling
         self.rope_theta = rope_theta
 
-class LlamaRotaryEmbedding(nn.Module):
+class LlamaRotaryEmbedding(NexusModule):
     def __init__(self, dim: int, max_seq_length: int = 2048, theta: float = 10000.0):
         super().__init__()
         self.dim = dim
@@ -46,7 +47,7 @@ class LlamaRotaryEmbedding(nn.Module):
         self.register_buffer("cos_cached", emb.cos())
         self.register_buffer("sin_cached", emb.sin())
 
-class LlamaAttention(nn.Module):
+class LlamaAttention(NexusModule):
     def __init__(self, config: LlamaConfig):
         super().__init__()
         self.num_heads = config.num_heads
@@ -64,7 +65,7 @@ class LlamaAttention(nn.Module):
             theta=config.rope_theta
         )
 
-class LlamaBlock(nn.Module):
+class LlamaBlock(NexusModule):
     def __init__(self, config: LlamaConfig):
         super().__init__()
         self.attention = LlamaAttention(config)

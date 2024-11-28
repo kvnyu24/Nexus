@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
 from .llama import BaseLLMBlock
+from nexus.core.base import NexusModule
 
 class FalconConfig(BaseLLMConfig):
     """Configuration class for Falcon model"""
@@ -29,7 +30,7 @@ class FalconConfig(BaseLLMConfig):
         self.alibi = alibi
         self.multi_query = multi_query
 
-class FalconAttention(nn.Module):
+class FalconAttention(NexusModule):
     def __init__(self, config: FalconConfig):
         super().__init__()
         self.num_heads = config.num_heads

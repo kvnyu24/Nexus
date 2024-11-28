@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from nexus.core.base import NexusModule
 
 class NVLMProcessor:
     """Helper class for processing NVLM inputs and outputs"""
@@ -8,8 +9,8 @@ class NVLMProcessor:
     def process_visual_features(
         self,
         images: torch.Tensor,
-        vision_encoder: nn.Module,
-        downsample: nn.Module,
+        vision_encoder: NexusModule,
+        downsample: NexusModule,
         tile_embeddings: nn.Embedding,
         max_tiles: int = 7
     ) -> torch.Tensor:

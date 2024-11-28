@@ -5,7 +5,7 @@ from ....core.base import NexusModule
 from .reid_module import ReIDBackbone
 from ....components.attention import MultiHeadSelfAttention
 
-class TemporalAttention(nn.Module):
+class TemporalAttention(NexusModule):
     def __init__(self, hidden_dim: int, num_heads: int = 8):
         super().__init__()
         self.attention = MultiHeadSelfAttention(

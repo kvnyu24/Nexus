@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional, Tuple
 import torch
 import torch.nn as nn
 from .base_llm import BaseLLM, BaseLLMConfig
+from nexus.core.base import NexusModule
 
 class EdgeLLMConfig(BaseLLMConfig):
     """Configuration class for EdgeLLM"""
@@ -27,7 +28,7 @@ class EdgeLLMConfig(BaseLLMConfig):
             **kwargs
         )
 
-class EdgeTransformerBlock(nn.Module):
+class EdgeTransformerBlock(NexusModule):
     def __init__(
         self,
         hidden_size: int,

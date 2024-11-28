@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from ...core.base import NexusModule
 from ...components.attention import FlashAttention
 
-class T5EncoderBlock(nn.Module):
+class T5EncoderBlock(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int, dropout: float = 0.1):
         super().__init__()
         self.attention = FlashAttention(

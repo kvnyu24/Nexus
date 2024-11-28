@@ -32,7 +32,7 @@ class ReasoningStep:
             "attention_weights": self.attention.last_attention_weights
         }
 
-class ChainOfThoughtModule(nn.Module):
+class ChainOfThoughtModule(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         self.num_steps = config["num_reasoning_steps"]

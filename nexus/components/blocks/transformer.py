@@ -3,9 +3,10 @@ import torch.nn as nn
 from ..attention import MultiHeadSelfAttention, CrossAttention, MemoryEfficientAttention
 from typing import Optional, Dict
 from ..attention.base import UnifiedAttention
+from nexus.core.base import NexusModule
 
 
-class MultiModalTransformerBlock(nn.Module):
+class MultiModalTransformerBlock(NexusModule):
     def __init__(
         self,
         hidden_size: int,
@@ -65,7 +66,7 @@ class MultiModalTransformerBlock(nn.Module):
     
 
 
-class UnifiedTransformerBlock(nn.Module):
+class UnifiedTransformerBlock(NexusModule):
     def __init__(
         self,
         hidden_size: int,

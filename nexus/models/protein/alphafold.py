@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, List, Tuple, NamedTuple
 from ...core.base import NexusModule
 from ...components.attention import MultiHeadSelfAttention
 
-class TemplateEmbedding(nn.Module):
+class TemplateEmbedding(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int):
         super().__init__()
         self.template_attention = MultiHeadSelfAttention(
@@ -22,7 +22,7 @@ class TemplateEmbedding(nn.Module):
         )
         return self.template_proj(template_attn)
 
-class EvoformerBlock(nn.Module):
+class EvoformerBlock(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int, dropout: float = 0.1):
         super().__init__()
         self.msa_attention = MultiHeadSelfAttention(hidden_size, num_heads)

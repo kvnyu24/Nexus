@@ -1,11 +1,12 @@
 import torch
 import torch.nn as nn
 from typing import Optional, Union, Callable
+from nexus.core.base import NexusModule
 
 class WeightInitializer:
     @staticmethod
     def initialize_weights(
-        module: nn.Module,
+        module: NexusModule,
         method: str = 'kaiming_normal',
         nonlinearity: str = 'relu',
         scale: float = 1.0
@@ -30,11 +31,11 @@ class WeightInitializer:
                 nn.init.zeros_(param)
                 
     @staticmethod
-    def apply_weight_norm(module: nn.Module, name: str = 'weight'):
+    def apply_weight_norm(module: NexusModule, name: str = 'weight'):
         return nn.utils.weight_norm(module, name=name)
         
     @staticmethod
-    def remove_weight_norm(module: nn.Module):
+    def remove_weight_norm(module: NexusModule):
         for m in module.modules():
             try:
                 nn.utils.remove_weight_norm(m)

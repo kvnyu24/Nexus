@@ -5,7 +5,7 @@ from ....core.base import NexusModule
 from .nerf import PositionalEncoding
 from .nerf import NeRFNetwork
 
-class HierarchicalSampling(nn.Module):
+class HierarchicalSampling(NexusModule):
     def __init__(self, num_samples: int = 64):
         super().__init__()
         self.num_samples = num_samples

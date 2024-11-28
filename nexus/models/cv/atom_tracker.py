@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional
 from ...core.base import NexusModule
 from ...components.attention import SpatialAttention
 
-class TargetEncoder(nn.Module):
+class TargetEncoder(NexusModule):
     def __init__(self, in_channels: int, hidden_dim: int):
         super().__init__()
         self.conv_layers = nn.Sequential(
@@ -21,7 +21,7 @@ class TargetEncoder(nn.Module):
         x = self.conv_layers(x)
         return self.spatial_attention(x)
 
-class SearchRegionEncoder(nn.Module):
+class SearchRegionEncoder(NexusModule):
     def __init__(self, in_channels: int, hidden_dim: int):
         super().__init__()
         self.conv_layers = nn.Sequential(
@@ -62,7 +62,7 @@ class ATOMTracker(NexusModule):
         # Initialize weights
         self.apply(self._init_weights)
         
-    def _init_weights(self, m: nn.Module):
+    def _init_weights(self, m: NexusModule):
         if isinstance(m, nn.Conv2d):
             nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
             if m.bias is not None:

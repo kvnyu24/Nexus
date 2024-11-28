@@ -6,7 +6,7 @@ from .document_encoder import DocumentEncoder
 from .retriever import EfficientRetriever
 from ....components.attention import MultiHeadSelfAttention
 
-class CrossAttentionFusion(nn.Module):
+class CrossAttentionFusion(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int = 8):
         super().__init__()
         self.attention = MultiHeadSelfAttention(

@@ -5,7 +5,7 @@ from typing import Dict, Any, List, Tuple
 from ...core.base import NexusModule
 import numpy as np
 
-class DuelingDQNNetwork(nn.Module):
+class DuelingDQNNetwork(NexusModule):
     def __init__(self, state_dim: int, action_dim: int, hidden_dim: int = 128):
         super().__init__()
         

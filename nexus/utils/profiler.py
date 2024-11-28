@@ -3,13 +3,14 @@ import time
 from collections import defaultdict
 import numpy as np
 from typing import Dict
+from nexus.core.base import NexusModule
 
 class ModelProfiler:
     def __init__(self):
         self.metrics = defaultdict(list)
         self.hooks = []
         
-    def profile_memory(self, model: torch.nn.Module) -> Dict[str, float]:
+    def profile_memory(self, model: NexusModule) -> Dict[str, float]:
         memory_stats = {}
         
         # Get model size
@@ -33,7 +34,7 @@ class ModelProfiler:
         
     def profile_forward_pass(
         self,
-        model: torch.nn.Module,
+        model: NexusModule,
         input_size: tuple,
         num_runs: int = 100
     ) -> Dict[str, float]:

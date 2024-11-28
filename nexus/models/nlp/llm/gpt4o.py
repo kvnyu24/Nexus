@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
+from nexus.core.base import NexusModule
 
 class GPT4OConfig(BaseLLMConfig):
     """Configuration class for GPT-4O with reasoning capabilities"""
@@ -28,7 +29,7 @@ class GPT4OConfig(BaseLLMConfig):
         self.reasoning_hidden_size = reasoning_hidden_size or hidden_size
         self.use_structured_reasoning = use_structured_reasoning
 
-class ReasoningStep(nn.Module):
+class ReasoningStep(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int = 8):
         super().__init__()
         self.self_attention = nn.MultiheadAttention(

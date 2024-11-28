@@ -3,8 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, List, Union, Dict, Any
 import math
+from nexus.core.base import NexusModule
 
-class FocalLoss(nn.Module):
+class FocalLoss(NexusModule):
     def __init__(
         self,
         alpha: float = 1.0,
@@ -32,7 +33,7 @@ class FocalLoss(nn.Module):
             return focal_loss.sum()
         return focal_loss
 
-class ContrastiveLoss(nn.Module):
+class ContrastiveLoss(NexusModule):
     def __init__(self, margin: float = 1.0):
         super().__init__()
         self.margin = margin
@@ -48,7 +49,7 @@ class ContrastiveLoss(nn.Module):
                 (1 - labels).float() * F.relu(self.margin - distances).pow(2)
         return losses.mean() 
 
-class CircleLoss(nn.Module):
+class CircleLoss(NexusModule):
     def __init__(
         self,
         m: float = 0.25,
@@ -102,7 +103,7 @@ class CircleLoss(nn.Module):
             return loss.sum()
         return loss 
 
-class TripletLoss(nn.Module):
+class TripletLoss(NexusModule):
     def __init__(self, margin: float = 1.0, reduction: str = 'mean'):
         """
         Triplet loss for metric learning
@@ -131,7 +132,7 @@ class TripletLoss(nn.Module):
             return loss.sum()
         return loss
 
-class NTXentLoss(nn.Module):
+class NTXentLoss(NexusModule):
     def __init__(self, temperature: float = 0.5):
         """
         Normalized Temperature-scaled Cross Entropy Loss (NT-Xent)
@@ -178,7 +179,7 @@ class NTXentLoss(nn.Module):
         loss = -torch.log(numerator / denominator.sum(dim=1))
         return loss.mean()
 
-class WingLoss(nn.Module):
+class WingLoss(NexusModule):
     def __init__(self, omega: float = 10.0, epsilon: float = 2.0):
         """
         Wing Loss for robust regression, especially useful for facial landmark detection
@@ -202,7 +203,7 @@ class WingLoss(nn.Module):
         )
         return loss.mean()
 
-class DiceLoss(nn.Module):
+class DiceLoss(NexusModule):
     def __init__(self, smooth: float = 1.0, square: bool = False):
         """
         Dice Loss for image segmentation tasks
@@ -228,7 +229,7 @@ class DiceLoss(nn.Module):
         dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
         return 1.0 - dice.mean()
     
-class SSIMLoss(nn.Module):
+class SSIMLoss(NexusModule):
     def __init__(
         self,
         window_size: int = 11,
@@ -319,7 +320,7 @@ class SSIMLoss(nn.Module):
             return loss.sum()
         return loss
     
-class InfoNCELoss(nn.Module):
+class InfoNCELoss(NexusModule):
     def __init__(self, temperature: float = 0.07):
         """
         InfoNCE Loss for contrastive learning
@@ -353,7 +354,7 @@ class InfoNCELoss(nn.Module):
         
         return F.cross_entropy(logits, labels)
 
-class AdaCosLoss(nn.Module):
+class AdaCosLoss(NexusModule):
     def __init__(self, num_classes: int, embedding_size: int):
         """
         Adaptive Cosine Loss for deep metric learning
@@ -392,7 +393,7 @@ class AdaCosLoss(nn.Module):
         output = self.scale * logits
         return F.cross_entropy(output, labels)
 
-class PolyLoss(nn.Module):
+class PolyLoss(NexusModule):
     def __init__(self, epsilon: float = 1.0, power: float = 2.0):
         """
         Polynomial Loss for robust classification
@@ -414,7 +415,7 @@ class PolyLoss(nn.Module):
         
         return loss.mean()
 
-class WeightedFocalLoss(nn.Module):
+class WeightedFocalLoss(NexusModule):
     def __init__(
         self,
         alpha: Union[float, List[float]],
@@ -456,7 +457,7 @@ class WeightedFocalLoss(nn.Module):
             return focal_loss.sum()
         return focal_loss
     
-class SFTLoss(nn.Module):
+class SFTLoss(NexusModule):
     def __init__(self, alpha: float = 0.3, beta: float = 0.2):
         super().__init__()
         self.alpha = alpha  # Weight for verification loss
@@ -492,7 +493,7 @@ class SFTLoss(nn.Module):
         return losses
     
 
-class EnhancedSFTLoss(nn.Module):
+class EnhancedSFTLoss(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         

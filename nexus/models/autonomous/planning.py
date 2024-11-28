@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
 
-class TrajectoryEncoder(nn.Module):
+class TrajectoryEncoder(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         

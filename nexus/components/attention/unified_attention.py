@@ -3,8 +3,9 @@ import torch.nn as nn
 from typing import Optional, Dict, Any
 from .flash_attention import FlashAttention
 from .multi_head_attention import MultiHeadSelfAttention
+from nexus.core.base import NexusModule
 
-class UnifiedAttention(nn.Module):
+class UnifiedAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,

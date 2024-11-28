@@ -30,7 +30,7 @@ class CityReconstructionModel(NexusModule):
             dropout=self.dropout
         )
         
-    def _build_backbone(self, config: Dict[str, Any]) -> nn.Module:
+    def _build_backbone(self, config: Dict[str, Any]) -> NexusModule:
         # Reuse FPN backbone architecture
         from ..rcnn.backbone import FPNBackbone
         return FPNBackbone(config)

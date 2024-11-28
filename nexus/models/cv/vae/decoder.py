@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 from typing import List
+from nexus.core.base import NexusModule
 
-class BaseDecoder(nn.Module):
+class BaseDecoder(NexusModule):
     def forward(self, z: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError
 

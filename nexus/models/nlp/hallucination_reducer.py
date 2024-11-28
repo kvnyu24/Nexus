@@ -6,7 +6,7 @@ from ...components.attention import MultiHeadSelfAttention, CrossAttention, Flas
 from .chain_of_thoughts import ChainOfThoughtModule
 from .rag import EnhancedRAGModule, DocumentEncoder
 
-class FactVerifier(nn.Module):
+class FactVerifier(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int = 8, dropout: float = 0.1):
         super().__init__()
         # Use FlashAttention for better performance when available

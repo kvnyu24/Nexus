@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
 
-class MotionEncoder(nn.Module):
+class MotionEncoder(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         

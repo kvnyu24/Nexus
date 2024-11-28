@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple
+from nexus.core.base import NexusModule
 
-class FlashAttention(nn.Module):
+class FlashAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,
@@ -67,7 +68,7 @@ class FlashAttention(nn.Module):
         output = output.reshape(B, L, self.hidden_size)
         return self.out_proj(output) 
 
-class MemoryEfficientAttention(nn.Module):
+class MemoryEfficientAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,

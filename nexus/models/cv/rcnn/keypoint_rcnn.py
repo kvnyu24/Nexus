@@ -5,7 +5,7 @@ from ....core.base import NexusModule
 from .base_rcnn import BaseRCNN
 from ....components.attention import SpatialAttention
 
-class KeypointHead(nn.Module):
+class KeypointHead(NexusModule):
     def __init__(self, in_channels: int, num_keypoints: int, hidden_dim: int = 256):
         super().__init__()
         

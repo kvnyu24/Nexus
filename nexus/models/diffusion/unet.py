@@ -4,7 +4,7 @@ import torch.nn as nn
 from ...core.base import NexusModule
 from ...components.attention import MultiHeadSelfAttention
 
-class TimeEmbedding(nn.Module):
+class TimeEmbedding(NexusModule):
     def __init__(self, hidden_dim: int):
         super().__init__()
         self.embedding = nn.Sequential(
@@ -24,7 +24,7 @@ class TimeEmbedding(nn.Module):
         # Project to desired dimensionality
         return self.embedding(embeddings)
 
-class CrossAttentionBlock(nn.Module):
+class CrossAttentionBlock(NexusModule):
     def __init__(self, hidden_dim: int, num_heads: int = 8, dropout: float = 0.1):
         super().__init__()
         self.attention = MultiHeadSelfAttention(
@@ -72,7 +72,7 @@ class UNet(NexusModule):
         # Output projection
         self.output_proj = nn.Conv2d(self.hidden_dim, 3, kernel_size=1)
         
-    def _make_encoder_block(self, in_channels: int, out_channels: int) -> nn.Module:
+    def _make_encoder_block(self, in_channels: int, out_channels: int) -> NexusModule:
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 3, padding=1),
             nn.GroupNorm(32, out_channels),
@@ -80,7 +80,7 @@ class UNet(NexusModule):
             CrossAttentionBlock(out_channels, self.num_heads)
         )
         
-    def _make_decoder_block(self, in_channels: int, out_channels: int) -> nn.Module:
+    def _make_decoder_block(self, in_channels: int, out_channels: int) -> NexusModule:
         return nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, 4, stride=2, padding=1),
             nn.GroupNorm(32, out_channels),

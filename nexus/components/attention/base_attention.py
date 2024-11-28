@@ -6,7 +6,7 @@ from ...core.base import NexusModule
 from ...components.attention.efficient_attention import FlashAttention
 
 
-class BaseAttention(nn.Module):
+class BaseAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,

@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple
-
-class CrossAttention(nn.Module):
+from nexus.core.base import NexusModule
+class CrossAttention(NexusModule):
     def __init__(
         self,
         query_dim: int,

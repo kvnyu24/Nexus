@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
+from nexus.core.base import NexusModule
 
 class GPTConfig(BaseLLMConfig):
     """Configuration class for GPT model"""
@@ -36,7 +37,7 @@ class GPTConfig(BaseLLMConfig):
         self.embed_dropout = embed_dropout
         self.attn_dropout = attn_dropout
 
-class GPTAttention(nn.Module):
+class GPTAttention(NexusModule):
     def __init__(self, config: GPTConfig):
         super().__init__()
         self.num_heads = config.num_heads
@@ -53,7 +54,7 @@ class GPTAttention(nn.Module):
         x = x.view(batch_size, -1, self.num_heads, self.head_dim)
         return x.permute(0, 2, 1, 3)
 
-class GPTBlock(nn.Module):
+class GPTBlock(NexusModule):
     def __init__(self, config: GPTConfig):
         super().__init__()
         self.ln_1 = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_epsilon)

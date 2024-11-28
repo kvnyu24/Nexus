@@ -1,14 +1,15 @@
 import torch
 import torch.nn as nn
 from typing import Optional
+from nexus.core.base import NexusModule
 
-class ResidualBlock(nn.Module):
+class ResidualBlock(NexusModule):
     def __init__(
         self, 
         in_channels: int,
         out_channels: int,
         stride: int = 1,
-        downsample: Optional[nn.Module] = None
+        downsample: Optional[NexusModule] = None
     ):
         super().__init__()
         self.conv1 = nn.Conv2d(
@@ -44,7 +45,7 @@ class ResidualBlock(nn.Module):
         
         return out
 
-class InvertedResidualBlock(nn.Module):
+class InvertedResidualBlock(NexusModule):
     def __init__(
         self,
         in_channels: int,

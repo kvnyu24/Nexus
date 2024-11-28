@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
 from ...components.attention import MultiHeadSelfAttention
 
-class AtomicFeatureExtractor(nn.Module):
+class AtomicFeatureExtractor(NexusModule):
     def __init__(self, hidden_size: int, num_atom_types: int):
         super().__init__()
         self.atom_embedding = nn.Embedding(num_atom_types, hidden_size)
@@ -20,7 +20,7 @@ class AtomicFeatureExtractor(nn.Module):
         position_features = self.position_encoder(positions)
         return self.feature_combiner(torch.cat([atom_features, position_features], dim=-1))
 
-class AtomInteractionModule(nn.Module):
+class AtomInteractionModule(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int = 8):
         super().__init__()
         self.attention = MultiHeadSelfAttention(

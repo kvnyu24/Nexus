@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional
+from nexus.core.base import NexusModule
 
-class MultiHeadSelfAttention(nn.Module):
+class MultiHeadSelfAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,

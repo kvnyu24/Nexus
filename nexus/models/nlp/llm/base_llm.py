@@ -38,7 +38,7 @@ class BaseLLMConfig:
         self.eos_token_id = eos_token_id
         self.tie_word_embeddings = tie_word_embeddings
 
-class BaseLLMAttention(nn.Module):
+class BaseLLMAttention(NexusModule):
     def __init__(self, config: BaseLLMConfig):
         super().__init__()
         self.num_heads = config.num_heads
@@ -90,7 +90,7 @@ class BaseLLMAttention(nn.Module):
             
         return outputs
 
-class BaseLLMBlock(nn.Module):
+class BaseLLMBlock(NexusModule):
     def __init__(self, config: BaseLLMConfig):
         super().__init__()
         self.attention = BaseLLMAttention(config)

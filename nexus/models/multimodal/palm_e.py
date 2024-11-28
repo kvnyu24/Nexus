@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, List, Union
 from ...core.base import NexusModule
 
-class VisionEncoder(nn.Module):
+class VisionEncoder(NexusModule):
     def __init__(self, input_channels: int, hidden_dim: int):
         super().__init__()
         self.encoder = nn.Sequential(
@@ -19,7 +19,7 @@ class VisionEncoder(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.encoder(x).flatten(1)
 
-class LanguageEncoder(nn.Module):
+class LanguageEncoder(NexusModule):
     def __init__(self, vocab_size: int, hidden_dim: int):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, hidden_dim)

@@ -4,7 +4,7 @@ from typing import Dict, Any
 from ...core.base import NexusModule
 import math
 
-class MBConvBlock(nn.Module):
+class MBConvBlock(NexusModule):
     def __init__(
         self, 
         in_channels: int,

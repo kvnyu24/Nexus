@@ -3,11 +3,12 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel
 from typing import Optional, Dict, Any
 from .checkpointing import CheckpointMixin
+from nexus.core.base import NexusModule
 
 class DistributedTrainer(CheckpointMixin):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: NexusModule,
         rank: int,
         world_size: int,
         backend: str = "nccl",

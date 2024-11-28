@@ -12,7 +12,7 @@ class ModelTrimmer(NexusModule):
         self.min_channels = config.get("min_channels", 4)
         self.structured_pruning = config.get("structured_pruning", True)
         
-    def analyze_importance(self, module: nn.Module) -> Dict[str, torch.Tensor]:
+    def analyze_importance(self, module: NexusModule) -> Dict[str, torch.Tensor]:
         """Analyze parameter importance using L1-norm"""
         importance_scores = {}
         
@@ -30,9 +30,9 @@ class ModelTrimmer(NexusModule):
         
     def trim_module(
         self,
-        module: nn.Module,
+        module: NexusModule,
         importance_scores: Dict[str, torch.Tensor]
-    ) -> nn.Module:
+    ) -> NexusModule:
         """Trim model based on importance scores"""
         for name, param in module.named_parameters():
             if name in importance_scores:
@@ -51,7 +51,7 @@ class ModelTrimmer(NexusModule):
                 
         return module
 
-    def forward(self, module: nn.Module) -> nn.Module:
+    def forward(self, module: NexusModule) -> NexusModule:
         """Analyze and trim the model"""
         importance_scores = self.analyze_importance(module)
         return self.trim_module(module, importance_scores)
@@ -101,9 +101,9 @@ class AdvancedModelTrimmer(NexusModule):
         
     def trim_layer(
         self,
-        layer: nn.Module,
+        layer: NexusModule,
         sparsity: float
-    ) -> Tuple[nn.Module, Dict[str, torch.Tensor]]:
+    ) -> Tuple[NexusModule, Dict[str, torch.Tensor]]:
         importance_scores = {}
         masks = {}
         
@@ -122,9 +122,9 @@ class AdvancedModelTrimmer(NexusModule):
 
     def forward(
         self,
-        model: nn.Module,
+        model: NexusModule,
         example_input: Optional[torch.Tensor] = None
-    ) -> Tuple[nn.Module, Dict[str, Any]]:
+    ) -> Tuple[NexusModule, Dict[str, Any]]:
         metrics = {}
         
         for name, module in model.named_modules():

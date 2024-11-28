@@ -54,7 +54,7 @@ class RoIHead(NexusModule):
             "roi_features": roi_features
         }
 
-class FastRCNNPredictor(nn.Module):
+class FastRCNNPredictor(NexusModule):
     def __init__(self, in_channels: int, num_classes: int):
         super().__init__()
         

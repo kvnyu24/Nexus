@@ -3,11 +3,12 @@ from typing import Optional, Dict, Any
 from torch.utils.data import DataLoader
 from ..utils.logging import Logger
 from .checkpointing import CheckpointMixin
+from nexus.core.base import NexusModule
 
 class Trainer(CheckpointMixin):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model: NexusModule,
         optimizer: str = "adam",
         learning_rate: float = 1e-3,
         device: str = "cuda" if torch.cuda.is_available() else "cpu",

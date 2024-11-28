@@ -5,6 +5,7 @@ from ..utils.metrics import MetricsCalculator
 from ..utils.gpu import GPUManager
 from dataclasses import dataclass
 import numpy as np
+from nexus.core.base import NexusModule
 
 @dataclass
 class BenchmarkConfig:
@@ -15,7 +16,7 @@ class BenchmarkConfig:
     measure_flops: bool = True
     
 class ModelBenchmark:
-    def __init__(self, model: torch.nn.Module, config: BenchmarkConfig):
+    def __init__(self, model: NexusModule, config: BenchmarkConfig):
         self.model = model
         self.config = config
         self.gpu_manager = GPUManager()

@@ -1,8 +1,9 @@
 from typing import Dict, Any, Optional
 import torch
 import torch.nn as nn
+from nexus.core.base import NexusModule
 
-class CrossAttentionLayer(nn.Module):
+class CrossAttentionLayer(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         hidden_size = config.get("hidden_size", 256)

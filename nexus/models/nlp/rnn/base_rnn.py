@@ -54,7 +54,7 @@ class BaseRNN(NexusModule):
         if not 0 <= self.dropout < 1:
             raise ValueError("dropout must be between 0 and 1")
             
-    def _init_weights(self, module: nn.Module) -> None:
+    def _init_weights(self, module: NexusModule) -> None:
         """Initialize network weights."""
         if isinstance(module, nn.Linear):
             torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)

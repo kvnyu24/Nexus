@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
+from nexus.core.base import NexusModule
 
-class SpatialAttention(nn.Module):
+class SpatialAttention(NexusModule):
     def __init__(self, kernel_size: int = 7):
         super().__init__()
         self.conv = nn.Conv2d(2, 1, kernel_size, padding=kernel_size//2)
@@ -17,7 +18,7 @@ class SpatialAttention(nn.Module):
         
         return x * attention
 
-class ChannelAttention(nn.Module):
+class ChannelAttention(NexusModule):
     def __init__(self, channels: int, reduction: int = 16):
         super().__init__()
         self.avg_pool = nn.AdaptiveAvgPool2d(1)

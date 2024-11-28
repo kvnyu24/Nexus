@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from ...core.base import NexusModule
 from ...components.attention import MultiHeadSelfAttention
 
-class DocumentRetriever(nn.Module):
+class DocumentRetriever(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int = 8):
         super().__init__()
         self.attention = MultiHeadSelfAttention(

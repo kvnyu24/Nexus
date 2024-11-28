@@ -3,9 +3,10 @@ import torch
 import torch.nn as nn
 from .base_llm import BaseLLM, BaseLLMConfig
 from .llama import BaseLLMBlock
+from nexus.core.base import NexusModule
 
 
-class BloomLayerNorm(nn.Module):
+class BloomLayerNorm(NexusModule):
     def __init__(self, hidden_size: int, eps: float = 1e-5):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(hidden_size))
@@ -41,7 +42,7 @@ class BloomConfig(BaseLLMConfig):
         self.use_alt_layernorm = use_alt_layernorm
         self.apply_residual_connection_post_layernorm = apply_residual_connection_post_layernorm
 
-class BloomAttention(nn.Module):
+class BloomAttention(NexusModule):
     def __init__(self, config: BloomConfig):
         super().__init__()
         self.num_heads = config.num_heads

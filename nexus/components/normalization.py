@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from nexus.core.base import NexusModule
 
-class LayerNorm2d(nn.Module):
+class LayerNorm2d(NexusModule):
     def __init__(self, num_channels: int, eps: float = 1e-5):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(num_channels))
@@ -15,7 +16,7 @@ class LayerNorm2d(nn.Module):
         x = (x - mean) / torch.sqrt(var + self.eps)
         return x * self.weight.view(1, -1, 1, 1) + self.bias.view(1, -1, 1, 1)
 
-class GroupNorm2d(nn.Module):
+class GroupNorm2d(NexusModule):
     def __init__(self, num_channels: int, num_groups: int = 32, eps: float = 1e-5):
         super().__init__()
         self.weight = nn.Parameter(torch.ones(num_channels))

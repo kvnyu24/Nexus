@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional
 from ....core.base import NexusModule
 
-class PointCloudProcessor(nn.Module):
+class PointCloudProcessor(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         self.hidden_dim = config.get("hidden_dim", 256)

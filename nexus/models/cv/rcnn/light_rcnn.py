@@ -5,7 +5,7 @@ from ....core.base import NexusModule
 from .base_rcnn import BaseRCNN
 from ....components.blocks import DepthwiseSeparableConv
 
-class LightFPNBackbone(nn.Module):
+class LightFPNBackbone(NexusModule):
     def __init__(self, in_channels: int, hidden_dim: int = 256):
         super().__init__()
         

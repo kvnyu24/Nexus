@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
 import math
-
+from nexus.core.base import NexusModule
 class QwenConfig(BaseLLMConfig):
     """Configuration class for Qwen model"""
     def __init__(
@@ -35,7 +35,7 @@ class QwenConfig(BaseLLMConfig):
         self.use_logn_attn = use_logn_attn
         self.use_flash_attn = use_flash_attn
 
-class QwenRotaryEmbedding(nn.Module):
+class QwenRotaryEmbedding(NexusModule):
     def __init__(self, dim: int, max_seq_length: int = 32768, theta: float = 10000.0):
         super().__init__()
         self.dim = dim
@@ -57,7 +57,7 @@ class QwenRotaryEmbedding(nn.Module):
             self.sin_cached[:seq_len]
         )
 
-class QwenAttention(nn.Module):
+class QwenAttention(NexusModule):
     def __init__(self, config: QwenConfig):
         super().__init__()
         self.num_heads = config.num_heads
@@ -131,7 +131,7 @@ class QwenAttention(nn.Module):
             
         return outputs
 
-class QwenBlock(nn.Module):
+class QwenBlock(NexusModule):
     def __init__(self, config: QwenConfig):
         super().__init__()
         self.attention = QwenAttention(config)

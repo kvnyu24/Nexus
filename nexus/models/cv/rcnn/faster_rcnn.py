@@ -50,7 +50,7 @@ class FasterRCNN(NexusModule):
             if hasattr(module, 'apply'):
                 module.apply(self._init_layer_weights)
                 
-    def _init_layer_weights(self, module: nn.Module) -> None:
+    def _init_layer_weights(self, module: NexusModule) -> None:
         """Initialize layer weights following Nexus patterns."""
         if isinstance(module, (nn.Conv2d, nn.Linear)):
             nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')

@@ -5,7 +5,7 @@ from typing import Dict, Any, Tuple
 from ....core.base import NexusModule
 import numpy as np
 
-class PositionalEncoding(nn.Module):
+class PositionalEncoding(NexusModule):
     def __init__(self, num_frequencies: int = 10):
         super().__init__()
         self.num_frequencies = num_frequencies

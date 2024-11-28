@@ -36,7 +36,7 @@ class EnhancedFusionModule(NexusModule):
             nn.Linear(self.hidden_dim, self.hidden_dim)
         )
         
-    def _build_encoder(self, input_dim: int) -> nn.Module:
+    def _build_encoder(self, input_dim: int) -> NexusModule:
         return nn.Sequential(
             nn.Linear(input_dim, self.hidden_dim),
             nn.LayerNorm(self.hidden_dim),

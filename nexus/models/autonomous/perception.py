@@ -7,7 +7,7 @@ from torch.nn import functional as F
 from nexus.models.nvlm.base import NVLMMixin
 from nexus.models.nvlm.processor import NVLMProcessor
 
-class MultiTaskPerceptionHead(nn.Module):
+class MultiTaskPerceptionHead(NexusModule):
     def __init__(self, in_channels: int, config: Dict[str, Any]):
         super().__init__()
         

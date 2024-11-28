@@ -12,7 +12,7 @@ class WGANGenerator(BaseGenerator):
         main_layers = list(self.main.children())[:-1]  # Remove Tanh
         self.main = nn.Sequential(*main_layers)
         
-    def _init_weights(self, module: nn.Module):
+    def _init_weights(self, module: NexusModule):
         if isinstance(module, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
             nn.init.normal_(module.weight, 0.0, 0.02)
             if module.bias is not None:
@@ -29,7 +29,7 @@ class WGANCritic(BaseDiscriminator):
             nn.Conv2d(self.hidden_dim * 8, 1, 4, 1, 0)
         )
         
-    def _init_weights(self, module: nn.Module):
+    def _init_weights(self, module: NexusModule):
         if isinstance(module, nn.Conv2d):
             nn.init.normal_(module.weight, 0.0, 0.02)
             if module.bias is not None:

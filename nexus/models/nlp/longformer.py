@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
 
-class LongSelfAttention(nn.Module):
+class LongSelfAttention(NexusModule):
     def __init__(self, hidden_size: int, num_heads: int, window_size: int = 512):
         super().__init__()
         self.hidden_size = hidden_size

@@ -7,7 +7,7 @@ from .rpn import RegionProposalNetwork
 from .fast_rcnn import RoIHead, FastRCNNPredictor
 from ....components.attention import SpatialAttention
 
-class MaskHead(nn.Module):
+class MaskHead(NexusModule):
     def __init__(self, in_channels: int, hidden_dim: int = 256):
         super().__init__()
         

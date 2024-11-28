@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, List, Optional
 from ...core.base import NexusModule
 
-class WindowAttention(nn.Module):
+class WindowAttention(NexusModule):
     def __init__(self, dim: int, window_size: int, num_heads: int, dropout: float = 0.0):
         super().__init__()
         self.dim = dim
@@ -59,7 +59,7 @@ class WindowAttention(nn.Module):
         x = self.proj_drop(x)
         return x
 
-class SwinTransformerBlock(nn.Module):
+class SwinTransformerBlock(NexusModule):
     def __init__(self, dim: int, num_heads: int, window_size: int, shift_size: int = 0,
                  mlp_ratio: float = 4.0, dropout: float = 0.0):
         super().__init__()

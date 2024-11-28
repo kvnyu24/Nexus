@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Tuple
 from ....core.base import NexusModule
 
-class BaseEncoder(nn.Module):
+class BaseEncoder(NexusModule):
     def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         raise NotImplementedError
 

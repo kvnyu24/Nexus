@@ -4,7 +4,7 @@ from typing import Dict, Any
 from ...components.attention import UnifiedAttention
 from ...core.base import NexusModule
 
-class TransformerBlock(nn.Module):
+class TransformerBlock(NexusModule):
     def __init__(
         self,
         dim: int,
@@ -40,7 +40,7 @@ class TransformerBlock(nn.Module):
         x = x + self.mlp(self.norm2(x))
         return x
 
-class PatchEmbedding(nn.Module):
+class PatchEmbedding(NexusModule):
     def __init__(self, image_size: int, patch_size: int, in_channels: int, embed_dim: int):
         super().__init__()
         self.image_size = image_size

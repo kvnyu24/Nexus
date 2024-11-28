@@ -5,7 +5,7 @@ from typing import Dict, Any, Tuple, Optional
 from ....core.base import NexusModule
 import numpy as np
 
-class SinusoidalEncoding(nn.Module):
+class SinusoidalEncoding(NexusModule):
     def __init__(self, num_frequencies: int, include_input: bool = True):
         super().__init__()
         self.num_frequencies = num_frequencies
@@ -23,7 +23,7 @@ class SinusoidalEncoding(nn.Module):
             
         return torch.cat(encodings, dim=-1)
 
-class DensityNetwork(nn.Module):
+class DensityNetwork(NexusModule):
     def __init__(self, input_dim: int, hidden_dim: int, num_layers: int):
         super().__init__()
         layers = []
@@ -40,7 +40,7 @@ class DensityNetwork(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.network(x)
 
-class ColorNetwork(nn.Module):
+class ColorNetwork(NexusModule):
     def __init__(self, input_dim: int, hidden_dim: int, num_layers: int):
         super().__init__()
         self.network = nn.Sequential(
@@ -92,7 +92,7 @@ class EnhancedNeRF(NexusModule):
         # Initialize weights
         self.apply(self._init_weights)
         
-    def _init_weights(self, m: nn.Module):
+    def _init_weights(self, m: NexusModule):
         if isinstance(m, nn.Linear):
             nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
             if m.bias is not None:

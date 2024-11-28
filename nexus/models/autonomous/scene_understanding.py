@@ -5,7 +5,7 @@ from ...core.base import NexusModule
 from ..cv.rcnn import FPNBackbone
 from torch.nn import functional as F
 
-class SceneUnderstandingHead(nn.Module):
+class SceneUnderstandingHead(NexusModule):
     def __init__(self, in_channels: int, config: Dict[str, Any]):
         super().__init__()
         

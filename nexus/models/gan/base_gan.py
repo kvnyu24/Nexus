@@ -50,7 +50,7 @@ class BaseGenerator(NexusModule):
         layers.append(nn.Tanh())
         return layers
         
-    def _init_weights(self, module: nn.Module):
+    def _init_weights(self, module: NexusModule):
         if isinstance(module, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
             nn.init.normal_(module.weight, 0.0, 0.02)
             if module.bias is not None:
@@ -103,7 +103,7 @@ class BaseDiscriminator(NexusModule):
             
         return layers
         
-    def _init_weights(self, module: nn.Module):
+    def _init_weights(self, module: NexusModule):
         if isinstance(module, nn.Conv2d):
             nn.init.normal_(module.weight, 0.0, 0.02)
             if module.bias is not None:

@@ -5,6 +5,7 @@ import pynvml
 import os
 from .logging import Logger
 from .apple_gpu import AppleGPUManager
+from nexus.core.base import NexusModule
 
 class GPUManager:
     def __init__(self):
@@ -85,7 +86,7 @@ class GPUManager:
             return torch.device('cpu')
 
 class AutoDevice:
-    def __init__(self, tensor_or_module: Union[torch.Tensor, torch.nn.Module]):
+    def __init__(self, tensor_or_module: Union[torch.Tensor, NexusModule]):
         self.gpu_manager = GPUManager()
         self.device = self.gpu_manager.get_optimal_device()
         self.tensor_or_module = tensor_or_module

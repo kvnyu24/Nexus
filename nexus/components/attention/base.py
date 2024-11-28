@@ -3,8 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Dict, Tuple, Union
 from ...core.initialization import WeightInitializer
+from nexus.core.base import NexusModule
 
-class UnifiedAttention(nn.Module):
+class UnifiedAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,

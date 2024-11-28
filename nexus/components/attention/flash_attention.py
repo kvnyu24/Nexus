@@ -3,8 +3,9 @@ import torch.nn as nn
 import math
 from typing import Optional, Tuple
 from einops import rearrange
+from nexus.core.base import NexusModule
 
-class FlashAttention(nn.Module):
+class FlashAttention(NexusModule):
     def __init__(
         self,
         hidden_size: int,
