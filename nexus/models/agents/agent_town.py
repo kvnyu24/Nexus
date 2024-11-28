@@ -4,6 +4,7 @@ from typing import Dict, Any, List, Optional
 from ...core.base import NexusModule
 from .interaction import InteractionModule
 from .environment import VirtualEnvironment
+from .proactive_agent import ProactiveAgent
 
 class AgentBehavior(nn.Module):
     def __init__(self, config: Dict[str, Any]):
@@ -72,6 +73,11 @@ class AgentTown(NexusModule):
             SocialAgent(config) for _ in range(self.num_agents)
         ])
         
+        # Add proactive agents
+        self.proactive_agents = nn.ModuleList([
+            ProactiveAgent(config) for _ in range(config.get("num_proactive_agents", 2))
+        ])
+        
     def forward(
         self,
         states: torch.Tensor,
@@ -101,8 +107,23 @@ class AgentTown(NexusModule):
             torch.stack(agent_interactions)
         )
         
+        # Process proactive agents
+        proactive_actions = []
+        proactive_initiatives = []
+        
+        for agent in self.proactive_agents:
+            outputs = agent.act(
+                states,
+                social_context=torch.stack(agent_interactions),
+                threshold=self.config.get("initiative_threshold", 0.5)
+            )
+            proactive_actions.append(outputs["actions"])
+            proactive_initiatives.append(outputs["initiative_score"])
+        
         return {
             "actions": torch.stack(agent_actions),
             "interactions": torch.stack(agent_interactions),
-            "environment_state": env_state
+            "environment_state": env_state,
+            "proactive_actions": torch.stack(proactive_actions),
+            "proactive_initiatives": torch.stack(proactive_initiatives)
         } 
