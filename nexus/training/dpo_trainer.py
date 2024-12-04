@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ..core.base import NexusModule
+from ..models.rl.preference.reward_model import EnhancedRewardModel
 
 class DPOTrainer(NexusModule):
     def __init__(self, config: Dict[str, Any]):

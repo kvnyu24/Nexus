@@ -13,6 +13,7 @@ from . import autonomous
 from . import nsm
 from . import ssm
 from . import multimodal
+from . import search
 
 __all__ = ['cv', 
            'nlp', 
@@ -23,10 +24,13 @@ __all__ = ['cv',
            'protein', 
            'chemistry', 
            'gan', 
+           'gnn',
+           'moe',
            'diffusion', 
            'nvlm', 
            'autonomous',
            'nsm',
            'ssm',
-           'multimodal'
+           'multimodal',
+           'search'
            ]
