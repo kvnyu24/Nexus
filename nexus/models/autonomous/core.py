@@ -10,6 +10,7 @@ from .scene_understanding import SceneUnderstandingModule
 from .motion_prediction import MotionPredictionModule
 from .behavior_prediction import BehaviorPredictionModule
 from .decision import DecisionMakingModule
+from ..reasoning.mcts_reasoning import MCTSReasoning
 
 class AutonomousDrivingSystem(NexusModule):
     def __init__(self, config: Dict[str, Any]):
@@ -59,6 +60,9 @@ class AutonomousDrivingSystem(NexusModule):
             nn.Linear(128, 1),
             nn.Sigmoid()
         )
+        
+        # MCTS-based decision making
+        self.mcts_reasoning = MCTSReasoning(config)
     
     def _validate_config(self, config: Dict[str, Any]) -> None:
         """Following BehaviorPredictionModule validation pattern"""
@@ -138,6 +142,14 @@ class AutonomousDrivingSystem(NexusModule):
             }
         )
         
+        mcts_outputs = self.mcts_reasoning(
+            agent_states,
+            num_simulations=self.config.get("num_simulations", 50),
+            temperature=self.config.get("temperature", 1.0)
+        )
+
+
+        
         # Global context integration
         global_context, attention_weights = self.context_attention(
             prediction_features,
@@ -166,6 +178,7 @@ class AutonomousDrivingSystem(NexusModule):
             **behavior_outputs,
             **planning_outputs,
             **decision_outputs,
+            **mcts_outputs,
             "fpn_features": fpn_features,
             "safety_score": safety_score,
             "attention_weights": attention_weights,
