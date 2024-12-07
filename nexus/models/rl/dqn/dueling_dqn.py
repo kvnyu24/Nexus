@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, List, Tuple
-from ...core.base import NexusModule
+from ....core.base import NexusModule
 import numpy as np
 
 class DuelingDQNNetwork(NexusModule):
