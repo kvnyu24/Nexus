@@ -14,6 +14,7 @@ from . import nsm
 from . import ssm
 from . import multimodal
 from . import search
+from . import rendering
 
 __all__ = ['cv', 
            'nlp', 
@@ -32,5 +33,6 @@ __all__ = ['cv',
            'nsm',
            'ssm',
            'multimodal',
-           'search'
+           'search',
+           'rendering'
            ]
