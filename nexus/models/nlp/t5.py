@@ -29,7 +29,7 @@ class T5EncoderBlock(NexusModule):
         x = x + self.feed_forward(norm_x)
         return x
 
-class EnhancedT5(NexusModule):
+class T5(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
