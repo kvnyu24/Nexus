@@ -6,6 +6,7 @@ from .t5 import *
 from .longformer import *
 from .rnn import *
 from .llm import *
+from .sft import *
 
 __all__ = [
     'EdgeLLM',
@@ -33,5 +34,8 @@ __all__ = [
     'FalconConfig',
     'FalconModel',
     'GPT4OConfig',
-    'GPT4O'
+    'GPT4O',
+
+    'SFTModule',
+    'SFTConfigValidator',
 ] 
