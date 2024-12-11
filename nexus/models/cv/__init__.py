@@ -11,6 +11,9 @@ from .city_reconstruction import *
 from .reid import *
 from .rcnn import *
 
+from .resnet import *
+from .vgg import *
+
 __all__ = [
     # Vision
     'VisionTransformer',
@@ -48,4 +51,9 @@ __all__ = [
     'TemporalReID',
     'ReIDBackbone',
     'TemporalAttention'
+
+
+    # Backbone
+    'ResNet',
+    'VGG',
 ]
