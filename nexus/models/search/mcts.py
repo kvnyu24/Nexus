@@ -3,39 +3,22 @@ import torch
 import torch.nn as nn
 import math
 from ...core.base import NexusModule
+from .mcts_node import MCTSNode
+from .mcts_config import MCTSConfig
 
-class MCTSNode:
-    def __init__(self, state: torch.Tensor, prior: float = 0.0):
-        self.state = state
-        self.prior = prior
-        self.visit_count = 0
-        self.value_sum = 0.0
-        self.children: Dict[int, 'MCTSNode'] = {}
-        
-    def value(self) -> float:
-        if self.visit_count == 0:
-            return 0.0
-        return self.value_sum / self.visit_count
-        
-    def expanded(self) -> bool:
-        return len(self.children) > 0
-
-class EnhancedMCTS(NexusModule):
-    def __init__(self, config: Dict[str, Any]):
+class MCTS(NexusModule):
+    def __init__(self, config: MCTSConfig):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
-        
         # Core parameters
-        self.hidden_dim = config["hidden_dim"]
-        self.num_actions = config["num_actions"]
-        self.num_simulations = config.get("num_simulations", 50)
-        self.c_puct = config.get("c_puct", 1.0)
+        self.hidden_dim = config.hidden_dim
+        self.num_actions = config.num_actions
+        self.num_simulations = config.num_simulations
+        self.c_puct = config.c_puct
         
         # Neural network components
         self.state_encoder = nn.Sequential(
-            nn.Linear(config["state_dim"], self.hidden_dim),
+            nn.Linear(config.state_dim, self.hidden_dim),
             nn.ReLU(),
             nn.Linear(self.hidden_dim, self.hidden_dim)
         )
@@ -56,16 +39,10 @@ class EnhancedMCTS(NexusModule):
         # Feature bank for state storage
         self.register_buffer(
             "state_bank",
-            torch.zeros(config.get("bank_size", 10000), self.hidden_dim)
+            torch.zeros(config.bank_size, self.hidden_dim)
         )
         self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
         
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim", "state_dim", "num_actions"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
     def update_state_bank(self, states: torch.Tensor):
         """Update state bank following EnhancedReID pattern"""
         batch_size = states.size(0)
