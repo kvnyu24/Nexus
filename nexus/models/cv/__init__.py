@@ -12,24 +12,40 @@ from .reid import *
 from .rcnn import *
 
 __all__ = [
+    # Vision
     'VisionTransformer',
     'CompactCNN',
 
+    # RCNN
     'BaseRCNN',
-    'FastRCNN'
+    'FastRCNN',
     'MaskRCNN',
 
+    # NeRF
     'NeRFNetwork',
 
+    # VAE
     'EnhancedVAE',
+
+    # EfficientNet
     'EfficientNet',
 
+    # DETR
     'DETR',
+
+    # SwinTransformer
     'SwinTransformer',
 
+    # ATOMTracker
     'ATOMTracker',
 
+    # CityReconstructionModel
     'CityReconstructionModel',
-    'PedestrianReID',
 
+
+    # ReID
+    'AdaptiveReIDWithMemory',
+    'TemporalReID',
+    'ReIDBackbone',
+    'TemporalAttention'
 ]

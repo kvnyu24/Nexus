@@ -1,7 +1,9 @@
 from .agent_town import *
 from .interaction import *
 from .environment import *
-from .enhanced_agent import *
+from .social_agent import *
+from .proactive_agent import *
+from .memory import *
 
 __all__ = [
     'AgentTown',
@@ -11,5 +13,7 @@ __all__ = [
     'DialogueManager',
     'VirtualEnvironment',
     'ObjectRegistry',
-    'EnhancedSocialAgent',
+    'SocialAgent',
+    'ProactiveAgent',
+    'AgentMemoryStream',
 ]

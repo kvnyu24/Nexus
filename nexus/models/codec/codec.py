@@ -4,7 +4,7 @@ import torch.nn.functional as F
 from typing import Dict, Any, Optional, List, Tuple, Union
 from ...core.base import NexusModule
 
-class EnhancedCodec(NexusModule):
+class Codec(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
