@@ -1,11 +1,11 @@
 from .attention import *
-from .layers import *
+from .message_passing import *
 from .base_gnn import *
-from .enhanced_gnn import *
+from .hierarchial_graph_network import *
 
 __all__ = [
     'GraphAttention',
-    'EnhancedGNN',
-    'EnhancedGNNLayer',
+    'HierarchicalGraphNetwork',
+    'AdaptiveMessagePassingLayer',
     'BaseGNNLayer',
 ]
