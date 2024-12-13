@@ -4,7 +4,7 @@ import torch.nn as nn
 from ...core.base import NexusModule
 from ..cv.vit import VisionTransformer
 from ..nlp.t5 import EnhancedT5
-from ..fusion.enhanced_fusion import EnhancedFusionModule
+from ..fusion.fusion import FusionModule 
 
 class HierarchicalViLTransformer(NexusModule):
     def __init__(self, config: Dict[str, Any]):
@@ -15,8 +15,8 @@ class HierarchicalViLTransformer(NexusModule):
         self.text_encoder = EnhancedT5(config.get("text_config", {}))
         
         # Hierarchical fusion layers
-        self.local_fusion = EnhancedFusionModule(config)
-        self.global_fusion = EnhancedFusionModule(config)
+        self.local_fusion = FusionModule(config)
+        self.global_fusion = FusionModule(config)
         
         # Cross-modal attention
         self.cross_attention = nn.ModuleDict({
