@@ -60,7 +60,7 @@ class EvoformerBlock(NexusModule):
         
         return msa_repr, pair_repr
 
-class EnhancedAlphaFold(NexusModule):
+class AlphaFold(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         

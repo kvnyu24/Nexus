@@ -19,10 +19,8 @@ from . import rendering
 __all__ = ['cv', 
            'nlp', 
            'rl', 
-           'AlphaFold', 
-           'agents', 
-           'AtomTracker', 
            'protein', 
+           'agents', 
            'chemistry', 
            'gan', 
            'gnn',
@@ -35,4 +33,4 @@ __all__ = ['cv',
            'multimodal',
            'search',
            'rendering'
-           ]
+        ]
