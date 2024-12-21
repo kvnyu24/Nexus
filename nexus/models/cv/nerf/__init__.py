@@ -1,4 +1,4 @@
-from .nerf import NeRFNetwork, PositionalEncoding
+from .nerf import NeRFNetwork
 from .networks import ColorNetwork, DensityNetwork, SinusoidalEncoding
 from .renderer import NeRFRenderer
 from .hierarchical import HierarchicalNeRF, HierarchicalSampling
@@ -8,7 +8,6 @@ from .fast_nerf import FastNeRFNetwork
 
 __all__ = [
     'NeRFNetwork',
-    'PositionalEncoding',
     'NeRFRenderer',
     'ColorNetwork',
     'DensityNetwork',

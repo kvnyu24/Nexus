@@ -3,22 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Tuple
 from ....core.base import NexusModule
-import numpy as np
-
-class PositionalEncoding(NexusModule):
-    def __init__(self, num_frequencies: int = 10):
-        super().__init__()
-        self.num_frequencies = num_frequencies
-        
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Create frequencies for encoding
-        frequencies = 2.0 ** torch.arange(self.num_frequencies, device=x.device)
-        
-        # Apply sin and cos to each frequency
-        angles = x[..., None] * frequencies
-        encoding = torch.cat([torch.sin(angles), torch.cos(angles)], dim=-1)
-        
-        return encoding.flatten(start_dim=-2)
+import numpy as np 
+from ....components.embeddings import PositionalEncoding
 
 class NeRFNetwork(NexusModule):
     def __init__(self, config: Dict[str, Any]):

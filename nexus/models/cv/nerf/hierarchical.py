@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Tuple
 from ....core.base import NexusModule
-from .nerf import PositionalEncoding
+from ....components.embeddings import PositionalEncoding
 from .nerf import NeRFNetwork
 
 class HierarchicalSampling(NexusModule):

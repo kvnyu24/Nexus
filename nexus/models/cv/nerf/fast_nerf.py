@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Optional
-from .nerf import NeRFNetwork, PositionalEncoding
+from .nerf import NeRFNetwork
+from ....components.embeddings import PositionalEncoding
 
 class FastNeRFNetwork(NeRFNetwork):
     def __init__(self, config: Dict[str, Any]):

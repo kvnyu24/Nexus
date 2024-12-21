@@ -2,7 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Optional, Tuple
-from .nerf import NeRFNetwork, PositionalEncoding
+from .nerf import NeRFNetwork
+from ....components.embeddings import PositionalEncoding
 
 class IntegratedPositionalEncoding(PositionalEncoding):
     def __init__(self, num_frequencies: int = 10, min_deg: int = 0, max_deg: int = 16):

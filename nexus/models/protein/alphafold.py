@@ -2,61 +2,89 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple, NamedTuple
 from ...core.base import NexusModule
-from ...components.attention import MultiHeadSelfAttention
+from ...components.attention import MultiHeadSelfAttention, CrossAttentionLayer
+from ...components.embeddings import PositionalEncoding
 
 class TemplateEmbedding(NexusModule):
-    def __init__(self, hidden_size: int, num_heads: int):
+    def __init__(self, config: Dict[str, Any]):
         super().__init__()
-        self.template_attention = MultiHeadSelfAttention(
-            hidden_size=hidden_size,
-            num_heads=num_heads
-        )
-        self.template_proj = nn.Linear(hidden_size, hidden_size)
-        self.template_norm = nn.LayerNorm(hidden_size)
+        hidden_size = config.get("hidden_size", 256)
+        num_heads = config.get("num_heads", 8)
+        dropout = config.get("dropout", 0.1)
         
-    def forward(self, msa_embedding: torch.Tensor, template_feat: torch.Tensor) -> torch.Tensor:
-        template_attn = self.template_attention(
-            self.template_norm(msa_embedding),
-            key=template_feat,
-            value=template_feat
+        self.template_attention = CrossAttentionLayer(config)
+        self.template_proj = nn.Sequential(
+            nn.Linear(hidden_size, hidden_size * 2),
+            nn.LayerNorm(hidden_size * 2),
+            nn.GELU(),
+            nn.Linear(hidden_size * 2, hidden_size),
+            nn.LayerNorm(hidden_size)
         )
-        return self.template_proj(template_attn)
+        self.dropout = nn.Dropout(dropout)
+        
+    def forward(self, msa_embedding: torch.Tensor, template_feat: torch.Tensor,
+                attention_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+        template_attn = self.template_attention(
+            msa_embedding,
+            template_feat,
+            attention_mask=attention_mask
+        )
+        return self.dropout(self.template_proj(template_attn))
 
 class EvoformerBlock(NexusModule):
-    def __init__(self, hidden_size: int, num_heads: int, dropout: float = 0.1):
+    def __init__(self, config: Dict[str, Any]):
         super().__init__()
-        self.msa_attention = MultiHeadSelfAttention(hidden_size, num_heads)
-        self.pair_attention = MultiHeadSelfAttention(hidden_size, num_heads)
-        self.outer_product_mean = nn.Linear(hidden_size * 2, hidden_size)
+        hidden_size = config.get("hidden_size", 256)
+        num_heads = config.get("num_heads", 8)
+        dropout = config.get("dropout", 0.1)
+        
+        self.msa_attention = CrossAttentionLayer(config)
+        self.pair_attention = CrossAttentionLayer(config)
+        
+        self.outer_product_mean = nn.Sequential(
+            nn.Linear(hidden_size * 2, hidden_size * 4),
+            nn.LayerNorm(hidden_size * 4),
+            nn.GELU(),
+            nn.Linear(hidden_size * 4, hidden_size),
+            nn.LayerNorm(hidden_size)
+        )
         
         self.msa_transition = nn.Sequential(
             nn.Linear(hidden_size, hidden_size * 4),
-            nn.ReLU(),
+            nn.LayerNorm(hidden_size * 4),
+            nn.GELU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_size * 4, hidden_size)
+            nn.Linear(hidden_size * 4, hidden_size),
+            nn.LayerNorm(hidden_size)
         )
         
         self.pair_transition = nn.Sequential(
             nn.Linear(hidden_size, hidden_size * 4),
-            nn.ReLU(),
+            nn.LayerNorm(hidden_size * 4),
+            nn.GELU(), 
             nn.Dropout(dropout),
-            nn.Linear(hidden_size * 4, hidden_size)
+            nn.Linear(hidden_size * 4, hidden_size),
+            nn.LayerNorm(hidden_size)
         )
         
-        self.norm1 = nn.LayerNorm(hidden_size)
-        self.norm2 = nn.LayerNorm(hidden_size)
+        self.dropout = nn.Dropout(dropout)
         
-    def forward(self, msa_repr: torch.Tensor, pair_repr: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, msa_repr: torch.Tensor, pair_repr: torch.Tensor,
+                msa_mask: Optional[torch.Tensor] = None,
+                pair_mask: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, torch.Tensor]:
         # MSA representation update
-        msa_attn = self.msa_attention(self.norm1(msa_repr))
-        msa_repr = msa_repr + self.msa_transition(msa_attn)
+        msa_attn = self.msa_attention(msa_repr, msa_repr, msa_mask)
+        msa_repr = msa_repr + self.dropout(self.msa_transition(msa_attn))
         
-        # Pair representation update
-        pair_attn = self.pair_attention(self.norm2(pair_repr))
+        # Pair representation update  
+        pair_attn = self.pair_attention(pair_repr, pair_repr, pair_mask)
         outer_product = self.outer_product_mean(
-            torch.cat([msa_repr.mean(1), pair_attn], dim=-1)
+            torch.cat([
+                msa_repr.mean(1),
+                self.dropout(pair_attn)
+            ], dim=-1)
         )
-        pair_repr = pair_repr + self.pair_transition(outer_product)
+        pair_repr = pair_repr + self.dropout(self.pair_transition(outer_product))
         
         return msa_repr, pair_repr
 
@@ -75,22 +103,34 @@ class AlphaFold(NexusModule):
             config.get("msa_vocab_size", 21),
             self.hidden_size
         )
-        self.template_embedding = TemplateEmbedding(self.hidden_size, self.num_heads)
+        self.pos_encoding = PositionalEncoding(self.hidden_size)
+        self.template_embedding = TemplateEmbedding(config)
         
         # Evoformer stack
         self.evoformer_blocks = nn.ModuleList([
-            EvoformerBlock(
-                hidden_size=self.hidden_size,
-                num_heads=self.num_heads,
-                dropout=self.dropout
-            ) for _ in range(self.num_layers)
+            EvoformerBlock(config) for _ in range(self.num_layers)
         ])
         
         # Structure module components
         self.structure_module = nn.ModuleDict({
-            'backbone': nn.Linear(self.hidden_size, 12),  # 3D coordinates + orientations
-            'sidechain': nn.Linear(self.hidden_size, 14),  # Chi angles
-            'confidence': nn.Linear(self.hidden_size, 1)
+            'backbone': nn.Sequential(
+                nn.Linear(self.hidden_size, self.hidden_size * 2),
+                nn.LayerNorm(self.hidden_size * 2),
+                nn.GELU(),
+                nn.Linear(self.hidden_size * 2, 12)
+            ),
+            'sidechain': nn.Sequential(
+                nn.Linear(self.hidden_size, self.hidden_size * 2),
+                nn.LayerNorm(self.hidden_size * 2),
+                nn.GELU(),
+                nn.Linear(self.hidden_size * 2, 14)
+            ),
+            'confidence': nn.Sequential(
+                nn.Linear(self.hidden_size, self.hidden_size),
+                nn.LayerNorm(self.hidden_size),
+                nn.GELU(),
+                nn.Linear(self.hidden_size, 1)
+            )
         })
         
         # Initialize weights
@@ -109,10 +149,13 @@ class AlphaFold(NexusModule):
         self,
         msa_tokens: torch.Tensor,
         template_features: Optional[torch.Tensor] = None,
-        mask: Optional[torch.Tensor] = None
+        msa_mask: Optional[torch.Tensor] = None,
+        pair_mask: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
         # Initial embeddings
         msa_repr = self.msa_embedding(msa_tokens)
+        msa_repr = self.pos_encoding(msa_repr)
+        
         pair_repr = torch.zeros(
             msa_repr.size(0),
             msa_repr.size(2),
@@ -123,14 +166,21 @@ class AlphaFold(NexusModule):
         
         # Template embedding
         if template_features is not None:
-            template_repr = self.template_embedding(msa_repr, template_features)
+            template_repr = self.template_embedding(
+                msa_repr,
+                template_features,
+                attention_mask=msa_mask
+            )
             msa_repr = msa_repr + template_repr
         
         # Process through Evoformer blocks
         for block in self.evoformer_blocks:
-            msa_repr, pair_repr = block(msa_repr, pair_repr)
-            if mask is not None:
-                msa_repr = msa_repr * mask.unsqueeze(-1)
+            msa_repr, pair_repr = block(
+                msa_repr,
+                pair_repr,
+                msa_mask=msa_mask,
+                pair_mask=pair_mask
+            )
         
         # Generate structure predictions
         backbone_pred = self.structure_module['backbone'](pair_repr)
