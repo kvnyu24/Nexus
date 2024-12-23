@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from ..attention import MultiHeadSelfAttention, CrossAttention, MemoryEfficientAttention
 from typing import Optional, Dict
-from ..attention.base import UnifiedAttention
+from ..attention.unified_attention import UnifiedAttention
 from nexus.core.base import NexusModule
 
 

@@ -1,10 +1,9 @@
+from typing import Optional, Union, Tuple
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional
-from nexus.core.base import NexusModule
+from .base_attention import BaseAttention
 
-class MultiHeadSelfAttention(NexusModule):
+class MultiHeadSelfAttention(BaseAttention):
     def __init__(
         self,
         hidden_size: int,
@@ -12,56 +11,51 @@ class MultiHeadSelfAttention(NexusModule):
         dropout: float = 0.1,
         bias: bool = True
     ):
-        super().__init__()
-        self.hidden_size = hidden_size
-        self.num_heads = num_heads
-        self.head_dim = hidden_size // num_heads
-        
-        self.q_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
-        self.k_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
-        self.v_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
-        self.out_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
-        
-        self.dropout = nn.Dropout(dropout)
+        super().__init__(
+            hidden_size=hidden_size,
+            num_heads=num_heads,
+            dropout=dropout
+        )
         
     def forward(
         self,
         hidden_states: torch.Tensor,
         attention_mask: Optional[torch.Tensor] = None,
         return_attention: bool = False
-    ):
-        batch_size = hidden_states.size(0)
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
+        batch_size, seq_length, _ = hidden_states.size()
         
-        # Project queries, keys, and values
-        q = self.q_proj(hidden_states)
-        k = self.k_proj(hidden_states)
-        v = self.v_proj(hidden_states)
+        # Project QKV using unified projection from base class
+        qkv = self.qkv_proj(hidden_states)
+        q, k, v = qkv.chunk(3, dim=-1)
         
-        # Reshape for multi-head attention
-        q = q.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
-        k = k.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
-        v = v.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
+        # Reshape for attention
+        q = self._reshape_for_attention(q)
+        k = self._reshape_for_attention(k) 
+        v = self._reshape_for_attention(v)
         
-        # Compute attention scores
-        attention_scores = torch.matmul(q, k.transpose(-2, -1)) / torch.sqrt(
-            torch.tensor(self.head_dim, dtype=torch.float)
-        )
+        if self.use_flash_attention and torch.cuda.is_available():
+            output = self.flash_attn_func(q, k, v, dropout_p=self.dropout.p)
+            attention_weights = None
+        else:
+            # Standard scaled dot-product attention
+            attention_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
+            
+            if attention_mask is not None:
+                attention_scores = attention_scores.masked_fill(
+                    attention_mask.unsqueeze(1).unsqueeze(2) == 0,
+                    float("-inf")
+                )
+            
+            attention_weights = F.softmax(attention_scores, dim=-1)
+            attention_weights = self.dropout(attention_weights)
+            output = torch.matmul(attention_weights, v)
         
-        if attention_mask is not None:
-            attention_scores = attention_scores.masked_fill(
-                attention_mask.unsqueeze(1).unsqueeze(2) == 0, float("-inf")
-            )
-        
-        attention_probs = F.softmax(attention_scores, dim=-1)
-        attention_probs = self.dropout(attention_probs)
-        
-        # Compute output
-        context = torch.matmul(attention_probs, v)
-        context = context.transpose(1, 2).contiguous()
-        context = context.view(batch_size, -1, self.hidden_size)
-        
-        output = self.out_proj(context)
+        # Reshape and project output
+        output = output.transpose(1, 2).contiguous()
+        output = output.view(batch_size, -1, self.hidden_size)
+        output = self.out_proj(output)
         
         if return_attention:
-            return output, attention_probs
-        return output 
+            return output, attention_weights
+        return output

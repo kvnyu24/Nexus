@@ -1,46 +1,44 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 from nexus.core.base import NexusModule
+from .base_attention import BaseAttention
 from ..embeddings import RotaryEmbedding, apply_rotary_pos_emb
 
 
-class CrossAttention(NexusModule):
+class CrossAttention(BaseAttention):
     def __init__(
         self,
         query_dim: int,
-        key_dim: int,
+        key_dim: int, 
         num_heads: int,
         dropout: float = 0.1,
-        bias: bool = True,
+        use_flash_attention: bool = True,
         max_seq_len: int = 2048
     ):
-        super().__init__()
-        if query_dim % num_heads != 0:
-            raise ValueError(f"query_dim {query_dim} must be divisible by num_heads {num_heads}")
-            
-        self.num_heads = num_heads
-        self.head_dim = query_dim // num_heads
-        self.scale = self.head_dim ** -0.5
-        
-        self.to_q = nn.Linear(query_dim, query_dim, bias=bias)
-        self.to_k = nn.Linear(key_dim, query_dim, bias=bias)
-        self.to_v = nn.Linear(key_dim, query_dim, bias=bias)
-        self.to_out = nn.Sequential(
-            nn.Linear(query_dim, query_dim),
-            nn.Dropout(dropout)
+        super().__init__(
+            hidden_size=query_dim,
+            num_heads=num_heads,
+            dropout=dropout,
+            use_flash_attention=use_flash_attention
         )
         
+        # Override QKV projections for cross attention
+        self.qkv_proj = None
+        self.to_q = nn.Linear(query_dim, query_dim, bias=False)
+        self.to_k = nn.Linear(key_dim, query_dim, bias=False)
+        self.to_v = nn.Linear(key_dim, query_dim, bias=False)
+        
         self.rotary_emb = RotaryEmbedding(self.head_dim, max_seq_len)
-        self.dropout = nn.Dropout(dropout)
         
     def forward(
         self,
         x: torch.Tensor,
         context: torch.Tensor,
-        mask: Optional[torch.Tensor] = None
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        mask: Optional[torch.Tensor] = None,
+        return_attention: bool = False
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         if x.dim() != 3 or context.dim() != 3:
             raise ValueError(f"Expected 3D tensors (batch, seq_len, dim), got x: {x.shape}, context: {context.shape}")
             
@@ -50,25 +48,36 @@ class CrossAttention(NexusModule):
         k = self.to_k(context)
         v = self.to_v(context)
         
-        q = q.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
-        k = k.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
-        v = v.view(batch_size, -1, self.num_heads, self.head_dim).transpose(1, 2)
+        q = self._reshape_for_attention(q)
+        k = self._reshape_for_attention(k)
+        v = self._reshape_for_attention(v)
         
         # Apply rotary embeddings
         sin, cos = self.rotary_emb(x)
         q, k = apply_rotary_pos_emb(q, k, sin, cos)
         
-        attention = torch.matmul(q, k.transpose(-2, -1)) * self.scale
-        
-        if mask is not None:
-            if mask.dim() != 2:
-                raise ValueError(f"Expected 2D mask, got shape {mask.shape}")
-            attention = attention.masked_fill(mask.unsqueeze(1).unsqueeze(2), float('-inf'))
+        if self.use_flash_attention and torch.cuda.is_available():
+            output = self.flash_attn_func(q, k, v, dropout_p=self.dropout.p)
+            attention_weights = None
+        else:
+            attention_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
             
-        attention = self.dropout(F.softmax(attention, dim=-1))
+            if mask is not None:
+                if mask.dim() != 2:
+                    raise ValueError(f"Expected 2D mask, got shape {mask.shape}")
+                attention_scores = attention_scores.masked_fill(
+                    mask.unsqueeze(1).unsqueeze(2),
+                    float('-inf')
+                )
+                
+            attention_weights = F.softmax(attention_scores, dim=-1)
+            attention_weights = self.dropout(attention_weights)
+            output = torch.matmul(attention_weights, v)
+            
+        output = output.transpose(1, 2).contiguous()
+        output = output.view(batch_size, -1, self.hidden_size)
+        output = self.out_proj(output)
         
-        out = torch.matmul(attention, v)
-        out = out.transpose(1, 2).reshape(batch_size, -1, self.num_heads * self.head_dim)
-        out = self.to_out(out)
-        
-        return out, attention
+        if return_attention:
+            return output, attention_weights
+        return output

@@ -3,9 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple
 from nexus.core.base import NexusModule
+from .base_attention import BaseAttention
 from .flash_attention import FlashAttention
 
-class MemoryEfficientAttention(NexusModule):
+class MemoryEfficientAttention(BaseAttention):
     def __init__(
         self,
         hidden_size: int,
@@ -15,31 +16,26 @@ class MemoryEfficientAttention(NexusModule):
         causal: bool = False,
         bias: bool = True
     ):
-        super().__init__()
+        super().__init__(
+            hidden_size=hidden_size,
+            num_heads=num_heads,
+            dropout=dropout,
+            use_flash_attention=False
+        )
         
-        if hidden_size % num_heads != 0:
-            raise ValueError(f"hidden_size ({hidden_size}) must be divisible by num_heads ({num_heads})")
-            
-        self.hidden_size = hidden_size
-        self.num_heads = num_heads
-        self.head_dim = hidden_size // num_heads
         self.chunk_size = chunk_size
-        self.scale = self.head_dim ** -0.5
         self.causal = causal
         
-        # Separate QKV projections for better control
+        # Override unified QKV projection with separate ones
+        self.qkv_proj = None
         self.q_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
         self.k_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
         self.v_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
-        
-        self.out_proj = nn.Linear(hidden_size, hidden_size, bias=bias)
-        self.dropout = nn.Dropout(dropout)
         
         # Initialize weights
         nn.init.xavier_uniform_(self.q_proj.weight)
         nn.init.xavier_uniform_(self.k_proj.weight) 
         nn.init.xavier_uniform_(self.v_proj.weight)
-        nn.init.xavier_uniform_(self.out_proj.weight)
         
         # Flash attention for when available
         self.flash_attention = FlashAttention(
@@ -68,9 +64,9 @@ class MemoryEfficientAttention(NexusModule):
         v = self.v_proj(x)
         
         # Reshape for multi-head attention
-        q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
-        v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
+        q = self._reshape_for_attention(q)
+        k = self._reshape_for_attention(k)
+        v = self._reshape_for_attention(v)
         
         # Initialize output tensor
         out = torch.zeros_like(q)
