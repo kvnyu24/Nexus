@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple, Union
 from ...core.base import NexusModule
-from ...components.attention.efficient_attention import FlashAttention
+from .flash_attention import FlashAttention
 
 
 class BaseAttention(NexusModule):
