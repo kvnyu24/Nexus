@@ -2,9 +2,11 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, List, Optional
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
+from ...core.mixins import FeatureBankMixin
 from ...components.blocks import ResidualBlock
 
-class ResNet(NexusModule):
+class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
     """
     Enhanced ResNet implementation with modern improvements:
     - Stochastic Depth for better regularization
@@ -70,16 +72,15 @@ class ResNet(NexusModule):
             nn.Linear(self.base_channels * 32, self.num_classes)
         )
         
-        # Enhanced feature bank with momentum
+        # Enhanced feature bank with momentum using FeatureBankMixin
         bank_size = config.get("bank_size", 10000)
-        self.register_buffer("feature_bank", torch.zeros(bank_size, self.base_channels * 32))
+        self.register_feature_bank("feature", bank_size, self.base_channels * 32)
         self.register_buffer("bank_labels", torch.zeros(bank_size, dtype=torch.long))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
         self.momentum = config.get("bank_momentum", 0.99)
         
-        # Initialize weights with improved scheme
-        self._init_weights()
-        
+        # Initialize weights using WeightInitMixin
+        self.init_weights_vision()
+
     def _validate_config(self, config: Dict[str, Any]) -> None:
         required = ["num_classes"]
         for key in required:
@@ -88,35 +89,25 @@ class ResNet(NexusModule):
         
         if config.get("drop_path_rate", 0.1) < 0 or config.get("drop_path_rate", 0.1) > 1:
             raise ValueError("drop_path_rate must be between 0 and 1")
-                
-    def _init_weights(self) -> None:
-        """Initialize weights with improved schemes for different layer types"""
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, (nn.BatchNorm2d, nn.LayerNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.trunc_normal_(m.weight, std=.02)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-                
-    def update_feature_bank(self, features: torch.Tensor, labels: torch.Tensor):
-        """Update feature bank with momentum"""
+
+    def update_feature_bank_with_labels(self, features: torch.Tensor, labels: torch.Tensor):
+        """Update feature bank with momentum and labels using FeatureBankMixin"""
         batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.feature_bank.size(0):
+        ptr = int(self.feature_ptr)
+        bank_size = self.feature_bank.size(0)
+
+        if ptr + batch_size > bank_size:
             ptr = 0
-            
+
         # Momentum update
         self.feature_bank[ptr:ptr + batch_size] = (
             self.momentum * self.feature_bank[ptr:ptr + batch_size] +
             (1 - self.momentum) * features.detach()
         )
         self.bank_labels[ptr:ptr + batch_size] = labels
-        self.bank_ptr[0] = (ptr + batch_size) % self.feature_bank.size(0)
+        self.feature_ptr[0] = (ptr + batch_size) % bank_size
+        if self.feature_ptr.item() == 0 or self.feature_filled.item():
+            self.feature_filled[0] = True
         
     def forward(self, x: torch.Tensor, labels: Optional[torch.Tensor] = None) -> Dict[str, torch.Tensor]:
         # Stem and stages
@@ -134,7 +125,7 @@ class ResNet(NexusModule):
         
         # Update feature bank if labels provided
         if labels is not None:
-            self.update_feature_bank(flat_features, labels)
+            self.update_feature_bank_with_labels(flat_features, labels)
         
         # Classification head
         logits = self.head(flat_features)

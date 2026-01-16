@@ -6,6 +6,7 @@ from .interaction import InteractionModule
 from .environment import VirtualEnvironment
 from .proactive_agent import ProactiveAgent
 from ..nlp import ChainOfThoughtModule, EnhancedRAGModule
+from nexus.utils.logging import Logger
 
 class AgentBehavior(NexusModule):
     def __init__(self, config: Dict[str, Any]):
@@ -125,7 +126,8 @@ class SocialAgent(NexusModule):
 class AgentTown(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+        self.logger = Logger(self.__class__.__name__)
+
         # Enhanced configuration
         self.num_agents = config["num_agents"]
         self.hidden_dim = config["hidden_dim"]
@@ -182,7 +184,7 @@ class AgentTown(NexusModule):
                         )
                         agent_interactions.append(interactions)
                 except Exception as e:
-                    print(f"Error processing agent {agent_id}: {str(e)}")
+                    self.logger.error(f"Error processing agent {agent_id}: {str(e)}")
                     continue
         
         if not agent_actions:
@@ -217,7 +219,7 @@ class AgentTown(NexusModule):
                 proactive_initiatives.append(outputs["initiative_score"])
                 proactive_impacts.append(outputs.get("impact_assessment", torch.zeros(1)))
             except Exception as e:
-                print(f"Error processing proactive agent {agent_id}: {str(e)}")
+                self.logger.error(f"Error processing proactive agent {agent_id}: {str(e)}")
                 continue
         
         return {

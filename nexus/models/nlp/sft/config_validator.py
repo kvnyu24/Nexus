@@ -1,7 +1,10 @@
 from typing import Dict, Any, Optional, Union, List
 from ....core.base import NexusModule
+from nexus.utils.logging import Logger
 
 class SFTConfigValidator:
+    _logger = Logger("SFTConfigValidator")
+
     # Default ranges for common parameters
     PARAM_RANGES = {
         "hidden_size": (64, 8192),
@@ -100,4 +103,4 @@ class SFTConfigValidator:
         mem_per_token = config["hidden_size"] * 4  # Rough estimate of memory per token
         total_mem = mem_per_token * config["max_sequence_length"] * config["num_layers"]
         if total_mem > 1e10:  # 10GB warning threshold
-            print(f"Warning: Model may require significant memory (rough estimate: {total_mem/1e9:.1f}GB)")
+            cls._logger.warning(f"Model may require significant memory (rough estimate: {total_mem/1e9:.1f}GB)")

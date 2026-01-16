@@ -15,24 +15,24 @@ class SpatialAttention(BaseAttention):
         self.dropout = nn.Dropout(dropout)
         self.sigmoid = nn.Sigmoid()
         
-    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attention_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         if x.dim() != 4:
             raise ValueError(f"Expected 4D tensor (batch, channels, height, width), got shape {x.shape}")
-            
+
         # Calculate attention weights using both average and max pooling
         avg_pool = torch.mean(x, dim=1, keepdim=True)
         max_pool, _ = torch.max(x, dim=1, keepdim=True)
         attention = torch.cat([avg_pool, max_pool], dim=1)
-        
+
         # Apply convolution and normalization
         attention = self.conv(attention)
         attention = self.norm(attention)
         attention = self.dropout(attention)
         attention = self.sigmoid(attention)
-        
-        if mask is not None:
-            attention = attention.masked_fill(mask.unsqueeze(1) == 0, 0)
-            
+
+        if attention_mask is not None:
+            attention = attention.masked_fill(attention_mask.unsqueeze(1) == 0, 0)
+
         return x * attention
 
 class ChannelAttention(BaseAttention):
@@ -54,20 +54,20 @@ class ChannelAttention(BaseAttention):
         )
         self.sigmoid = nn.Sigmoid()
         
-    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, attention_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         if x.dim() != 4:
             raise ValueError(f"Expected 4D tensor (batch, channels, height, width), got shape {x.shape}")
-            
+
         b, c, _, _ = x.size()
-        
+
         # Process through both pooling branches
         avg_out = self.fc(self.avg_pool(x).view(b, c))
         max_out = self.fc(self.max_pool(x).view(b, c))
-        
+
         # Combine and apply attention
         attention = self.sigmoid(avg_out + max_out).view(b, c, 1, 1)
-        
-        if mask is not None:
-            attention = attention.masked_fill(mask.unsqueeze(1).unsqueeze(2) == 0, 0)
-            
+
+        if attention_mask is not None:
+            attention = attention.masked_fill(attention_mask.unsqueeze(1).unsqueeze(2) == 0, 0)
+
         return x * attention

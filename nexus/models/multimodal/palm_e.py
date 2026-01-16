@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Union
 from ...core.base import NexusModule
+from ...core.mixins import FeatureBankMixin
 
 class VisionEncoder(NexusModule):
     def __init__(self, input_channels: int, hidden_dim: int):
@@ -39,7 +40,7 @@ class LanguageEncoder(NexusModule):
             attention_mask = attention_mask.bool()
         return self.encoder(x, src_key_padding_mask=attention_mask)
 
-class PaLME(NexusModule):
+class PaLME(FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -88,13 +89,9 @@ class PaLME(NexusModule):
             )
         })
         
-        # Add feature bank with configurable size
+        # Add feature bank with configurable size using FeatureBankMixin
         self.bank_size = config.get("bank_size", 10000)
-        self.register_buffer(
-            "feature_bank",
-            torch.zeros(self.bank_size, self.hidden_dim)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
+        self.register_feature_bank("feature", self.bank_size, self.hidden_dim)
         
         # Output heads
         self.task_heads = nn.ModuleDict({
@@ -109,17 +106,6 @@ class PaLME(NexusModule):
         for key in required:
             if key not in config:
                 raise ValueError(f"Missing required config key: {key}")
-
-    def update_feature_bank(self, features: torch.Tensor):
-        """Update feature bank following EnhancedReID pattern"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.feature_bank.size(0):
-            ptr = 0
-            
-        self.feature_bank[ptr:ptr + batch_size] = features.detach()
-        self.bank_ptr[0] = (ptr + batch_size) % self.feature_bank.size(0)
 
     def forward(
         self,
@@ -163,8 +149,8 @@ class PaLME(NexusModule):
             fused_features = self.final_norm(vision_text_features + text_vision_features)
             outputs["fused_features"] = fused_features
             
-            # Update feature bank with new mechanism
-            self._update_feature_bank(fused_features)
+            # Update feature bank using FeatureBankMixin
+            FeatureBankMixin.update_feature_bank(self, "feature", fused_features)
             
             # Generate task-specific outputs
             outputs.update({
@@ -174,21 +160,3 @@ class PaLME(NexusModule):
             })
             
         return outputs
-
-    def _update_feature_bank(self, features: torch.Tensor) -> None:
-        """Update feature bank with circular buffer mechanism"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        # Implement circular buffer
-        if ptr + batch_size > self.bank_size:
-            # Handle wraparound
-            first_part = self.bank_size - ptr
-            self.feature_bank[ptr:] = features[:first_part].detach()
-            self.feature_bank[:batch_size-first_part] = features[first_part:].detach()
-            ptr = batch_size - first_part
-        else:
-            self.feature_bank[ptr:ptr + batch_size] = features.detach()
-            ptr = (ptr + batch_size) % self.bank_size
-            
-        self.bank_ptr[0] = ptr

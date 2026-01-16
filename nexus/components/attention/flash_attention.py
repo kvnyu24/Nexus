@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from typing import Optional
 from einops import rearrange
 from nexus.core.base import NexusModule
+from nexus.utils.attention_utils import create_causal_mask
 
 class FlashAttention(NexusModule):
     def __init__(
@@ -41,79 +42,77 @@ class FlashAttention(NexusModule):
     def forward(
         self,
         hidden_states: torch.Tensor,
-        mask: Optional[torch.Tensor] = None
+        attention_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
         Args:
             hidden_states (torch.Tensor): Input tensor of shape (B, N, C)
-            mask (Optional[torch.Tensor]): Attention mask of shape (B, 1, N, K)
-        
+            attention_mask (Optional[torch.Tensor]): Attention mask of shape (B, 1, N, K)
+
         Returns:
             torch.Tensor: Output tensor of shape (B, N, C)
         """
         if hidden_states.dim() != 3:
             raise ValueError(f"Expected 3D input tensor, got {hidden_states.dim()}D")
-        
+
         B, N, C = hidden_states.shape
         if C != self.hidden_size:
             raise ValueError(f"Input hidden size {C} doesn't match configured hidden_size {self.hidden_size}")
-        
+
         # Project queries, keys, and values
         q = self.q_proj(hidden_states)
         k = self.k_proj(hidden_states)
         v = self.v_proj(hidden_states)
-        
+
         # Reshape for multi-head attention
         q = rearrange(q, 'b n (h d) -> b h n d', h=self.num_heads)
         k = rearrange(k, 'b n (h d) -> b h n d', h=self.num_heads)
         v = rearrange(v, 'b n (h d) -> b h n d', h=self.num_heads)
-        
+
         # Scale queries
         q = q * self.scale
-        
+
         # Initialize output tensor
         output = torch.zeros_like(v, device=hidden_states.device, dtype=hidden_states.dtype)
-        
+
         # Process in blocks for memory efficiency
         for start in range(0, N, self.block_size):
             end = start + self.block_size
             q_block = q[:, :, start:end]  # (B, H, block_size, D)
-            
+
             if self.causal:
                 k_block = k[:, :, :end]  # Causal: attend to all previous tokens
                 v_block = v[:, :, :end]
             else:
                 k_block = k
                 v_block = v
-            
+
             # Compute attention scores
             attn_scores = torch.matmul(q_block, k_block.transpose(-2, -1))  # (B, H, block_size, K)
-            
+
             if self.causal:
-                causal_mask = torch.triu(
-                    torch.ones((attn_scores.size(-2), attn_scores.size(-1)), dtype=torch.bool, device=attn_scores.device),
-                    diagonal=1
-                )
+                causal_mask = create_causal_mask(attn_scores.size(-1), dtype=torch.bool, device=attn_scores.device)
+                causal_mask = causal_mask[-attn_scores.size(-2):, :]
                 attn_scores = attn_scores.masked_fill(causal_mask, float('-inf'))
-            
-            if mask is not None:
+
+            if attention_mask is not None:
                 # Ensure mask shape compatibility
-                if mask.dim() != 4:
-                    raise ValueError(f"Attention mask should be 4D, got {mask.dim()}D")
-                if mask.size(0) != B:
-                    raise ValueError(f"Mask batch size {mask.size(0)} doesn't match input batch size {B}")
-                attn_scores += mask[:, None, start:end, :k_block.size(-2)]
-            
+                if attention_mask.dim() != 4:
+                    raise ValueError(f"Attention mask should be 4D, got {attention_mask.dim()}D")
+                if attention_mask.size(0) != B:
+                    raise ValueError(f"Attention mask batch size {attention_mask.size(0)} doesn't match input batch size {B}")
+                attn_scores += attention_mask[:, None, start:end, :k_block.size(-2)]
+
             # Apply softmax to get attention probabilities
             attn_probs = F.softmax(attn_scores, dim=-1)
             attn_probs = self.dropout(attn_probs)
-            
+
             # Compute attention output
             attn_output = torch.matmul(attn_probs, v_block)  # (B, H, block_size, D)
             output[:, :, start:end, :] = attn_output
-        
+
         # Reshape and project output
         output = rearrange(output, 'b h n d -> b n (h d)')
         output = self.out_proj(output)  # (B, N, C)
-        
+
         return output

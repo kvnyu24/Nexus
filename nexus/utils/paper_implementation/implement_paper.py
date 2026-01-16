@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
-import logging
 import torch
+from ..logging import Logger
 import shutil
 from datetime import datetime
 
@@ -39,7 +39,7 @@ class PaperImplementer:
         )
         
         # Setup logging
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
         
         # Initialize metrics tracker
         self.metrics = MetricsTracker()

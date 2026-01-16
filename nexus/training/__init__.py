@@ -1,3 +1,4 @@
+from .base_trainer import BaseTrainer
 from .trainer import Trainer
 
 from .losses import (
@@ -20,6 +21,7 @@ from .scheduler import (
 
 __all__ = [
     # Core training
+    'BaseTrainer',
     'Trainer',
     
     # Losses

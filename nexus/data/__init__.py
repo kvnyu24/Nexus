@@ -8,6 +8,8 @@ from .replay_buffer import *
 from .streaming import *
 from .processors import *
 from .tokenizer import *
+from .type_conversion import TypeConverter
+from .validation import DataValidation
 
 __all__ = [
     # Core data classes
@@ -24,7 +26,14 @@ __all__ = [
     'RandomRotation',
     'Normalize',
     'ToTensor',
-    'NeRFDataset'
+    'NeRFDataset',
+
+    # Transform decorators
+    'safe_operation',
+    'validate_input',
+    'with_fallback',
+    'log_transform',
+    'ensure_type',
 
     # Augmentation
     'AugmentationPipeline',
@@ -48,5 +57,11 @@ __all__ = [
 
     # Tokenizer
     'SimpleTokenizer',
-    'BERTTokenizer', 
+    'BERTTokenizer',
+
+    # Type Conversion
+    'TypeConverter',
+
+    # Validation
+    'DataValidation',
 ]

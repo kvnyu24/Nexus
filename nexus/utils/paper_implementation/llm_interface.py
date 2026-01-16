@@ -1,8 +1,8 @@
 from typing import Dict, Any, List, Optional, Union, Tuple
 import openai
 import anthropic
-import logging
 from pathlib import Path
+from ..logging import Logger
 import json
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 from ...core.base import NexusModule
@@ -17,7 +17,7 @@ class LLMInterface(NexusModule):
             config: Configuration dictionary containing API keys and settings
         """
         super().__init__(config)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
         
         # Initialize clients with error handling
         try:

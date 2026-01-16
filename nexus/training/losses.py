@@ -5,7 +5,32 @@ from typing import Optional, List, Union, Dict, Any
 import math
 from nexus.core.base import NexusModule
 
-class FocalLoss(NexusModule):
+
+class ReductionMixin:
+    """Mixin class providing standardized loss reduction functionality.
+
+    Provides a common `apply_reduction` method that can be used by any loss
+    class to handle 'mean', 'sum', or 'none' reduction modes consistently.
+    """
+
+    def apply_reduction(self, loss: torch.Tensor, reduction: str) -> torch.Tensor:
+        """Apply reduction to the loss tensor.
+
+        Args:
+            loss: Unreduced loss tensor
+            reduction: Reduction method ('mean', 'sum', or 'none')
+
+        Returns:
+            Reduced loss tensor
+        """
+        if reduction == 'mean':
+            return loss.mean()
+        elif reduction == 'sum':
+            return loss.sum()
+        return loss
+
+
+class FocalLoss(ReductionMixin, NexusModule):
     def __init__(
         self,
         alpha: float = 1.0,
@@ -26,12 +51,7 @@ class FocalLoss(NexusModule):
         ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=weight)
         pt = torch.exp(-ce_loss)
         focal_loss = self.alpha * (1 - pt) ** self.gamma * ce_loss
-        
-        if self.reduction == 'mean':
-            return focal_loss.mean()
-        elif self.reduction == 'sum':
-            return focal_loss.sum()
-        return focal_loss
+        return self.apply_reduction(focal_loss, self.reduction)
 
 class ContrastiveLoss(NexusModule):
     def __init__(self, margin: float = 1.0):
@@ -49,7 +69,7 @@ class ContrastiveLoss(NexusModule):
                 (1 - labels).float() * F.relu(self.margin - distances).pow(2)
         return losses.mean() 
 
-class CircleLoss(NexusModule):
+class CircleLoss(ReductionMixin, NexusModule):
     def __init__(
         self,
         m: float = 0.25,
@@ -96,14 +116,9 @@ class CircleLoss(NexusModule):
         
         # Calculate loss
         loss = torch.log(1 + torch.sum(pos_weights) * torch.sum(neg_weights))
-        
-        if self.reduction == 'mean':
-            return loss.mean()
-        elif self.reduction == 'sum':
-            return loss.sum()
-        return loss 
+        return self.apply_reduction(loss, self.reduction)
 
-class TripletLoss(NexusModule):
+class TripletLoss(ReductionMixin, NexusModule):
     def __init__(self, margin: float = 1.0, reduction: str = 'mean'):
         """
         Triplet loss for metric learning
@@ -125,12 +140,7 @@ class TripletLoss(NexusModule):
         pos_dist = F.pairwise_distance(anchor, positive)
         neg_dist = F.pairwise_distance(anchor, negative)
         loss = F.relu(pos_dist - neg_dist + self.margin)
-        
-        if self.reduction == 'mean':
-            return loss.mean()
-        elif self.reduction == 'sum':
-            return loss.sum()
-        return loss
+        return self.apply_reduction(loss, self.reduction)
 
 class NTXentLoss(NexusModule):
     def __init__(self, temperature: float = 0.5):
@@ -415,7 +425,7 @@ class PolyLoss(NexusModule):
         
         return loss.mean()
 
-class WeightedFocalLoss(NexusModule):
+class WeightedFocalLoss(ReductionMixin, NexusModule):
     def __init__(
         self,
         alpha: Union[float, List[float]],
@@ -450,12 +460,7 @@ class WeightedFocalLoss(NexusModule):
             alpha_t = self.alpha
             
         focal_loss = alpha_t * (1 - pt) ** self.gamma * ce_loss
-        
-        if self.reduction == 'mean':
-            return focal_loss.mean()
-        elif self.reduction == 'sum':
-            return focal_loss.sum()
-        return focal_loss
+        return self.apply_reduction(focal_loss, self.reduction)
     
 class SFTLoss(NexusModule):
     def __init__(self, alpha: float = 0.3, beta: float = 0.2):

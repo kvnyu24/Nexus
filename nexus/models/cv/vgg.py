@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
+from ...core.mixins import FeatureBankMixin
 
-class VGG(NexusModule):
+class VGG(FeatureBankMixin, WeightInitMixin, NexusModule):
     """
     Enhanced VGG implementation with modern improvements:
     - Batch normalization and layer normalization
@@ -51,19 +53,18 @@ class VGG(NexusModule):
             nn.Linear(4096, self.num_classes)
         )
         
-        # Enhanced feature bank with momentum
+        # Enhanced feature bank with momentum using FeatureBankMixin
         bank_size = config.get("bank_size", 10000)
-        self.register_buffer("feature_bank", torch.zeros(bank_size, 512))
+        self.register_feature_bank("feature", bank_size, 512)
         self.register_buffer("bank_labels", torch.zeros(bank_size, dtype=torch.long))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
         self.momentum = config.get("bank_momentum", 0.9)
         
         # Layer scale parameters
         self.gamma = nn.Parameter(self.layer_scale_init_value * torch.ones(512))
-        
-        # Initialize weights
-        self._init_weights()
-        
+
+        # Initialize weights using WeightInitMixin
+        self.init_weights_vision()
+
     def _validate_config(self, config: Dict[str, Any]) -> None:
         """Validate configuration with enhanced checks"""
         required = ["num_classes", "architecture"]
@@ -79,22 +80,7 @@ class VGG(NexusModule):
             
         if "drop_path" in config and not 0 <= config["drop_path"] <= 1:
             raise ValueError("drop_path must be between 0 and 1")
-            
-    def _init_weights(self) -> None:
-        """Enhanced weight initialization"""
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-            elif isinstance(m, (nn.BatchNorm2d, nn.LayerNorm)):
-                nn.init.constant_(m.weight, 1)
-                nn.init.constant_(m.bias, 0)
-            elif isinstance(m, nn.Linear):
-                nn.init.trunc_normal_(m.weight, std=.02)
-                if m.bias is not None:
-                    nn.init.constant_(m.bias, 0)
-                
+
     def _make_layers(self, architecture: List[int]) -> nn.Sequential:
         """Create VGG blocks with enhanced features"""
         layers = []
@@ -135,21 +121,24 @@ class VGG(NexusModule):
                 
         return nn.Sequential(*layers)
         
-    def update_feature_bank(self, features: torch.Tensor, labels: torch.Tensor):
-        """Update feature bank with momentum"""
+    def update_feature_bank_with_labels(self, features: torch.Tensor, labels: torch.Tensor):
+        """Update feature bank with momentum and labels using FeatureBankMixin"""
         batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.feature_bank.size(0):
+        ptr = int(self.feature_ptr)
+        bank_size = self.feature_bank.size(0)
+
+        if ptr + batch_size > bank_size:
             ptr = 0
-            
+
         # Momentum update
         self.feature_bank[ptr:ptr + batch_size] = (
             self.momentum * self.feature_bank[ptr:ptr + batch_size] +
             (1 - self.momentum) * features.detach()
         )
         self.bank_labels[ptr:ptr + batch_size] = labels
-        self.bank_ptr[0] = (ptr + batch_size) % self.feature_bank.size(0)
+        self.feature_ptr[0] = (ptr + batch_size) % bank_size
+        if self.feature_ptr.item() == 0 or self.feature_filled.item():
+            self.feature_filled[0] = True
         
     def forward(
         self,
@@ -172,7 +161,7 @@ class VGG(NexusModule):
         
         # Update feature bank if labels provided
         if labels is not None:
-            self.update_feature_bank(scaled_features, labels)
+            self.update_feature_bank_with_labels(scaled_features, labels)
         
         # Classification
         logits = self.classifier(scaled_features)

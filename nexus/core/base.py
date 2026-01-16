@@ -4,13 +4,18 @@ from typing import Dict, Any, Optional, Union
 import json
 import os
 import datetime
-from nexus.core.base import NexusModule
 
 
-class NexusModule(NexusModule):
-    def __init__(self, config: Dict[str, Any]):
+class NexusModule(nn.Module):
+    """Base class for all Nexus neural network modules.
+
+    Provides enhanced functionality for saving/loading, device management,
+    parameter freezing, and memory profiling.
+    """
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__()
-        self.config = config
+        self.config = config or {}
         self._is_training = True
         self._device = "cpu"
         self._frozen = False

@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from ....core.base import NexusModule
 from annoy import AnnoyIndex
 import numpy as np
-import logging
+from ....utils.logging import Logger
 
 class EfficientRetriever(NexusModule):
     def __init__(self, config: Dict[str, Any]):
@@ -17,7 +17,7 @@ class EfficientRetriever(NexusModule):
         self.metric = config.get("metric", "dot")
         self.index = None
         self.document_store = []
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
         
     def _validate_embeddings(self, embeddings: torch.Tensor) -> None:
         """Validate embedding dimensions and values."""

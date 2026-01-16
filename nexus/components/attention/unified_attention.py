@@ -6,6 +6,7 @@ from .multi_head_attention import MultiHeadSelfAttention
 from .efficient_attention import MemoryEfficientAttention
 from nexus.core.base import NexusModule
 from nexus.core.initialization import WeightInitializer
+from nexus.utils.logging import Logger
 
 class UnifiedAttention(NexusModule):
     """A unified attention module that supports multiple attention implementations.
@@ -47,6 +48,7 @@ class UnifiedAttention(NexusModule):
         self.hidden_size = hidden_size
         self.num_heads = num_heads
         self.return_attention_weights = return_attention_weights
+        self.logger = Logger(self.__class__.__name__)
         
         if attention_type == "efficient":
             self.attention = MemoryEfficientAttention(
@@ -59,7 +61,7 @@ class UnifiedAttention(NexusModule):
             )
         elif attention_type == "flash" or use_flash_attention:
             if not torch.cuda.is_available():
-                print("Warning: Flash attention requested but CUDA not available. Falling back to standard attention.")
+                self.logger.warning("Flash attention requested but CUDA not available. Falling back to standard attention.")
                 self.attention = MultiHeadSelfAttention(
                     hidden_size=hidden_size,
                     num_heads=num_heads,
@@ -94,27 +96,27 @@ class UnifiedAttention(NexusModule):
     def forward(
         self,
         x: torch.Tensor,
-        mask: Optional[torch.Tensor] = None,
+        attention_mask: Optional[torch.Tensor] = None,
         **kwargs: Any
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         """
         Forward pass of the attention module.
-        
+
         Args:
             x (torch.Tensor): Input tensor of shape (batch_size, seq_len, hidden_size)
-            mask (Optional[torch.Tensor]): Attention mask of shape (batch_size, seq_len, seq_len)
+            attention_mask (Optional[torch.Tensor]): Attention mask of shape (batch_size, seq_len, seq_len)
             **kwargs: Additional arguments passed to the underlying attention implementation
-            
+
         Returns:
-            Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]: 
+            Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
                 - Output tensor of shape (batch_size, seq_len, hidden_size)
                 - Attention weights if return_attention_weights is True
         """
         if x.size(-1) != self.hidden_size:
             raise ValueError(f"Input hidden size {x.size(-1)} doesn't match configured hidden_size {self.hidden_size}")
-            
+
         if self.return_attention_weights:
-            output, attn_weights = self.attention(x, mask, return_attention=True)
+            output, attn_weights = self.attention(x, attention_mask, return_attention=True)
             return output, attn_weights
-            
-        return self.attention(x, mask)
+
+        return self.attention(x, attention_mask)

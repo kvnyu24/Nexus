@@ -4,8 +4,16 @@ from torch.nn.parallel import DistributedDataParallel
 from typing import Optional, Dict, Any
 from .checkpointing import CheckpointMixin
 from nexus.core.base import NexusModule
+from nexus.utils.logging import Logger
 
 class DistributedTrainer(CheckpointMixin):
+    """Distributed training wrapper for multi-GPU training with DDP.
+
+    Provides utilities for distributed training including process group
+    initialization, metric reduction across processes, and checkpoint
+    management with rank-aware saving.
+    """
+
     def __init__(
         self,
         model: NexusModule,
@@ -18,23 +26,30 @@ class DistributedTrainer(CheckpointMixin):
         self.world_size = world_size
         self.backend = backend
         self.checkpoint_dir = checkpoint_dir or "checkpoints"
-        
+        self.logger = Logger(f"DistributedTrainer[rank={rank}]")
+
         # Initialize distributed process group
-        dist.init_process_group(
-            backend=backend,
-            rank=rank,
-            world_size=world_size
-        )
-        
+        try:
+            dist.init_process_group(
+                backend=backend,
+                rank=rank,
+                world_size=world_size
+            )
+            self.logger.info(f"Initialized process group with backend={backend}")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize process group: {e}")
+            raise
+
         # Set device
         self.device = torch.device(f"cuda:{rank}")
         torch.cuda.set_device(self.device)
-        
+
         # Wrap model
         self.model = DistributedDataParallel(
             model.to(self.device),
             device_ids=[rank]
         )
+        self.logger.info(f"Model wrapped with DDP on device cuda:{rank}")
         
     def all_reduce_dict(self, data: Dict[str, float]) -> Dict[str, float]:
         """Reduce metrics across all processes."""

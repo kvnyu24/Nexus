@@ -7,6 +7,8 @@ import time
 import logging
 import numpy as np
 
+from .validation import DataValidation
+
 class StreamingDataset(IterableDataset):
     def __init__(
         self,
@@ -23,10 +25,10 @@ class StreamingDataset(IterableDataset):
             prefetch_factor: Number of items to try prefetching at once
             timeout: Timeout in seconds for queue operations
         """
-        if not isinstance(buffer_size, int) or buffer_size <= 0:
-            raise ValueError("buffer_size must be a positive integer")
-        if not isinstance(prefetch_factor, int) or prefetch_factor <= 0:
-            raise ValueError("prefetch_factor must be a positive integer")
+        DataValidation.validate_type(buffer_size, int, "buffer_size")
+        DataValidation.validate_positive(buffer_size, "buffer_size")
+        DataValidation.validate_type(prefetch_factor, int, "prefetch_factor")
+        DataValidation.validate_positive(prefetch_factor, "prefetch_factor")
             
         self.data_source = data_source
         self.buffer_size = buffer_size

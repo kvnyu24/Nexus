@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, Tuple, Union
 from ...core.base import NexusModule
+from ...utils.logging import Logger
 from .flash_attention import FlashAttention
 
 
@@ -16,6 +17,7 @@ class BaseAttention(NexusModule):
         attention_scale: float = None
     ):
         super().__init__()
+        self.logger = Logger(self.__class__.__name__)
         
         if hidden_size % num_heads != 0:
             raise ValueError(
@@ -49,7 +51,7 @@ class BaseAttention(NexusModule):
                     ).forward
                 except ImportError:
                     self.use_flash_attention = False
-                    print("Flash Attention not available, falling back to standard attention")
+                    self.logger.warning("Flash Attention not available, falling back to standard attention")
         
     def _reshape_for_attention(self, x: torch.Tensor) -> torch.Tensor:
         batch_size = x.size(0)

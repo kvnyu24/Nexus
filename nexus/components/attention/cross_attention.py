@@ -36,48 +36,48 @@ class CrossAttention(BaseAttention):
         self,
         x: torch.Tensor,
         context: torch.Tensor,
-        mask: Optional[torch.Tensor] = None,
+        attention_mask: Optional[torch.Tensor] = None,
         return_attention: bool = False
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor]]:
         if x.dim() != 3 or context.dim() != 3:
             raise ValueError(f"Expected 3D tensors (batch, seq_len, dim), got x: {x.shape}, context: {context.shape}")
-            
+
         batch_size, seq_len, _ = x.shape
-        
+
         q = self.to_q(x)
         k = self.to_k(context)
         v = self.to_v(context)
-        
+
         q = self._reshape_for_attention(q)
         k = self._reshape_for_attention(k)
         v = self._reshape_for_attention(v)
-        
+
         # Apply rotary embeddings
         sin, cos = self.rotary_emb(x)
         q, k = apply_rotary_pos_emb(q, k, sin, cos)
-        
+
         if self.use_flash_attention and torch.cuda.is_available():
             output = self.flash_attn_func(q, k, v, dropout_p=self.dropout.p)
             attention_weights = None
         else:
             attention_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
-            
-            if mask is not None:
-                if mask.dim() != 2:
-                    raise ValueError(f"Expected 2D mask, got shape {mask.shape}")
+
+            if attention_mask is not None:
+                if attention_mask.dim() != 2:
+                    raise ValueError(f"Expected 2D attention_mask, got shape {attention_mask.shape}")
                 attention_scores = attention_scores.masked_fill(
-                    mask.unsqueeze(1).unsqueeze(2),
+                    attention_mask.unsqueeze(1).unsqueeze(2),
                     float('-inf')
                 )
-                
+
             attention_weights = F.softmax(attention_scores, dim=-1)
             attention_weights = self.dropout(attention_weights)
             output = torch.matmul(attention_weights, v)
-            
+
         output = output.transpose(1, 2).contiguous()
         output = output.view(batch_size, -1, self.hidden_size)
         output = self.out_proj(output)
-        
+
         if return_attention:
             return output, attention_weights
         return output

@@ -2,11 +2,13 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from nexus.utils.logging import Logger
 
 class BSM(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+        self.logger = Logger(self.__class__.__name__)
+
         self._validate_config(config)
         self.hidden_dim = config["hidden_dim"]
         self.bank_size = config.get("bank_size", 10000)
@@ -173,7 +175,7 @@ class BSM(NexusModule):
         except Exception as e:
             # Fallback to minimum values on error
             base_price = torch.zeros_like(S)
-            print(f"BSM calculation failed: {str(e)}")
+            self.logger.error(f"BSM calculation failed: {str(e)}")
         
         # Calculate Greeks
         greeks_input = torch.cat([

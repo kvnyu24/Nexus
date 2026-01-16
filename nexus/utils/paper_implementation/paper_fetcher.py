@@ -3,8 +3,8 @@ import PyPDF2
 import requests
 import tempfile
 import json
-import logging
 from typing import Dict, Any, Optional, List, Union
+from ..logging import Logger
 from pathlib import Path
 from tenacity import retry, stop_after_attempt, wait_exponential
 from ...core.base import NexusModule
@@ -32,7 +32,7 @@ class PaperFetcher(NexusModule):
         self.backup_dir.mkdir(exist_ok=True)
         self.backup_enabled = backup_enabled
         self.max_backups = max_backups
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
         self.experiment_tracker = ExperimentTracker()
         
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))

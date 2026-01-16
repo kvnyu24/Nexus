@@ -6,6 +6,8 @@ import os
 from PIL import Image
 import logging
 
+from .validation import DataValidation
+
 class Dataset(TorchDataset):
     """Dataset class for loading image data from a directory structure.
     
@@ -37,8 +39,7 @@ class Dataset(TorchDataset):
             cache_images: If True, cache images in memory after first load
         """
         self.data_dir = Path(data_dir)
-        if not self.data_dir.exists():
-            raise ValueError(f"Data directory {data_dir} does not exist")
+        DataValidation.validate_directory_exists(self.data_dir)
             
         self.transform = transform
         self.target_transform = target_transform
@@ -58,8 +59,8 @@ class Dataset(TorchDataset):
         
     def _load_dataset(self) -> None:
         """Load dataset structure and build class mapping."""
-        if not any(self.data_dir.iterdir()):
-            raise ValueError(f"No files found in {self.data_dir}")
+        dir_contents = list(self.data_dir.iterdir())
+        DataValidation.validate_not_empty(dir_contents, "data_dir contents")
             
         # Build class mapping
         for class_folder in sorted(x for x in self.data_dir.iterdir() if x.is_dir()):
@@ -74,8 +75,7 @@ class Dataset(TorchDataset):
                     self.samples.append(img_path)
                     self.targets.append(class_idx)
                     
-        if not self.samples:
-            raise ValueError(f"No valid images found in {self.data_dir}")
+        DataValidation.validate_not_empty(self.samples, "samples")
             
         self.logger.info(f"Loaded dataset with {len(self.samples)} images across {len(self.classes)} classes")
         

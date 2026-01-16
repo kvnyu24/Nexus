@@ -2,8 +2,9 @@ from typing import Dict, Any, Optional, Tuple, Union
 import torch
 import torch.nn as nn
 from ....core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 
-class BaseRNN(NexusModule):
+class BaseRNN(WeightInitMixin, NexusModule):
     """
     Base RNN class that implements common functionality for RNN-based models.
     Serves as a foundation for LSTM, GRU, and other RNN variants.
@@ -39,10 +40,10 @@ class BaseRNN(NexusModule):
         
         # Tie weights between embedding and output layer
         self.output.weight = self.token_embedding.weight
-        
-        # Initialize weights
-        self.apply(self._init_weights)
-        
+
+        # Initialize weights using WeightInitMixin (llm preset uses normal distribution with std=0.02)
+        self.apply_weight_init(preset='llm')
+
     def _validate_config(self) -> None:
         """Validate configuration parameters."""
         if self.hidden_size <= 0:
@@ -53,20 +54,7 @@ class BaseRNN(NexusModule):
             raise ValueError("vocab_size must be positive")
         if not 0 <= self.dropout < 1:
             raise ValueError("dropout must be between 0 and 1")
-            
-    def _init_weights(self, module: NexusModule) -> None:
-        """Initialize network weights."""
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                torch.nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            module.weight.data[0].zero_()  # Initialize padding embedding to zeros
-        elif isinstance(module, nn.LayerNorm):
-            torch.nn.init.ones_(module.weight)
-            torch.nn.init.zeros_(module.bias)
-            
+
     def _validate_input(
         self,
         input_ids: torch.Tensor,

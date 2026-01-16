@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 from typing import Optional
 from nexus.core.base import NexusModule
+from nexus.core.mixins import InputValidationMixin
+from nexus.components.layers import DropPath, SEBlock
 
-class ResidualBlock(NexusModule):
+class ResidualBlock(InputValidationMixin, NexusModule):
     def __init__(
         self, 
         in_channels: int,
@@ -47,31 +49,16 @@ class ResidualBlock(NexusModule):
         self.downsample = downsample
         
         # SE block for channel attention
-        self.se = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(out_channels, out_channels // 16, 1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels // 16, out_channels, 1),
-            nn.Sigmoid()
-        )
+        self.se = SEBlock(out_channels, reduction_ratio=16)
         
         # Stochastic depth for regularization
-        self.drop_path_prob = 0.1
-        
-    def _drop_path(self, x: torch.Tensor) -> torch.Tensor:
-        if self.training:
-            keep_prob = 1 - self.drop_path_prob
-            mask = torch.zeros_like(x[0, 0, 0, 0]).bernoulli_(keep_prob)
-            mask = mask.view(1, 1, 1, 1).expand_as(x) / keep_prob
-            return x * mask
-        return x
-        
+        self.drop_path = DropPath(drop_prob=0.1)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         identity = x
-        
+
         # Input validation
-        if not torch.isfinite(x).all():
-            raise ValueError("Input contains inf or nan values")
+        self.validate_finite(x, name="input")
             
         out = self.conv1(x)
         out = self.bn1(out)
@@ -81,13 +68,13 @@ class ResidualBlock(NexusModule):
         out = self.bn2(out)
         
         # Apply SE attention
-        out = out * self.se(out)
+        out = self.se(out)
         
         if self.downsample is not None:
             identity = self.downsample(x)
             
         # Apply stochastic depth
-        out = self._drop_path(out)
+        out = self.drop_path(out)
         
         # Residual connection with gradient checkpointing
         if torch.jit.is_scripting():
@@ -99,7 +86,7 @@ class ResidualBlock(NexusModule):
         
         return out
 
-class InvertedResidualBlock(NexusModule):
+class InvertedResidualBlock(InputValidationMixin, NexusModule):
     def __init__(
         self,
         in_channels: int,
@@ -112,63 +99,53 @@ class InvertedResidualBlock(NexusModule):
         super().__init__()
         if norm_layer is None:
             norm_layer = nn.BatchNorm2d
-            
+
         hidden_dim = in_channels * expansion_factor
-        squeeze_dim = max(1, in_channels // squeeze_factor)
-        
+
         self.use_residual = stride == 1 and in_channels == out_channels
-        
-        layers = []
-        # Enhanced pointwise with squeeze-excitation
-        layers.extend([
+
+        # Enhanced pointwise expansion
+        self.expand = nn.Sequential(
             nn.Conv2d(in_channels, hidden_dim, 1, bias=False),
             norm_layer(hidden_dim),
             nn.SiLU(inplace=True)  # Swish activation
-        ])
-        
+        )
+
         # Improved depthwise with dilated convolutions
-        layers.extend([
+        self.depthwise = nn.Sequential(
             nn.Conv2d(
-                hidden_dim, hidden_dim, 3, stride, 
+                hidden_dim, hidden_dim, 3, stride,
                 padding=2, dilation=2, groups=hidden_dim, bias=False
             ),
             norm_layer(hidden_dim),
             nn.SiLU(inplace=True)
-        ])
-        
-        # SE block
-        layers.extend([
-            nn.AdaptiveAvgPool2d(1),
-            nn.Conv2d(hidden_dim, squeeze_dim, 1),
-            nn.SiLU(inplace=True),
-            nn.Conv2d(squeeze_dim, hidden_dim, 1),
-            nn.Sigmoid()
-        ])
-        
+        )
+
+        # SE block for channel attention
+        self.se = SEBlock(
+            hidden_dim,
+            reduction_ratio=squeeze_factor,
+            activation=nn.SiLU(inplace=True)
+        )
+
         # Enhanced pointwise projection
-        layers.extend([
+        self.project = nn.Sequential(
             nn.Conv2d(hidden_dim, out_channels, 1, bias=False),
             norm_layer(out_channels)
-        ])
-        
-        self.layers = nn.Sequential(*layers)
-        self.drop_path_prob = 0.2
-        
-    def _drop_path(self, x: torch.Tensor) -> torch.Tensor:
-        if self.training:
-            keep_prob = 1 - self.drop_path_prob
-            mask = torch.zeros_like(x[0, 0, 0, 0]).bernoulli_(keep_prob)
-            mask = mask.view(1, 1, 1, 1).expand_as(x) / keep_prob
-            return x * mask
-        return x
-        
+        )
+
+        # Stochastic depth for regularization
+        self.drop_path = DropPath(drop_prob=0.2)
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not torch.isfinite(x).all():
-            raise ValueError("Input contains inf or nan values")
-            
-        out = self.layers(x)
-        
+        self.validate_finite(x, name="input")
+
+        out = self.expand(x)
+        out = self.depthwise(out)
+        out = self.se(out)
+        out = self.project(out)
+
         if self.use_residual:
-            out = self._drop_path(out)
+            out = self.drop_path(out)
             return x + out
         return out
