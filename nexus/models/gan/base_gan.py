@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
 
-class BaseGenerator(NexusModule):
+class BaseGenerator(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -28,8 +29,8 @@ class BaseGenerator(NexusModule):
         )
         
         # Initialize weights
-        self.apply(self._init_weights)
-        
+        self.init_weights_gan()
+
     def _build_upsampling_layers(self) -> list:
         layers = []
         current_dim = self.hidden_dim
@@ -49,21 +50,12 @@ class BaseGenerator(NexusModule):
         )
         layers.append(nn.Tanh())
         return layers
-        
-    def _init_weights(self, module: NexusModule):
-        if isinstance(module, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
-            nn.init.normal_(module.weight, 0.0, 0.02)
-            if module.bias is not None:
-                nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.BatchNorm2d):
-            nn.init.normal_(module.weight, 1.0, 0.02)
-            nn.init.zeros_(module.bias)
-            
+
     def forward(self, z: torch.Tensor) -> Dict[str, torch.Tensor]:
         generated = self.main(z)
         return {"generated_images": generated}
 
-class BaseDiscriminator(NexusModule):
+class BaseDiscriminator(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -87,8 +79,8 @@ class BaseDiscriminator(NexusModule):
         )
         
         # Initialize weights
-        self.apply(self._init_weights)
-        
+        self.init_weights_gan()
+
     def _build_downsampling_layers(self) -> list:
         layers = []
         current_dim = self.hidden_dim
@@ -100,18 +92,9 @@ class BaseDiscriminator(NexusModule):
                 nn.LeakyReLU(0.2, True)
             ])
             current_dim *= 2
-            
+
         return layers
-        
-    def _init_weights(self, module: NexusModule):
-        if isinstance(module, nn.Conv2d):
-            nn.init.normal_(module.weight, 0.0, 0.02)
-            if module.bias is not None:
-                nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.BatchNorm2d):
-            nn.init.normal_(module.weight, 1.0, 0.02)
-            nn.init.zeros_(module.bias)
-            
+
     def forward(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
         validity = self.main(x)
         return {

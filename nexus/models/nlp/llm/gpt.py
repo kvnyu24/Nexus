@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
 from nexus.core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 
 class GPTConfig(BaseLLMConfig):
     """Configuration class for GPT model"""
@@ -68,7 +69,7 @@ class GPTBlock(NexusModule):
             nn.Dropout(config.resid_dropout)
         )
 
-class GPTModel(BaseLLM):
+class GPTModel(WeightInitMixin, BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         # Convert dict config to GPTConfig if needed
         if not isinstance(config, GPTConfig):
@@ -85,21 +86,10 @@ class GPTModel(BaseLLM):
         
         # Final layer norm
         self.ln_f = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_epsilon)
-        
-        # Initialize weights using GPT-specific method
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                torch.nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-        elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(1.0)
-            
+
+        # Initialize weights using LLM preset (normal distribution with std=0.02)
+        self.init_weights_llm()
+
     def _prepare_causal_attention_mask(
         self,
         batch_size: int,

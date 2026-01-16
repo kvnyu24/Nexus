@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, Tuple
 from ...components.attention import UnifiedAttention
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
 
 class TransformerBlock(NexusModule):
     def __init__(
@@ -79,7 +80,7 @@ class PatchEmbedding(NexusModule):
         x = self.norm(x)
         return x
 
-class VisionTransformer(NexusModule):
+class VisionTransformer(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
 
@@ -139,17 +140,8 @@ class VisionTransformer(NexusModule):
         nn.init.trunc_normal_(self.cls_token, std=0.02)
         if self.distillation:
             nn.init.trunc_normal_(self.dist_token, std=0.02)
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, m):
-        if isinstance(m, nn.Linear):
-            nn.init.trunc_normal_(m.weight, std=0.02)
-            if m.bias is not None:
-                nn.init.constant_(m.bias, 0)
-        elif isinstance(m, nn.LayerNorm):
-            nn.init.constant_(m.bias, 0)
-            nn.init.constant_(m.weight, 1.0)
-            
+        self.init_weights_vit()
+
     def interpolate_pos_encoding(self, x: torch.Tensor, h: int, w: int) -> torch.Tensor:
         npatch = x.shape[1] - 1
         N = self.pos_embed.shape[1] - 1

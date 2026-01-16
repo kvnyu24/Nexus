@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Union, Tuple
 from ....core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 import math
 
 class BaseLLMConfig:
@@ -131,7 +132,7 @@ class BaseLLMBlock(NexusModule):
             
         return outputs 
 
-class BaseLLM(NexusModule):
+class BaseLLM(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -162,20 +163,10 @@ class BaseLLM(NexusModule):
         
         if self.config.tie_word_embeddings:
             self.output.weight = self.embeddings["word_embeddings"].weight
-            
-        # Initialize weights
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
-            if module.bias is not None:
-                module.bias.data.zero_()
-        elif isinstance(module, nn.Embedding):
-            module.weight.data.normal_(mean=0.0, std=self.config.initializer_range)
-            if module.padding_idx is not None:
-                module.weight.data[module.padding_idx].zero_()
-                
+
+        # Initialize weights using LLM preset (normal distribution with std=0.02)
+        self.init_weights_llm()
+
     def forward(
         self,
         input_ids: torch.Tensor,

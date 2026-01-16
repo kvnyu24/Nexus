@@ -2,38 +2,33 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
 from .base_gan import BaseGenerator, BaseDiscriminator
 
 class WGANGenerator(BaseGenerator):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Replace final activation for WGAN
         main_layers = list(self.main.children())[:-1]  # Remove Tanh
         self.main = nn.Sequential(*main_layers)
-        
-    def _init_weights(self, module: NexusModule):
-        if isinstance(module, (nn.Conv2d, nn.ConvTranspose2d, nn.Linear)):
-            nn.init.normal_(module.weight, 0.0, 0.02)
-            if module.bias is not None:
-                nn.init.constant_(module.bias, 0)
+
+        # Re-initialize weights after modifying architecture
+        self.init_weights_gan()
 
 class WGANCritic(BaseDiscriminator):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Replace final sigmoid with linear layer for WGAN
         main_layers = list(self.main.children())[:-1]
         self.main = nn.Sequential(
             *main_layers,
             nn.Conv2d(self.hidden_dim * 8, 1, 4, 1, 0)
         )
-        
-    def _init_weights(self, module: NexusModule):
-        if isinstance(module, nn.Conv2d):
-            nn.init.normal_(module.weight, 0.0, 0.02)
-            if module.bias is not None:
-                nn.init.constant_(module.bias, 0)
+
+        # Re-initialize weights after modifying architecture
+        self.init_weights_gan()
 
 class WGAN(NexusModule):
     def __init__(self, config: Dict[str, Any]):

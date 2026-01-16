@@ -4,7 +4,7 @@ import yaml
 import json
 import shutil
 from datetime import datetime
-import logging
+from ..logging import Logger
 from ...core.base import NexusModule
 from ..metrics import MetricsTracker
 from ..profiler import ModelProfiler
@@ -30,7 +30,7 @@ class ExperimentGenerator(NexusModule):
         self.base_dir = Path(base_dir)
         self.backup_dir = Path(backup_dir) if backup_dir else self.base_dir / "backups"
         self.max_backups = max_backups
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
         
         # Initialize components
         self.metrics = MetricsTracker() if metrics_enabled else None
