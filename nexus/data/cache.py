@@ -4,7 +4,7 @@ import os
 import hashlib
 import pickle
 from pathlib import Path
-import logging
+from nexus.utils.logging import Logger
 import shutil
 import numpy as np
 from datetime import datetime
@@ -31,12 +31,7 @@ class DataCache:
 
     def _setup_logging(self):
         """Set up logging for cache operations."""
-        self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.INFO)
-        if not self.logger.handlers:
-            handler = logging.StreamHandler()
-            handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-            self.logger.addHandler(handler)
+        self.logger = Logger(self.__class__.__name__)
 
     def _get_cache_key(self, data: Any) -> str:
         """Generate a unique cache key for the data."""

@@ -3,15 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Optional, List, Tuple
 from ....core.base import NexusModule
+from ....core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from .reid_module import ReIDBackbone
 from .temporal_attention import TemporalAttention
 
-class AdaptiveReIDWithMemory(NexusModule):
+class AdaptiveReIDWithMemory(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim", "feature_dim", "num_classes"])
         
         # Enhanced backbone with higher capacity
         backbone_config = config.copy()
@@ -26,13 +27,12 @@ class AdaptiveReIDWithMemory(NexusModule):
             ) for i in range(3)  # 2, 4, 8 heads
         ])
         
-        # Adaptive memory bank with priority sampling
-        bank_size = config.get("bank_size", 10000)
-        feature_dim = config.get("feature_dim", 2048)
-        self.register_buffer("feature_bank", torch.zeros(bank_size, feature_dim))
-        self.register_buffer("bank_labels", torch.zeros(bank_size))
-        self.register_buffer("bank_priorities", torch.zeros(bank_size))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
+        # Adaptive memory bank with priority sampling using FeatureBankMixin
+        self.bank_size = config.get("bank_size", 10000)
+        self.feature_dim = config.get("feature_dim", 2048)
+        self.register_feature_bank("feature", self.bank_size, self.feature_dim)
+        self.register_buffer("bank_labels", torch.zeros(self.bank_size))
+        self.register_buffer("bank_priorities", torch.zeros(self.bank_size))
         
         # Learnable center embeddings with uncertainty
         num_classes = config.get("num_classes", 1000)
@@ -57,41 +57,43 @@ class AdaptiveReIDWithMemory(NexusModule):
             "center": config.get("center_weight", 0.01),
             "uncertainty": config.get("uncertainty_weight", 0.1)
         }
-        
-    def _validate_config(self, config: Dict[str, Any]):
-        required = ["hidden_dim", "feature_dim", "num_classes"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
                 
-    def update_feature_bank(
+    def update_feature_bank_with_priority(
         self,
         features: torch.Tensor,
         labels: torch.Tensor,
         losses: torch.Tensor
     ):
+        """Update feature bank with priority-based sampling"""
+        if not torch.isfinite(features).all():
+            return
+
         batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
+        ptr = self.feature_ptr
+        bank = self.feature_bank
+
         # Priority-based update using sample losses
         priorities = F.softmax(losses, dim=0)
-        
+
         # Update feature bank with priority sampling
-        if ptr + batch_size > self.feature_bank.size(0):
+        if ptr.item() + batch_size > self.bank_size:
             # Find lowest priority samples to replace
             _, indices = torch.topk(
                 self.bank_priorities,
                 k=batch_size,
                 largest=False
             )
-            self.feature_bank[indices] = features.detach()
+            bank[indices] = features.detach()
             self.bank_labels[indices] = labels.detach()
             self.bank_priorities[indices] = priorities
         else:
-            self.feature_bank[ptr:ptr + batch_size] = features.detach()
-            self.bank_labels[ptr:ptr + batch_size] = labels.detach()
-            self.bank_priorities[ptr:ptr + batch_size] = priorities
-            self.bank_ptr[0] = (ptr + batch_size) % self.feature_bank.size(0)
+            end_idx = ptr.item() + batch_size
+            bank[ptr.item():end_idx] = features.detach()
+            self.bank_labels[ptr.item():end_idx] = labels.detach()
+            self.bank_priorities[ptr.item():end_idx] = priorities
+            ptr[0] = end_idx % self.bank_size
+            if ptr.item() == 0 or self.feature_filled.item():
+                self.feature_filled[0] = True
         
     def compute_losses(
         self,
@@ -167,10 +169,10 @@ class AdaptiveReIDWithMemory(NexusModule):
             losses = self.compute_losses(embeddings, labels, features)
             
             # Update memory bank with loss-based priorities
-            self.update_feature_bank(
+            self.update_feature_bank_with_priority(
                 embeddings,
                 labels,
-                losses["total_loss"].detach()
+                losses["total_loss"].detach().expand(embeddings.size(0))
             )
             
             outputs.update(losses)

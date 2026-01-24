@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
+from ...core.mixins import FeatureBankMixin
 from .memory import AgentMemoryStream
 from .environment import VirtualEnvironment
 from ..nlp import ChainOfThoughtModule, EnhancedRAGModule
 
-class ProactiveAgent(NexusModule):
+class ProactiveAgent(NexusModule, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -72,31 +73,14 @@ class ProactiveAgent(NexusModule):
             dropout=config.get("dropout", 0.1)
         )
         
-        # Expanded experience bank with prioritized replay
+        # Expanded experience bank with prioritized replay using mixin
         bank_size = config.get("bank_size", 1000)
-        self.register_buffer("experience_bank", torch.zeros(bank_size, self.hidden_dim))
-        self.register_buffer("experience_priorities", torch.ones(bank_size))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
+        self.register_feature_bank("experience", bank_size, self.hidden_dim)
+        self.register_feature_bank("priority", bank_size, 1)
+
         # Adaptive thresholds
         self.register_buffer("safety_threshold_history", torch.zeros(100))
         self.safety_update_momentum = config.get("safety_momentum", 0.95)
-        
-    def update_experience_bank(self, features: torch.Tensor, priorities: Optional[torch.Tensor] = None):
-        """Update experience bank with prioritized replay"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.experience_bank.size(0):
-            ptr = 0
-            
-        self.experience_bank[ptr:ptr + batch_size] = features.detach()
-        if priorities is not None:
-            self.experience_priorities[ptr:ptr + batch_size] = priorities.detach()
-        else:
-            self.experience_priorities[ptr:ptr + batch_size] = 1.0
-            
-        self.bank_ptr[0] = (ptr + batch_size) % self.experience_bank.size(0)
         
     def assess_safety(self, state_encoding: torch.Tensor) -> Tuple[torch.Tensor, Dict[str, torch.Tensor]]:
         """Multi-level safety assessment"""
@@ -134,11 +118,11 @@ class ProactiveAgent(NexusModule):
         memory_outputs = self.memory_stream(encoded_state, context=social_context)
         reasoning_outputs = self.chain_of_thought(encoded_state, memory_outputs["memory_encoding"])
         
-        # Update experience bank with reasoned features
-        self.update_experience_bank(
-            encoded_state,
-            priorities=reasoning_outputs.get("importance_scores", None)
-        )
+        # Update experience bank using mixin
+        self.update_feature_bank("experience", encoded_state)
+        importance_scores = reasoning_outputs.get("importance_scores", None)
+        if importance_scores is not None:
+            self.update_feature_bank("priority", importance_scores)
         
         # Enhanced opportunity detection with confidence
         opportunity_output = self.opportunity_detector(
@@ -164,7 +148,7 @@ class ProactiveAgent(NexusModule):
                 encoded_state.unsqueeze(0),
                 torch.cat([
                     memory_outputs["episodic_memory"].unsqueeze(0),
-                    self.experience_bank.unsqueeze(0)
+                    self.get_feature_bank("experience").unsqueeze(0)
                 ], dim=1),
                 memory_outputs["semantic_memory"].unsqueeze(0)
             )

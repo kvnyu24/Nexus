@@ -1,8 +1,10 @@
 import torch
 import torch.nn as nn
+from nexus.core.base import NexusModule
+from nexus.core.initialization import WeightInitMixin
 
 
-class SEBlock(nn.Module):
+class SEBlock(WeightInitMixin, NexusModule):
     """Squeeze-and-Excitation block for channel attention.
 
     This module implements the SE block from "Squeeze-and-Excitation Networks"
@@ -40,6 +42,9 @@ class SEBlock(nn.Module):
             nn.Conv2d(reduced_channels, channels, kernel_size=1, bias=True),
             nn.Sigmoid()
         )
+
+        # Initialize weights
+        self.init_weights_vision()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Apply squeeze-and-excitation attention.

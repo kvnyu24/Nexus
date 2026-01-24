@@ -3,10 +3,10 @@ import torch.nn as nn
 from typing import Dict, Any, List, Optional
 from ...core.base import NexusModule
 from ...core.initialization import WeightInitMixin
-from ...core.mixins import FeatureBankMixin
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from ...components.blocks import ResidualBlock
 
-class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
+class ResNet(ConfigValidatorMixin, FeatureBankMixin, WeightInitMixin, NexusModule):
     """
     Enhanced ResNet implementation with modern improvements:
     - Stochastic Depth for better regularization
@@ -17,10 +17,11 @@ class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
     """
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate and set config
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["num_classes"])
+        self.validate_range(config.get("drop_path_rate", 0.1), 0, 1, "drop_path_rate")
+
         # Model configuration
         self.in_channels = 64
         self.base_channels = config.get("base_channels", 64)
@@ -30,7 +31,7 @@ class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
         self.label_smoothing = config.get("label_smoothing", 0.1)
         self.mixup_alpha = config.get("mixup_alpha", 0.2)
         self.se_ratio = config.get("se_ratio", 0.25)
-        
+
         # Initial stem with larger receptive field
         self.stem = nn.Sequential(
             nn.Conv2d(3, self.in_channels//2, 3, stride=2, padding=1, bias=False),
@@ -41,7 +42,7 @@ class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
-        
+
         # ResNet stages with progressive drop path
         total_blocks = sum(self.block_config)
         block_idx = 0
@@ -63,7 +64,7 @@ class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
                 self.in_channels = self.base_channels * (2**i) * 4
                 block_idx += 1
             self.stages.append(nn.Sequential(*blocks))
-        
+
         # Enhanced head with layer norm and dropout
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.head = nn.Sequential(
@@ -71,24 +72,15 @@ class ResNet(FeatureBankMixin, WeightInitMixin, NexusModule):
             nn.Dropout(config.get("dropout", 0.3)),
             nn.Linear(self.base_channels * 32, self.num_classes)
         )
-        
+
         # Enhanced feature bank with momentum using FeatureBankMixin
         bank_size = config.get("bank_size", 10000)
         self.register_feature_bank("feature", bank_size, self.base_channels * 32)
         self.register_buffer("bank_labels", torch.zeros(bank_size, dtype=torch.long))
         self.momentum = config.get("bank_momentum", 0.99)
-        
+
         # Initialize weights using WeightInitMixin
         self.init_weights_vision()
-
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["num_classes"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-        
-        if config.get("drop_path_rate", 0.1) < 0 or config.get("drop_path_rate", 0.1) > 1:
-            raise ValueError("drop_path_rate must be between 0 and 1")
 
     def update_feature_bank_with_labels(self, features: torch.Tensor, labels: torch.Tensor):
         """Update feature bank with momentum and labels using FeatureBankMixin"""

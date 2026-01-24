@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
 from ...components.attention import MultiHeadSelfAttention
 
 class AtomicFeatureExtractor(NexusModule):
@@ -108,23 +109,23 @@ class AtomInteractionModule(NexusModule):
         x = x + (gate * mlp_out)
         return x
 
-class AtomTracker(NexusModule):
+class AtomTracker(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Model dimensions
         self.hidden_size = config.get("hidden_size", 256)
         self.num_layers = config.get("num_layers", 6)
         self.num_heads = config.get("num_heads", 8)
         self.num_atom_types = config.get("num_atom_types", 118)
         self.dropout = config.get("dropout", 0.1)
-        
+
         # Core components
         self.feature_extractor = AtomicFeatureExtractor(
             hidden_size=self.hidden_size,
             num_atom_types=self.num_atom_types
         )
-        
+
         # Interaction layers with gradient checkpointing
         self.interaction_layers = nn.ModuleList([
             AtomInteractionModule(
@@ -133,7 +134,7 @@ class AtomTracker(NexusModule):
                 dropout=self.dropout
             ) for _ in range(self.num_layers)
         ])
-        
+
         # Physics-informed prediction heads
         self.velocity_predictor = nn.Sequential(
             nn.LayerNorm(self.hidden_size),
@@ -141,25 +142,16 @@ class AtomTracker(NexusModule):
             nn.GELU(),
             nn.Linear(self.hidden_size // 2, 3)  # 3D velocity vector
         )
-        
+
         self.energy_predictor = nn.Sequential(
             nn.LayerNorm(self.hidden_size),
             nn.Linear(self.hidden_size, self.hidden_size // 2),
             nn.GELU(),
             nn.Linear(self.hidden_size // 2, 1)  # Scalar energy value
         )
-        
+
         # Initialize weights
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, module):
-        if isinstance(module, (nn.Linear, nn.Embedding)):
-            nn.init.kaiming_normal_(module.weight, a=0.02, nonlinearity='leaky_relu')
-            if isinstance(module, nn.Linear) and module.bias is not None:
-                nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.LayerNorm):
-            nn.init.ones_(module.weight)
-            nn.init.zeros_(module.bias)
+        self.init_weights_vision()
             
     def forward(
         self,

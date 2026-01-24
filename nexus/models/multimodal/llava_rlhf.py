@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from ..cv.vit import VisionTransformer
 from ..nlp.llm import LlamaModel
 from ..nlp.rag import EnhancedRAGModule
@@ -10,7 +11,7 @@ from ..nlp.hallucination_reducer import HallucinationReducer
 from .llava_rlhf_config import LLaVARLHFConfig
 from ...training.losses import EnhancedSFTLoss
 
-class LLaVARLHF(NexusModule):
+class LLaVARLHF(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Union[Dict[str, Any], LLaVARLHFConfig]):
         super().__init__(config)
         
@@ -50,39 +51,36 @@ class LLaVARLHF(NexusModule):
             nn.Sigmoid()
         )
         
-        # Experience bank following EnhancedReID pattern
-        self.register_buffer(
-            "experience_bank",
-            torch.zeros(config.bank_size, config.hidden_size)
-        )
+        # Experience bank using FeatureBankMixin
+        self.register_feature_bank("experience", config.bank_size, config.hidden_size)
         self.register_buffer("rewards", torch.zeros(config.bank_size))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
         
         # Loss function
         self.loss_fn = EnhancedSFTLoss(config)
         
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration following FasterRCNN pattern"""
-        required = ["vision_config", "language_config", "hidden_size"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
     def update_experience_bank(
         self,
         states: torch.Tensor,
         rewards: torch.Tensor
     ) -> None:
-        """Update experience bank following EnhancedReID pattern"""
+        """Update experience bank using FeatureBankMixin with rewards tracking"""
+        if not torch.isfinite(states).all():
+            return
+
         batch_size = states.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.experience_bank.size(0):
-            ptr = 0
-            
-        self.experience_bank[ptr:ptr + batch_size] = states.detach()
-        self.rewards[ptr:ptr + batch_size] = rewards.detach()
-        self.bank_ptr[0] = (ptr + batch_size) % self.experience_bank.size(0)
+        ptr = self.experience_ptr
+
+        # Update rewards alongside features
+        end_ptr = (ptr.item() + batch_size) % self.rewards.size(0)
+        if ptr.item() + batch_size <= self.rewards.size(0):
+            self.rewards[ptr.item():ptr.item() + batch_size] = rewards.detach()
+        else:
+            first_part = self.rewards.size(0) - ptr.item()
+            self.rewards[ptr.item():] = rewards[:first_part].detach()
+            self.rewards[:end_ptr] = rewards[first_part:].detach()
+
+        # Update feature bank using mixin
+        self.update_feature_bank("experience", states)
         
     def forward(
         self,
@@ -155,6 +153,6 @@ class LLaVARLHF(NexusModule):
             outputs.update(losses)
             
             # Update experience bank
-            self.update_experience_bank(fused_features, quality_scores)
+            self.update_experience_bank(fused_features, quality_scores.squeeze(-1))
             
         return outputs 

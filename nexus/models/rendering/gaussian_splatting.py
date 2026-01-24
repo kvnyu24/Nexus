@@ -2,13 +2,15 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, Tuple
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class GaussianSplatting(NexusModule):
+class GaussianSplatting(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim"])
+        self.validate_positive(config["hidden_dim"], "hidden_dim")
         
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
@@ -49,17 +51,9 @@ class GaussianSplatting(NexusModule):
             nn.Parameter(torch.zeros(self.num_gaussians, 1))  # Metallic factor
         )
         
-        # Feature banks for view-dependent effects and temporal coherence
-        self.register_buffer(
-            "feature_bank",
-            torch.zeros(self.bank_size, self.hidden_dim)
-        )
-        self.register_buffer(
-            "temporal_bank",
-            torch.zeros(self.bank_size, self.hidden_dim)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        self.register_buffer("bank_is_full", torch.zeros(1, dtype=torch.bool))
+        # Feature banks for view-dependent effects and temporal coherence using FeatureBankMixin
+        self.register_feature_bank("feature", self.bank_size, self.hidden_dim)
+        self.register_feature_bank("temporal", self.bank_size, self.hidden_dim)
         
         # Enhanced neural renderer with material properties
         self.renderer = nn.Sequential(
@@ -80,30 +74,6 @@ class GaussianSplatting(NexusModule):
             nn.Sigmoid()
         )
         
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-        if config["hidden_dim"] <= 0:
-            raise ValueError("hidden_dim must be positive")
-                
-    def update_feature_bank(self, features: torch.Tensor):
-        """Update feature bank with error checking"""
-        if not torch.isfinite(features).all():
-            return  # Skip update if features contain NaN/inf
-            
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.feature_bank.size(0):
-            ptr = 0
-            self.bank_is_full[0] = True
-            
-        self.feature_bank[ptr:ptr + batch_size] = features.detach()
-        self.temporal_bank[ptr:ptr + batch_size] = features.detach()  # Temporal copy
-        self.bank_ptr[0] = (ptr + batch_size) % self.bank_size
         
     def _compute_covariance(self) -> torch.Tensor:
         """Compute covariance matrices with quaternion normalization"""
@@ -179,8 +149,10 @@ class GaussianSplatting(NexusModule):
         # Apply opacity and tone mapping
         final_colors = rendered_colors * opacity
         
-        # Update feature banks
-        self.update_feature_bank(view_features.mean(dim=1))
+        # Update feature banks using FeatureBankMixin
+        features_mean = view_features.mean(dim=1)
+        self.update_feature_bank("feature", features_mean)
+        self.update_feature_bank("temporal", features_mean)
         
         return {
             "colors": final_colors,
@@ -192,5 +164,5 @@ class GaussianSplatting(NexusModule):
                 "roughness": self.roughness,
                 "metallic": self.metallic
             },
-            "bank_usage": self.bank_is_full
+            "bank_usage": self.is_bank_full("feature")
         }

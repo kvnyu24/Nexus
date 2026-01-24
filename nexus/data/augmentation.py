@@ -4,7 +4,7 @@ import torchvision.transforms as T
 from typing import List, Optional, Tuple, Union
 import random
 import numpy as np
-import logging
+from nexus.utils.logging import Logger
 from PIL import Image
 
 class AugmentationPipeline:
@@ -27,7 +27,7 @@ class AugmentationPipeline:
         """
         self.image_size = (image_size, image_size) if isinstance(image_size, int) else image_size
         self.augmentation_strength = max(0.0, min(1.0, augmentation_strength))
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
         self.transforms = []
         
@@ -95,7 +95,7 @@ class Mixup:
             alpha: Parameter for beta distribution. Higher means more mixing.
         """
         self.alpha = max(0.0, alpha)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
     def __call__(
         self,

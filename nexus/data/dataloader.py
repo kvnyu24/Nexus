@@ -1,4 +1,4 @@
-import logging
+from nexus.utils.logging import Logger
 from torch.utils.data import DataLoader as TorchDataLoader
 from typing import Optional, Callable, Any, Union
 from .dataset import Dataset
@@ -31,7 +31,7 @@ class DataLoader(TorchDataLoader):
             raise ValueError("prefetch_factor must be positive")
             
         # Configure logging
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
         try:
             # Handle streaming datasets

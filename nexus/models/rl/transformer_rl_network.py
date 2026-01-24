@@ -3,8 +3,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ...core.base import NexusModule
+from ...core.mixins import FeatureBankMixin
 
-class TransformerRLNetwork(NexusModule):
+class TransformerRLNetwork(NexusModule, FeatureBankMixin):
     """Advanced Transformer-based RL architecture incorporating latest research advances:
     - Vision Transformer (ViT) based state encoding for both vector and image inputs
     - Quantile value prediction with distributional RL
@@ -104,39 +105,16 @@ class TransformerRLNetwork(NexusModule):
             nn.Linear(self.hidden_dim, 128)  # Projection dimension
         )
         
-        # Prioritized experience replay
+        # Prioritized experience replay using mixin
         bank_size = config.get("bank_size", 50000)
-        self.register_buffer("experience_bank", torch.zeros(bank_size, self.hidden_dim))
-        self.register_buffer("priorities", torch.ones(bank_size))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
+        self.register_feature_bank("experience", bank_size, self.hidden_dim)
+        self.register_feature_bank("priority", bank_size, 1)
         self.alpha = config.get("priority_alpha", 0.6)
         self.beta = config.get("priority_beta", 0.4)
         self.priority_epsilon = config.get("priority_epsilon", 1e-6)
-        
+
         # Temperature parameter for contrastive learning
         self.temperature = config.get("temperature", 0.07)
-        
-    def update_experience_bank(
-        self,
-        features: torch.Tensor,
-        priorities: Optional[torch.Tensor] = None,
-        indices: Optional[torch.Tensor] = None
-    ) -> None:
-        if indices is None:
-            batch_size = features.size(0)
-            ptr = int(self.bank_ptr.item())
-            
-            if ptr + batch_size > self.experience_bank.size(0):
-                ptr = 0
-                
-            self.experience_bank[ptr:ptr + batch_size] = features.detach()
-            if priorities is not None:
-                self.priorities[ptr:ptr + batch_size] = priorities.detach() + self.priority_epsilon
-            self.bank_ptr[0] = (ptr + batch_size) % self.experience_bank.size(0)
-        else:
-            self.experience_bank[indices] = features.detach()
-            if priorities is not None:
-                self.priorities[indices] = priorities.detach() + self.priority_epsilon
                 
     def forward(
         self,
@@ -225,8 +203,8 @@ class TransformerRLNetwork(NexusModule):
             
         return outputs
 
-class NoisyLinear(nn.Module):
-    """Noisy Linear layer for exploration"""
+class NoisyLinear(NexusModule):
+    """Noisy Linear layer for exploration."""
     def __init__(self, in_features: int, out_features: int, std_init: float = 0.5):
         super().__init__()
         self.in_features = in_features

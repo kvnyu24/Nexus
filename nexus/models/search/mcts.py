@@ -3,56 +3,42 @@ import torch
 import torch.nn as nn
 import math
 from ...core.base import NexusModule
+from ...core.mixins import FeatureBankMixin
 from .mcts_node import MCTSNode
 from .mcts_config import MCTSConfig
 
-class MCTS(NexusModule):
+class MCTS(NexusModule, FeatureBankMixin):
     def __init__(self, config: MCTSConfig):
         super().__init__(config)
-        
+
         # Core parameters
         self.hidden_dim = config.hidden_dim
         self.num_actions = config.num_actions
         self.num_simulations = config.num_simulations
         self.c_puct = config.c_puct
-        
+
         # Neural network components
         self.state_encoder = nn.Sequential(
             nn.Linear(config.state_dim, self.hidden_dim),
             nn.ReLU(),
             nn.Linear(self.hidden_dim, self.hidden_dim)
         )
-        
+
         self.policy_head = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.ReLU(),
             nn.Linear(self.hidden_dim, self.num_actions)
         )
-        
+
         self.value_head = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(self.hidden_dim // 2, 1),
             nn.Tanh()
         )
-        
-        # Feature bank for state storage
-        self.register_buffer(
-            "state_bank",
-            torch.zeros(config.bank_size, self.hidden_dim)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
-    def update_state_bank(self, states: torch.Tensor):
-        """Update state bank following EnhancedReID pattern"""
-        batch_size = states.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.state_bank.size(0):
-            ptr = 0
-            
-        self.state_bank[ptr:ptr + batch_size] = states.detach()
-        self.bank_ptr[0] = (ptr + batch_size) % self.state_bank.size(0)
+
+        # Feature bank for state storage using mixin
+        self.register_feature_bank("state", config.bank_size, self.hidden_dim)
         
     def select_action(self, node: MCTSNode) -> Tuple[int, MCTSNode]:
         """Select action using PUCT algorithm"""
@@ -79,8 +65,8 @@ class MCTS(NexusModule):
         # Encode state
         encoded_state = self.state_encoder(state)
         
-        # Update state bank
-        self.update_state_bank(encoded_state)
+        # Update state bank using mixin
+        self.update_feature_bank("state", encoded_state)
         
         # Get policy and value predictions
         policy_logits = self.policy_head(encoded_state)

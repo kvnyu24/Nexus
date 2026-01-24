@@ -1,7 +1,7 @@
 from typing import List, Dict, Any, Optional, Union
 import torch
 from torch.utils.data import Dataset
-import logging
+from nexus.utils.logging import Logger
 
 class TextProcessor:
     """Processor for text data that handles tokenization and encoding."""
@@ -25,7 +25,7 @@ class TextProcessor:
         self.max_length = max_length
         self.padding = padding
         self.truncation = truncation
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
     def process_text(self, text: Union[str, List[str]]) -> Dict[str, torch.Tensor]:
         """Process text input into model-ready format.
@@ -82,7 +82,7 @@ class TextDataset(Dataset):
         self.labels = labels
         self.processor = processor
         self.label_map = label_map
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
     def __len__(self) -> int:
         return len(self.texts)

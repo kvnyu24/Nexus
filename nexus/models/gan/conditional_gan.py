@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, Tuple
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from .base_gan import BaseGenerator, BaseDiscriminator
 
 class ConditionalGenerator(BaseGenerator):
@@ -84,29 +85,21 @@ class ConditionalDiscriminator(BaseDiscriminator):
             "class_embeddings": class_embed
         }
 
-class ConditionalGAN(NexusModule):
+class ConditionalGAN(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate config
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["num_classes", "latent_dim"])
+        self.validate_positive(config["num_classes"], "num_classes")
+
         # Initialize generator and discriminator
         self.generator = ConditionalGenerator(config)
         self.discriminator = ConditionalDiscriminator(config)
-        
+
         # Loss configuration
         self.adversarial_loss = nn.BCELoss()
         self.auxiliary_loss = nn.CrossEntropyLoss()
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required_keys = ["num_classes", "latent_dim"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
-                
-        if config["num_classes"] <= 0:
-            raise ValueError("num_classes must be positive")
             
     def forward(
         self,

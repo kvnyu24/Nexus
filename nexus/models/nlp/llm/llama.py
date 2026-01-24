@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional, Tuple
 from .base_llm import BaseLLM, BaseLLMConfig
 import math
 from nexus.core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 
 class LlamaConfig(BaseLLMConfig):
     """Configuration class for LLaMA model"""
@@ -77,26 +78,20 @@ class LlamaBlock(NexusModule):
         self.input_layernorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_epsilon)
         self.post_attention_layernorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_epsilon)
 
-class LlamaModel(BaseLLM):
+class LlamaModel(WeightInitMixin, BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         # Convert dict config to LlamaConfig
         if not isinstance(config, LlamaConfig):
             config = LlamaConfig(**config)
         super().__init__(config)
-        
+
         # Override transformer layers with LLaMA-specific blocks
         self.layers = nn.ModuleList([
             LlamaBlock(config) for _ in range(config.num_layers)
         ])
-        
-        # Initialize weights with specific LLaMA initialization
-        self.apply(self._llama_init_weights)
-        
-    def _llama_init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
+        # Initialize weights using LLM preset
+        self.init_weights_llm()
             
     def forward(
         self,

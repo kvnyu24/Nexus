@@ -2,14 +2,17 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Union, Tuple
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from ...visualization.hierarchical import HierarchicalVisualizer
 
-class BaseGNNLayer(NexusModule):
+class BaseGNNLayer(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["input_dim"])
+        if config.get("hidden_dim", 256) % config.get("num_heads", 4) != 0:
+            raise ValueError("Hidden dimension must be divisible by number of heads")
         
         # Core dimensions
         self.input_dim = config["input_dim"]
@@ -46,15 +49,6 @@ class BaseGNNLayer(NexusModule):
         # Visualization
         self.visualizer = HierarchicalVisualizer(config)
         
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["input_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-        
-        if config.get("hidden_dim", 256) % config.get("num_heads", 4) != 0:
-            raise ValueError("Hidden dimension must be divisible by number of heads")
-                
     def message_fn(
         self,
         x_i: torch.Tensor,

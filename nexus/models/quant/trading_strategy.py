@@ -2,14 +2,18 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class TradingStrategy(NexusModule):
+class TradingStrategy(NexusModule, ConfigValidatorMixin, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
-        # Validate config
-        self._validate_config(config)
-        
+
+        # Validate config using mixin
+        self.validate_config(config, required_keys=["hidden_dim", "input_dim", "num_assets"])
+        self.validate_positive(config["hidden_dim"], "hidden_dim")
+        self.validate_positive(config["input_dim"], "input_dim")
+        self.validate_positive(config["num_assets"], "num_assets")
+
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
         self.num_assets = config["num_assets"]
@@ -17,7 +21,7 @@ class TradingStrategy(NexusModule):
         self.bank_size = config.get("bank_size", 10000)
         self.min_position = config.get("min_position", -1.0)
         self.max_position = config.get("max_position", 1.0)
-        
+
         # Market state encoder with temporal attention
         self.state_encoder = nn.Sequential(
             nn.Linear(config["input_dim"], self.hidden_dim),
@@ -27,14 +31,14 @@ class TradingStrategy(NexusModule):
             nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.LayerNorm(self.hidden_dim)
         )
-        
+
         # Temporal attention for time series
         self.temporal_attention = nn.MultiheadAttention(
             self.hidden_dim,
             num_heads=4,
             dropout=config.get("dropout", 0.1)
         )
-        
+
         # Portfolio optimizer with uncertainty
         self.portfolio_head = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim * 2),
@@ -42,7 +46,7 @@ class TradingStrategy(NexusModule):
             nn.Dropout(config.get("dropout", 0.1)),
             nn.Linear(self.hidden_dim * 2, self.num_assets * 2)  # Mean and variance
         )
-        
+
         # Risk assessment with multiple metrics
         self.risk_head = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim),
@@ -51,67 +55,18 @@ class TradingStrategy(NexusModule):
             nn.Linear(self.hidden_dim, 4),  # VaR, CVaR, Volatility, Drawdown
             nn.Sigmoid()
         )
-        
+
         # Transaction cost model
         self.cost_model = nn.Sequential(
             nn.Linear(self.hidden_dim + self.num_assets, self.hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(self.hidden_dim // 2, self.num_assets)
         )
-        
-        # Trading decision bank with importance weighting
-        self.register_buffer(
-            "decision_bank",
-            torch.zeros(self.bank_size, self.hidden_dim)
-        )
-        self.register_buffer(
-            "performance_metrics",
-            torch.zeros(self.bank_size, 4)  # Sharpe, Sortino, Calmar, Info Ratio
-        )
-        self.register_buffer(
-            "decision_importance",
-            torch.zeros(self.bank_size)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        self.register_buffer("bank_is_full", torch.zeros(1, dtype=torch.bool))
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim", "input_dim", "num_assets"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-        if config["hidden_dim"] <= 0:
-            raise ValueError("hidden_dim must be positive")
-        if config["num_assets"] <= 0:
-            raise ValueError("num_assets must be positive")
-        if config["input_dim"] <= 0:
-            raise ValueError("input_dim must be positive")
-                
-    def update_decision_bank(
-        self,
-        decisions: torch.Tensor,
-        metrics: torch.Tensor,
-        importance: torch.Tensor
-    ):
-        """Update decision bank with importance weighting"""
-        if not torch.isfinite(decisions).all():
-            return  # Skip update if decisions contain NaN/inf
-            
-        batch_size = decisions.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.decision_bank.size(0):
-            ptr = 0
-            self.bank_is_full[0] = True
-            
-        # Normalize decisions
-        decisions = torch.nn.functional.normalize(decisions, dim=-1)
-        
-        self.decision_bank[ptr:ptr + batch_size] = decisions.detach()
-        self.performance_metrics[ptr:ptr + batch_size] = metrics.detach()
-        self.decision_importance[ptr:ptr + batch_size] = importance.detach().squeeze(-1)
-        self.bank_ptr[0] = (ptr + batch_size) % self.bank_size
+
+        # Trading decision banks using mixin
+        self.register_feature_bank("decision", self.bank_size, self.hidden_dim)
+        self.register_feature_bank("performance", self.bank_size, 4)  # Sharpe, Sortino, Calmar, Info Ratio
+        self.register_feature_bank("importance", self.bank_size, 1)
         
     def forward(
         self,
@@ -173,8 +128,11 @@ class TradingStrategy(NexusModule):
         # Calculate decision importance
         importance = sharpe * (1 - vol)  # High Sharpe, low vol = important decision
         
-        # Update decision bank
-        self.update_decision_bank(encoded_state, perf_metrics, importance)
+        # Update decision banks using mixin (normalizing decisions first)
+        normalized_decisions = torch.nn.functional.normalize(encoded_state, dim=-1)
+        self.update_feature_bank("decision", normalized_decisions)
+        self.update_feature_bank("performance", perf_metrics)
+        self.update_feature_bank("importance", importance)
         
         return {
             "portfolio_weights": portfolio_weights,
@@ -194,7 +152,7 @@ class TradingStrategy(NexusModule):
             },
             "encoded_state": encoded_state,
             "decision_importance": importance,
-            "bank_usage": self.bank_is_full
+            "bank_usage": self.is_bank_full("decision")
         }
         
     def _calculate_performance_metrics(

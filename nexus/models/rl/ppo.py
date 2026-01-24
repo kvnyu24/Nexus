@@ -3,20 +3,27 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Tuple, Optional, List, Union
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 import numpy as np
 
-class ActorCritic(NexusModule):
+class ActorCritic(NexusModule, ConfigValidatorMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
-        # Validate config (following pattern from FasterRCNN)
-        self._validate_config(config)
-        
+
+        # Validate config using mixin
+        self.validate_config(config, required_keys=["state_dim", "action_dim"])
+
         # Core dimensions
         self.state_dim = config["state_dim"]
         self.action_dim = config["action_dim"]
         self.hidden_dim = config.get("hidden_dim", 256)
-        
+
+        # Additional validation using mixin
+        if self.hidden_dim < 32:
+            raise ValueError("hidden_dim must be at least 32")
+        if config.get("num_value_heads", 3) < 2:
+            raise ValueError("num_value_heads must be at least 2")
+
         # Enhanced feature extractor with residual connections
         self.features = nn.ModuleDict({
             'input': nn.Linear(self.state_dim, self.hidden_dim),
@@ -25,7 +32,7 @@ class ActorCritic(NexusModule):
             'norm2': nn.LayerNorm(self.hidden_dim),
             'residual': nn.Linear(self.state_dim, self.hidden_dim, bias=False)
         })
-        
+
         # Advanced policy head with uncertainty estimation
         self.policy = nn.ModuleDict({
             'shared': nn.Linear(self.hidden_dim, self.hidden_dim),
@@ -33,7 +40,7 @@ class ActorCritic(NexusModule):
             'logvar': nn.Linear(self.hidden_dim, self.action_dim),
             'norm': nn.LayerNorm(self.hidden_dim)
         })
-        
+
         # Enhanced value head with deeper ensemble
         num_value_heads = config.get("num_value_heads", 3)
         self.value_ensemble = nn.ModuleList([
@@ -46,23 +53,11 @@ class ActorCritic(NexusModule):
                 nn.Linear(self.hidden_dim // 2, 1)
             ) for _ in range(num_value_heads)
         ])
-        
+
         # Additional components for enhanced stability
         self.feature_dropout = nn.Dropout(config.get("dropout", 0.1))
         self.action_scaling = config.get("action_scaling", 1.0)
         self.min_std = config.get("min_std", 1e-6)
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["state_dim", "action_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-        
-        # Additional validation
-        if config.get("hidden_dim", 256) < 32:
-            raise ValueError("hidden_dim must be at least 32")
-        if config.get("num_value_heads", 3) < 2:
-            raise ValueError("num_value_heads must be at least 2")
 
     def forward(self, state: torch.Tensor) -> Dict[str, torch.Tensor]:
         # Feature extraction with residual connection
@@ -100,13 +95,13 @@ class ActorCritic(NexusModule):
             "raw_values": values
         }
 
-class PPOAgent(NexusModule):
+class PPOAgent(NexusModule, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Core components with enhanced network
         self.network = ActorCritic(config)
-        
+
         # Extended training parameters
         self.learning_rate = config.get("learning_rate", 3e-4)
         self.gamma = config.get("gamma", 0.99)
@@ -115,13 +110,13 @@ class PPOAgent(NexusModule):
         self.value_coef = config.get("value_coef", 0.5)
         self.entropy_coef = config.get("entropy_coef", 0.01)
         self.max_grad_norm = config.get("max_grad_norm", 0.5)
-        
-        # Advanced experience bank with prioritization
+
+        # Advanced experience bank with prioritization using mixin
         bank_size = config.get("bank_size", 10000)
-        self.register_buffer("experience_bank", torch.zeros(bank_size, config.get("hidden_dim", 256)))
-        self.register_buffer("bank_priorities", torch.ones(bank_size))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
+        hidden_dim = config.get("hidden_dim", 256)
+        self.register_feature_bank("experience", bank_size, hidden_dim)
+        self.register_feature_bank("priority", bank_size, 1)
+
         # Enhanced optimizer with gradient clipping
         self.optimizer = torch.optim.AdamW(
             self.network.parameters(),
@@ -130,29 +125,13 @@ class PPOAgent(NexusModule):
             weight_decay=config.get("weight_decay", 0.01),
             amsgrad=True
         )
-        
+
         # Learning rate scheduler
         self.scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             self.optimizer,
             T_max=config.get("max_steps", 1000),
             eta_min=self.learning_rate * 0.1
         )
-        
-    def update_experience_bank(self, features: torch.Tensor, priority: Optional[torch.Tensor] = None):
-        """Update experience bank with prioritization"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.experience_bank.size(0):
-            ptr = 0
-            
-        self.experience_bank[ptr:ptr + batch_size] = features.detach()
-        if priority is not None:
-            self.bank_priorities[ptr:ptr + batch_size] = priority.detach()
-        else:
-            self.bank_priorities[ptr:ptr + batch_size] = 1.0
-            
-        self.bank_ptr[0] = (ptr + batch_size) % self.experience_bank.size(0)
 
     def select_action(
         self,
@@ -180,11 +159,9 @@ class PPOAgent(NexusModule):
                 # Clip actions to valid range
                 action = torch.clamp(action, -self.network.action_scaling, self.network.action_scaling)
             
-            # Update experience bank with value uncertainty as priority
-            self.update_experience_bank(
-                outputs["features"],
-                outputs["value_uncertainty"]
-            )
+            # Update experience bank using mixin
+            self.update_feature_bank("experience", outputs["features"])
+            self.update_feature_bank("priority", outputs["value_uncertainty"])
             
             return action, {
                 "value": outputs["value"],

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from .base_gan import BaseGenerator, BaseDiscriminator
 from ...components import ResidualBlock
 
@@ -26,33 +27,27 @@ class CycleGANGenerator(BaseGenerator):
             
         return {"generated_images": out}
 
-class CycleGAN(NexusModule):
+class CycleGAN(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate configuration
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["input_channels", "hidden_dim"])
+
         # Initialize generators and discriminators
         self.G_AB = CycleGANGenerator(config)
         self.G_BA = CycleGANGenerator(config)
         self.D_A = BaseDiscriminator(config)
         self.D_B = BaseDiscriminator(config)
-        
+
         # Loss weights
         self.lambda_cycle = config.get("lambda_cycle", 10.0)
         self.lambda_identity = config.get("lambda_identity", 0.5)
-        
+
         # Loss functions
         self.criterion_gan = nn.MSELoss()
         self.criterion_cycle = nn.L1Loss()
         self.criterion_identity = nn.L1Loss()
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required_keys = ["input_channels", "hidden_dim"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
                 
     def get_cycle_consistency_loss(
         self,

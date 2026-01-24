@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
 from .llama import BaseLLMBlock
 from nexus.core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 
 class FalconConfig(BaseLLMConfig):
     """Configuration class for Falcon model"""
@@ -60,16 +61,16 @@ class FalconBlock(BaseLLMBlock):
             self.norm_1 = nn.LayerNorm(config.hidden_size)
             self.norm_2 = nn.LayerNorm(config.hidden_size)
 
-class FalconModel(BaseLLM):
+class FalconModel(WeightInitMixin, BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         if not isinstance(config, FalconConfig):
             config = FalconConfig(**config)
         super().__init__(config)
-        
+
         # Override transformer layers with Falcon-specific blocks
         self.layers = nn.ModuleList([
             FalconBlock(config) for _ in range(config.num_layers)
         ])
-        
-        # Initialize weights
-        self.apply(self._init_weights) 
+
+        # Initialize weights using LLM preset
+        self.init_weights_llm() 

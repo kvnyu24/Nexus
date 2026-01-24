@@ -3,15 +3,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
+from ...core.mixins import ConfigValidatorMixin
 from .state_transition import StateTransitionModule
 from .memory_bank import MemoryBank
 
-class NeuralStateMachine(NexusModule):
+class NeuralStateMachine(ConfigValidatorMixin, WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config following EnhancedGNN pattern
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(
+            config,
+            required_keys=["hidden_dim", "num_states", "input_dim", "output_dim"]
+        )
         
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
@@ -73,29 +78,10 @@ class NeuralStateMachine(NexusModule):
         )
         
         # Initialize weights (following SFT pattern)
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, module):
-        """Initialize weights following SFT pattern"""
-        if isinstance(module, (nn.Linear, nn.Embedding)):
-            module.weight.data.normal_(mean=0.0, std=0.02)
-            if isinstance(module, nn.Linear) and module.bias is not None:
-                module.bias.data.zero_()
-        elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(1.0)
-    
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = [
-            "hidden_dim",
-            "num_states",
-            "input_dim",
-            "output_dim"
-        ]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-    
+        self.init_weights_llm()
+        # Re-apply orthogonal initialization for state embeddings
+        nn.init.orthogonal_(self.state_embeddings, gain=1.0)
+
     def forward(
         self,
         inputs: torch.Tensor,

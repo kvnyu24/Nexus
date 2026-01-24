@@ -2,20 +2,24 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class FactorModel(NexusModule):
+class FactorModel(NexusModule, ConfigValidatorMixin, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
-        # Validate config
-        self._validate_config(config)
-        
+
+        # Validate config using mixin
+        self.validate_config(config, required_keys=["hidden_dim", "input_dim", "num_factors"])
+        self.validate_positive(config["hidden_dim"], "hidden_dim")
+        self.validate_positive(config["input_dim"], "input_dim")
+        self.validate_positive(config["num_factors"], "num_factors")
+
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
         self.num_factors = config["num_factors"]
         self.sequence_length = config.get("sequence_length", 252)  # Default to 1 year
         self.bank_size = config.get("bank_size", 10000)
-        
+
         # Feature extraction with residual connections
         self.feature_extractor = nn.Sequential(
             nn.Linear(config["input_dim"], self.hidden_dim),
@@ -25,7 +29,7 @@ class FactorModel(NexusModule):
             nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.LayerNorm(self.hidden_dim)
         )
-        
+
         # Factor discovery network with uncertainty
         self.factor_network = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim * 2),
@@ -33,7 +37,7 @@ class FactorModel(NexusModule):
             nn.Dropout(config.get("dropout", 0.1)),
             nn.Linear(self.hidden_dim * 2, self.num_factors * 2)  # Mean and variance
         )
-        
+
         # Risk model with attention
         self.risk_model = nn.Sequential(
             nn.Linear(self.hidden_dim + self.num_factors, self.hidden_dim),
@@ -43,74 +47,25 @@ class FactorModel(NexusModule):
             nn.ReLU(),
             nn.Linear(self.hidden_dim // 2, 2)  # Risk mean and variance
         )
-        
+
         # Factor correlation network
         self.correlation_net = nn.Sequential(
             nn.Linear(self.num_factors, self.hidden_dim),
             nn.ReLU(),
             nn.Linear(self.hidden_dim, self.num_factors * self.num_factors)
         )
-        
+
         # Temporal attention for time series
         self.temporal_attention = nn.MultiheadAttention(
             self.hidden_dim,
             num_heads=4,
             dropout=config.get("dropout", 0.1)
         )
-        
-        # Feature banks
-        self.register_buffer(
-            "factor_bank",
-            torch.zeros(self.bank_size, self.num_factors)
-        )
-        self.register_buffer(
-            "factor_importance",
-            torch.zeros(self.bank_size)
-        )
-        self.register_buffer(
-            "factor_uncertainty",
-            torch.zeros(self.bank_size)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        self.register_buffer("bank_is_full", torch.zeros(1, dtype=torch.bool))
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim", "input_dim", "num_factors"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-        if config["hidden_dim"] <= 0:
-            raise ValueError("hidden_dim must be positive")
-        if config["num_factors"] <= 0:
-            raise ValueError("num_factors must be positive")
-        if config["input_dim"] <= 0:
-            raise ValueError("input_dim must be positive")
-                
-    def update_factor_bank(
-        self,
-        factors: torch.Tensor,
-        importance: torch.Tensor,
-        uncertainty: torch.Tensor
-    ):
-        """Update factor bank with importance weighting and uncertainty"""
-        if not torch.isfinite(factors).all():
-            return  # Skip update if factors contain NaN/inf
-            
-        batch_size = factors.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.factor_bank.size(0):
-            ptr = 0
-            self.bank_is_full[0] = True
-            
-        # Normalize factors
-        factors = torch.nn.functional.normalize(factors, dim=-1)
-        
-        self.factor_bank[ptr:ptr + batch_size] = factors.detach()
-        self.factor_importance[ptr:ptr + batch_size] = importance.detach().squeeze(-1)
-        self.factor_uncertainty[ptr:ptr + batch_size] = uncertainty.detach().squeeze(-1)
-        self.bank_ptr[0] = (ptr + batch_size) % self.bank_size
+
+        # Feature banks using mixin
+        self.register_feature_bank("factor", self.bank_size, self.num_factors)
+        self.register_feature_bank("importance", self.bank_size, 1)
+        self.register_feature_bank("uncertainty", self.bank_size, 1)
         
     def forward(
         self,
@@ -161,11 +116,11 @@ class FactorModel(NexusModule):
         factor_importance = torch.norm(factor_loadings, p=2, dim=-1, keepdim=True)
         factor_uncertainty = torch.mean(factor_std, dim=-1, keepdim=True)
         
-        # Update factor bank with error handling
-        try:
-            self.update_factor_bank(factor_loadings, factor_importance, factor_uncertainty)
-        except Exception:
-            pass  # Fail silently on bank updates
+        # Update factor banks using mixin (normalizing factors first)
+        normalized_factors = torch.nn.functional.normalize(factor_loadings, dim=-1)
+        self.update_feature_bank("factor", normalized_factors)
+        self.update_feature_bank("importance", factor_importance)
+        self.update_feature_bank("uncertainty", factor_uncertainty)
         
         return {
             "factor_loadings": factor_loadings,
@@ -175,5 +130,5 @@ class FactorModel(NexusModule):
             "features": features,
             "factor_importance": factor_importance,
             "factor_correlations": factor_corr,
-            "factor_bank_usage": self.bank_is_full
+            "factor_bank_usage": self.is_bank_full("factor")
         }

@@ -3,13 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict, Any, Optional, List, Tuple, Union
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class Codec(NexusModule):
+class Codec(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim", "input_dim"])
+        self.validate_positive(config["hidden_dim"], "hidden_dim")
+        self.validate_positive(config["input_dim"], "input_dim")
         
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
@@ -49,15 +52,9 @@ class Codec(NexusModule):
         decoder_layers.append(nn.Linear(self.hidden_dim, config["input_dim"]))
         self.decoder = nn.Sequential(*decoder_layers)
         
-        # Feature bank with temperature scaling
-        self.register_buffer(
-            "feature_bank",
-            torch.zeros(
-                config.get("bank_size", 10000),
-                self.latent_dim
-            )
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
+        # Feature bank with temperature scaling using FeatureBankMixin
+        self.bank_size = config.get("bank_size", 10000)
+        self.register_feature_bank("feature", self.bank_size, self.latent_dim)
         self.temperature = nn.Parameter(torch.ones(1))
         
         # Enhanced quality assessment head
@@ -82,40 +79,11 @@ class Codec(NexusModule):
             raise ValueError(f"Unsupported activation: {name}")
         return activations[name]
 
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration"""
-        required = ["hidden_dim", "input_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-        
-        # Validate numeric parameters
-        if config["hidden_dim"] <= 0:
-            raise ValueError("hidden_dim must be positive")
-        if config["input_dim"] <= 0:
-            raise ValueError("input_dim must be positive")
-
-    def update_feature_bank(self, features: torch.Tensor):
-        """Update feature bank with momentum"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.feature_bank.size(0):
-            ptr = 0
-            
-        # Apply momentum update
-        momentum = 0.9
-        self.feature_bank[ptr:ptr + batch_size] = (
-            momentum * self.feature_bank[ptr:ptr + batch_size] +
-            (1 - momentum) * features.detach()
-        )
-        self.bank_ptr[0] = (ptr + batch_size) % self.feature_bank.size(0)
-
     def compute_similarity(self, z: torch.Tensor) -> torch.Tensor:
         """Compute similarity to feature bank entries"""
         # Normalize features
         z_norm = F.normalize(z, dim=1)
-        bank_norm = F.normalize(self.feature_bank, dim=1)
+        bank_norm = F.normalize(self.get_feature_bank("feature"), dim=1)
         
         # Compute cosine similarity with temperature scaling
         similarity = torch.mm(z_norm, bank_norm.t()) * self.temperature
@@ -133,8 +101,8 @@ class Codec(NexusModule):
         mu, log_var = torch.chunk(encoder_output, 2, dim=-1)
         z = self.reparameterize(mu, log_var)
         
-        # Update feature bank
-        self.update_feature_bank(z)
+        # Update feature bank using FeatureBankMixin
+        self.update_feature_bank("feature", z)
         
         # Compute similarity if requested
         similarity = self.compute_similarity(z) if return_similarity else None
@@ -192,11 +160,11 @@ class Codec(NexusModule):
             
         return outputs
 
-class ResidualConnection(nn.Module):
-    """Residual connection with scaling"""
+class ResidualConnection(NexusModule):
+    """Residual connection with scaling."""
     def __init__(self, scale: float = 0.1):
         super().__init__()
         self.scale = scale
-        
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.scale * x

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, List, Optional, Union, Tuple
 from .base import NexusModule
-from torch.nn import functional as F
+import torch.nn.functional as F
 
 class ModelTrimmer(NexusModule):
     def __init__(self, config: Dict[str, Any]):

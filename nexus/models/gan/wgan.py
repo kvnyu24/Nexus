@@ -3,6 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
 from ...core.initialization import WeightInitMixin
+from ...core.mixins import ConfigValidatorMixin
 from .base_gan import BaseGenerator, BaseDiscriminator
 
 class WGANGenerator(BaseGenerator):
@@ -30,29 +31,21 @@ class WGANCritic(BaseDiscriminator):
         # Re-initialize weights after modifying architecture
         self.init_weights_gan()
 
-class WGAN(NexusModule):
+class WGAN(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate configuration
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["latent_dim", "hidden_dim"])
+        self.validate_positive(config.get("clip_value", 0.01), "clip_value")
+
         # Initialize generator and critic
         self.generator = WGANGenerator(config)
         self.critic = WGANCritic(config)
-        
+
         # WGAN specific configuration
         self.clip_value = config.get("clip_value", 0.01)
         self.n_critic = config.get("n_critic", 5)
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required_keys = ["latent_dim", "hidden_dim"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
-                
-        if config.get("clip_value", 0.01) <= 0:
-            raise ValueError("clip_value must be positive")
             
     def clip_critic_weights(self):
         for p in self.critic.parameters():

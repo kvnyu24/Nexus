@@ -10,9 +10,10 @@ from .checkpointing import CheckpointMixin
 from ..utils.logging import Logger
 from ..utils.batch_utils import BatchProcessor
 from ..core.base import NexusModule
+from ..core.mixins import ConfigValidatorMixin
 
 
-class BaseTrainer(CheckpointMixin, ABC):
+class BaseTrainer(ConfigValidatorMixin, CheckpointMixin, ABC):
     """Abstract base class for all trainers in Nexus.
 
     Provides common training infrastructure including:
@@ -54,24 +55,21 @@ class BaseTrainer(CheckpointMixin, ABC):
         self.config = config or {}
         self.scheduler = None
 
-        # Validate configuration
-        self._validate_config()
+        # Validate configuration using ConfigValidatorMixin
+        self._validate_trainer_config()
 
         # Setup optimizer
         self.optimizer = self._setup_optimizer(optimizer, learning_rate)
         self.model.to(device)
 
-    def _validate_config(self) -> None:
-        """Validate trainer configuration.
+    def _validate_trainer_config(self) -> None:
+        """Validate trainer configuration using ConfigValidatorMixin.
 
         Override in subclasses to add specific validation logic.
         Raises ValueError if configuration is invalid.
         """
-        if self.config.get("learning_rate", 1e-3) <= 0:
-            raise ValueError("learning_rate must be positive")
-
-        if self.config.get("batch_size", 32) <= 0:
-            raise ValueError("batch_size must be positive")
+        self.validate_positive(self.config.get("learning_rate", 1e-3), "learning_rate")
+        self.validate_positive(self.config.get("batch_size", 32), "batch_size")
 
     def _setup_optimizer(
         self,

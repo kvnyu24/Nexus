@@ -2,35 +2,30 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from .gating import TopKBalancedGate
 from .expert_types import ConditionalExpert
 
-class EnhancedMoELayer(NexusModule):
+class EnhancedMoELayer(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate config
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["num_experts", "hidden_dim"])
+
         # Core components
         self.gate = TopKBalancedGate(config)
         self.experts = nn.ModuleList([
             ConditionalExpert(config) for _ in range(config["num_experts"])
         ])
-        
+
         # Optional components
         self.dropout = nn.Dropout(config.get("dropout", 0.1))
         self.layer_norm = nn.LayerNorm(config["hidden_dim"])
-        
+
         # Expert capacity control
         self.capacity_factor = config.get("capacity_factor", 1.25)
         self.drop_tokens = config.get("drop_tokens", True)
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["num_experts", "hidden_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
     
     def forward(
         self,

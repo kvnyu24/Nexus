@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class AgentStateEncoder(NexusModule):
+class AgentStateEncoder(FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()
         
@@ -16,20 +17,16 @@ class AgentStateEncoder(NexusModule):
             nn.Linear(self.hidden_dim, self.hidden_dim)
         )
         
-        # Memory mechanism (following EnhancedReID pattern)
+        # Memory mechanism using FeatureBankMixin
         self.memory_size = config.get("memory_size", 1000)
-        self.register_buffer(
-            "state_memory",
-            torch.zeros(self.memory_size, self.hidden_dim)
-        )
-        self.register_buffer("memory_ptr", torch.zeros(1, dtype=torch.long))
+        self.register_feature_bank("state_memory", self.memory_size, self.hidden_dim)
 
-class BehaviorPredictionModule(NexusModule):
+class BehaviorPredictionModule(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate configuration
-        self._validate_config(config)
+        # Validate configuration using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim", "state_dim"])
         
         # Core components
         self.state_encoder = AgentStateEncoder(config)
@@ -56,14 +53,10 @@ class BehaviorPredictionModule(NexusModule):
             config.get("hidden_dim", 256),
             config.get("prediction_horizon", 10) * 2
         )
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Following FasterRCNN validation pattern"""
-        required_keys = ["hidden_dim", "state_dim"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
-    
+
+        # Store prediction_horizon for forward pass
+        self.prediction_horizon = config.get("prediction_horizon", 10)
+
     def forward(
         self,
         agent_states: torch.Tensor,

@@ -3,13 +3,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from .base_gnn import BaseGNNLayer
 from .attention import GraphAttention
 from .message_passing import AdaptiveMessagePassingLayer
 from ...visualization.hierarchical import HierarchicalVisualizer
 from torch_scatter import scatter_mean, scatter_max, scatter_add
 
-class HierarchicalGraphNetwork(NexusModule):
+class HierarchicalGraphNetwork(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     """
     A hierarchical graph neural network that combines multiple layer types and pooling strategies
     with feature banking and visualization capabilities.
@@ -18,7 +19,7 @@ class HierarchicalGraphNetwork(NexusModule):
         super().__init__(config)
         
         # Validate and store core configuration
-        self._validate_config(config)
+        self.validate_config(config, required_keys=["input_dim", "output_dim"])
         self._init_core_dimensions(config)
         
         # Enhanced input processing
@@ -107,35 +108,44 @@ class HierarchicalGraphNetwork(NexusModule):
         )
         
     def _init_memory_bank(self, config: Dict[str, Any]) -> None:
-        """Initialize memory bank with configurable parameters"""
+        """Initialize memory bank with configurable parameters using FeatureBankMixin"""
         self.bank_size = config.get("bank_size", 10000)
-        self.register_buffer("feature_bank", torch.zeros(self.bank_size, self.hidden_dim))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
         self.momentum = config.get("bank_momentum", 0.99)
         self.bank_temperature = config.get("bank_temperature", 0.07)
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration parameters"""
-        required = ["input_dim", "output_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
+        self.register_feature_bank("feature", self.bank_size, self.hidden_dim)
                 
-    def update_feature_bank(self, features: torch.Tensor) -> None:
+    def update_bank_with_momentum(self, features: torch.Tensor) -> None:
         """Update feature bank with momentum and temperature scaling"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.bank_size:
-            ptr = 0
-            
+        if not torch.isfinite(features).all():
+            return
+
         # Temperature-scaled momentum update
         scaled_features = F.normalize(features, dim=-1) / self.bank_temperature
-        self.feature_bank[ptr:ptr + batch_size] = (
-            self.momentum * self.feature_bank[ptr:ptr + batch_size] +
-            (1 - self.momentum) * scaled_features.detach()
-        )
-        self.bank_ptr[0] = (ptr + batch_size) % self.bank_size
+
+        batch_size = features.size(0)
+        bank = self.feature_bank
+        ptr = self.feature_ptr
+
+        end_ptr = (ptr.item() + batch_size) % self.bank_size
+        if ptr.item() + batch_size <= self.bank_size:
+            bank[ptr.item():ptr.item() + batch_size] = (
+                self.momentum * bank[ptr.item():ptr.item() + batch_size] +
+                (1 - self.momentum) * scaled_features.detach()
+            )
+        else:
+            first_part = self.bank_size - ptr.item()
+            bank[ptr.item():] = (
+                self.momentum * bank[ptr.item():] +
+                (1 - self.momentum) * scaled_features[:first_part].detach()
+            )
+            bank[:end_ptr] = (
+                self.momentum * bank[:end_ptr] +
+                (1 - self.momentum) * scaled_features[first_part:].detach()
+            )
+
+        ptr[0] = end_ptr
+        if ptr.item() == 0 or self.feature_filled.item():
+            self.feature_filled[0] = True
         
     def forward(
         self,
@@ -186,7 +196,7 @@ class HierarchicalGraphNetwork(NexusModule):
             global_features = h.mean(dim=0, keepdim=True)
             
         # Update memory bank
-        self.update_feature_bank(global_features)
+        self.update_bank_with_momentum(global_features)
         
         # Generate final output
         output = self.feature_processor(global_features)
@@ -196,7 +206,7 @@ class HierarchicalGraphNetwork(NexusModule):
             "node_features": h,
             "global_features": global_features,
             "intermediate_features": intermediate_features,
-            "feature_bank": self.feature_bank
+            "feature_bank": self.get_feature_bank("feature")
         }
         
         if return_attention:

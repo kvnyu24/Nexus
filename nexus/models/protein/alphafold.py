@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Tuple, NamedTuple
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
 from ...components.attention import MultiHeadSelfAttention, CrossAttentionLayer
 from ...components.embeddings import PositionalEncoding
 
@@ -88,7 +89,7 @@ class EvoformerBlock(NexusModule):
         
         return msa_repr, pair_repr
 
-class AlphaFold(NexusModule):
+class AlphaFold(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -134,16 +135,7 @@ class AlphaFold(NexusModule):
         })
         
         # Initialize weights
-        self.apply(self._init_weights)
-    
-    def _init_weights(self, module):
-        if isinstance(module, (nn.Linear, nn.Embedding)):
-            module.weight.data.normal_(mean=0.0, std=0.02)
-            if isinstance(module, nn.Linear) and module.bias is not None:
-                module.bias.data.zero_()
-        elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(1.0)
+        self.init_weights_llm()
     
     def forward(
         self,

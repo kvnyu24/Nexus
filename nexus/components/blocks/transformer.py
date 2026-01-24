@@ -53,11 +53,11 @@ class MultiModalTransformerBlock(NexusModule):
         cross_mask: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         # Self attention
-        x = x + self.self_attn(self.norm1(x), mask=self_mask)
+        x = x + self.self_attn(self.norm1(x), attention_mask=self_mask)
         
         # Cross attention (if context is provided)
         if context is not None:
-            x = x + self.cross_attn(self.norm2(x), context, mask=cross_mask)[0]
+            x = x + self.cross_attn(self.norm2(x), context, attention_mask=cross_mask)[0]
             
         # MLP
         x = x + self.mlp(self.norm3(x))

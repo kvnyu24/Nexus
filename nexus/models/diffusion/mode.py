@@ -2,15 +2,16 @@ from typing import Dict, Any, Optional, List
 import torch
 import torch.nn as nn
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from ..moe.expert_types import ConditionalExpert
 from .enhanced_stable_diffusion import EnhancedStableDiffusion
 
-class MixtureDiffusionExperts(NexusModule):
+class MixtureDiffusionExperts(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim", "num_experts"])
         
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
@@ -29,18 +30,9 @@ class MixtureDiffusionExperts(NexusModule):
             nn.Linear(self.hidden_dim, self.num_experts)
         )
         
-        # Feature bank (following EnhancedReID pattern)
-        self.register_buffer(
-            "feature_bank",
-            torch.zeros(config.get("bank_size", 10000), self.hidden_dim)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim", "num_experts"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
+        # Feature bank using FeatureBankMixin
+        self.bank_size = config.get("bank_size", 10000)
+        self.register_feature_bank("feature", self.bank_size, self.hidden_dim)
                 
     def forward(
         self,

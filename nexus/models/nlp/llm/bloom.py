@@ -4,6 +4,7 @@ import torch.nn as nn
 from .base_llm import BaseLLM, BaseLLMConfig
 from .llama import BaseLLMBlock
 from nexus.core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 
 
 class BloomLayerNorm(NexusModule):
@@ -71,16 +72,16 @@ class BloomBlock(BaseLLMBlock):
             config.apply_residual_connection_post_layernorm
         )
 
-class BloomModel(BaseLLM):
+class BloomModel(WeightInitMixin, BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         if not isinstance(config, BloomConfig):
             config = BloomConfig(**config)
         super().__init__(config)
-        
+
         # Override transformer layers with BLOOM-specific blocks
         self.layers = nn.ModuleList([
             BloomBlock(config) for _ in range(config.num_layers)
         ])
-        
-        # Initialize weights using BLOOM-specific method
-        self.apply(self._init_weights) 
+
+        # Initialize weights using LLM preset
+        self.init_weights_llm() 

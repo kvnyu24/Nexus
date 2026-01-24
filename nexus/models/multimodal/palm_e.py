@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Union
 from ...core.base import NexusModule
-from ...core.mixins import FeatureBankMixin
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
 class VisionEncoder(NexusModule):
     def __init__(self, input_channels: int, hidden_dim: int):
@@ -40,12 +40,12 @@ class LanguageEncoder(NexusModule):
             attention_mask = attention_mask.bool()
         return self.encoder(x, src_key_padding_mask=attention_mask)
 
-class PaLME(FeatureBankMixin, NexusModule):
+class PaLME(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate config
-        self._validate_config(config)
+        # Validate config using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim", "num_layers", "vocab_size"])
         
         # Core dimensions
         self.hidden_dim = config["hidden_dim"]
@@ -100,13 +100,6 @@ class PaLME(FeatureBankMixin, NexusModule):
             'action_prediction': nn.Linear(self.hidden_dim, config.get("num_actions", 100))
         })
         
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration following BaseRCNN pattern"""
-        required = ["hidden_dim", "num_layers", "vocab_size"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-
     def forward(
         self,
         images: Optional[torch.Tensor] = None,

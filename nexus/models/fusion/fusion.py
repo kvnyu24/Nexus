@@ -3,9 +3,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ...core.base import NexusModule
+from ...core.mixins import FeatureBankMixin
 from ...visualization.hierarchical import HierarchicalVisualizer
 
-class FusionModule(NexusModule):
+
+class FusionModule(FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         

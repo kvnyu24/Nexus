@@ -4,11 +4,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 from ...core.base import NexusModule
-from .mcts_config import MCTSConfig 
+from ...core.mixins import FeatureBankMixin
+from .mcts_config import MCTSConfig
 from .mcts_node import MCTSNode
 from ...components import CrossAttention
 
-class TransformerMCTSWithMemory(NexusModule):
+class TransformerMCTSWithMemory(NexusModule, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -78,34 +79,11 @@ class TransformerMCTSWithMemory(NexusModule):
             nn.Linear(self.mcts_config.hidden_dim, 1)
         )
         
-        # Enhanced episodic memory with hierarchical storage
-        self.register_buffer(
-            "state_bank",
-            torch.zeros(self.mcts_config.bank_size, self.mcts_config.hidden_dim)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
+        # Enhanced episodic memory with hierarchical storage using mixin
+        self.register_feature_bank("state", self.mcts_config.bank_size, self.mcts_config.hidden_dim)
+
         # Root node for MCTS
         self.root = None
-        
-    def update_state_bank(
-        self,
-        states: torch.Tensor,
-        node: Optional[MCTSNode] = None
-    ) -> None:
-        batch_size = states.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.state_bank.size(0):
-            ptr = 0
-            
-        self.state_bank[ptr:ptr + batch_size] = states.detach()
-        
-        if node is not None:
-            # Update root node if provided
-            self.root = node
-            
-        self.bank_ptr[0] = (ptr + batch_size) % self.state_bank.size(0)
         
     def forward(
         self,

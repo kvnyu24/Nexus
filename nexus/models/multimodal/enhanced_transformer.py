@@ -2,15 +2,16 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from ..nlp.rag import EnhancedRAGModule
 from ..cv.vae import EnhancedVAE
 
-class EnhancedMultiModalTransformer(NexusModule):
+class EnhancedMultiModalTransformer(ConfigValidatorMixin, FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate configuration
-        self._validate_config(config)
+        # Validate configuration using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_size", "vision_config"])
         
         # Core dimensions
         self.hidden_size = config["hidden_size"]
@@ -42,32 +43,9 @@ class EnhancedMultiModalTransformer(NexusModule):
         # Knowledge enhancement (following RAGModule pattern)
         self.knowledge_enhancer = EnhancedRAGModule(config)
         
-        # Feature bank (following EnhancedReID pattern)
-        self.register_buffer(
-            "multimodal_bank",
-            torch.zeros(
-                config.get("bank_size", 10000),
-                self.hidden_size
-            )
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_size", "vision_config"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-    def update_feature_bank(self, features: torch.Tensor):
-        """Update feature bank following EnhancedReID pattern"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.multimodal_bank.size(0):
-            ptr = 0
-            
-        self.multimodal_bank[ptr:ptr + batch_size] = features.detach()
-        self.bank_ptr[0] = (ptr + batch_size) % self.multimodal_bank.size(0)
+        # Feature bank using FeatureBankMixin
+        self.bank_size = config.get("bank_size", 10000)
+        self.register_feature_bank("multimodal", self.bank_size, self.hidden_size)
         
     def forward(
         self,
@@ -101,8 +79,8 @@ class EnhancedMultiModalTransformer(NexusModule):
             attention_mask=attention_mask
         )["output"]
         
-        # Update feature bank
-        self.update_feature_bank(enhanced_features)
+        # Update feature bank using FeatureBankMixin
+        self.update_feature_bank("multimodal", enhanced_features)
         
         return {
             "enhanced_features": enhanced_features,

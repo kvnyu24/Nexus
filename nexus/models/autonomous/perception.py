@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
 from ..cv.rcnn import FPNBackbone
-from torch.nn import functional as F
+import torch.nn.functional as F
 from nexus.models.nvlm.base import NVLMMixin
 from nexus.models.nvlm.processor import NVLMProcessor
 

@@ -81,12 +81,11 @@ class DPOTrainer(BaseTrainer):
             self.reward_model = EnhancedRewardModel(config)
             self.reward_model.to(self.device)
 
-    def _validate_config(self) -> None:
-        """Validate DPO trainer configuration."""
-        super()._validate_config()
+    def _validate_trainer_config(self) -> None:
+        """Validate DPO trainer configuration using ConfigValidatorMixin."""
+        super()._validate_trainer_config()
 
-        if self.config.get("beta", 0.1) <= 0:
-            raise ValueError("beta must be positive")
+        self.validate_positive(self.config.get("beta", 0.1), "beta")
 
         if not self.config.get("reference_free", False) and self.reference_model is None:
             self.logger.warning(

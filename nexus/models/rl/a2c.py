@@ -115,7 +115,8 @@ class A2CNetwork(NexusModule):
             
         return outputs
 
-class ResidualBlock(nn.Module):
+class ResidualBlock(NexusModule):
+    """Simple residual block for RL feature processing."""
     def __init__(self, hidden_dim: int):
         super().__init__()
         self.net = nn.Sequential(
@@ -125,7 +126,7 @@ class ResidualBlock(nn.Module):
             nn.Linear(hidden_dim, hidden_dim),
             nn.LayerNorm(hidden_dim)
         )
-        
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return F.relu(x + self.net(x))
 

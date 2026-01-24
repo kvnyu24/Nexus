@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 from ....core.base import NexusModule
 from ....core.initialization import WeightInitMixin
+from ....core.mixins import ConfigValidatorMixin
 
-class BaseRNN(WeightInitMixin, NexusModule):
+
+class BaseRNN(ConfigValidatorMixin, WeightInitMixin, NexusModule):
     """
     Base RNN class that implements common functionality for RNN-based models.
     Serves as a foundation for LSTM, GRU, and other RNN variants.
@@ -19,41 +21,34 @@ class BaseRNN(WeightInitMixin, NexusModule):
         self.dropout = config.get("dropout", 0.1)
         self.bidirectional = config.get("bidirectional", False)
         
-        # Validate configuration
-        self._validate_config()
-        
+        # Validate configuration using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_size", "vocab_size"])
+        self.validate_positive(self.hidden_size, "hidden_size")
+        self.validate_positive(self.num_layers, "num_layers")
+        self.validate_positive(self.vocab_size, "vocab_size")
+        self.validate_range(self.dropout, 0, 0.99, "dropout")
+
         # Common components
         self.token_embedding = nn.Embedding(
             num_embeddings=self.vocab_size,
             embedding_dim=self.hidden_size,
             padding_idx=0
         )
-        
+
         # Output size accounting for bidirectional
         self.output_size = self.hidden_size * 2 if self.bidirectional else self.hidden_size
-        
+
         # Layer normalization
         self.layer_norm = nn.LayerNorm(self.output_size)
-        
+
         # Output projection
         self.output = nn.Linear(self.output_size, self.vocab_size, bias=False)
-        
+
         # Tie weights between embedding and output layer
         self.output.weight = self.token_embedding.weight
 
         # Initialize weights using WeightInitMixin (llm preset uses normal distribution with std=0.02)
         self.apply_weight_init(preset='llm')
-
-    def _validate_config(self) -> None:
-        """Validate configuration parameters."""
-        if self.hidden_size <= 0:
-            raise ValueError("hidden_size must be positive")
-        if self.num_layers <= 0:
-            raise ValueError("num_layers must be positive")
-        if self.vocab_size <= 0:
-            raise ValueError("vocab_size must be positive")
-        if not 0 <= self.dropout < 1:
-            raise ValueError("dropout must be between 0 and 1")
 
     def _validate_input(
         self,

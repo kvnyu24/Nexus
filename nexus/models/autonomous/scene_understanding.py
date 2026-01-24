@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
 from ..cv.rcnn import FPNBackbone
-from torch.nn import functional as F
+import torch.nn.functional as F
 
 class SceneUnderstandingHead(NexusModule):
     def __init__(self, in_channels: int, config: Dict[str, Any]):

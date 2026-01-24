@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List, Union, Tuple
 from ....core.base import NexusModule
+from ....core.mixins import FeatureBankMixin
 from .config_validator import SFTConfigValidator
 from ..rag import EnhancedRAGModule
 from ..hallucination_reducer import HallucinationReducer
 from ....training.losses import EnhancedSFTLoss
 
-class SFTModule(NexusModule):
+class SFTModule(NexusModule, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -32,16 +33,12 @@ class SFTModule(NexusModule):
         if self.use_hallucination_reduction:
             self.hallucination_reducer = HallucinationReducer(config)
         
-        # Dynamic feature bank with adaptive sizing and validation
+        # Dynamic feature bank with adaptive sizing and validation using mixin
         bank_size = config.get("bank_size", 10000)
         if not (100 <= bank_size <= 1000000):
             raise ValueError("bank_size must be between 100 and 1,000,000")
-            
-        self.register_buffer(
-            "instruction_bank",
-            torch.zeros(bank_size, self.hidden_size)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
+
+        self.register_feature_bank("instruction", bank_size, self.hidden_size)
         self.register_buffer("bank_mask", torch.zeros(bank_size, dtype=torch.bool))
         self.register_buffer("bank_quality_scores", torch.zeros(bank_size))
         self.register_buffer("bank_timestamps", torch.zeros(bank_size))
@@ -130,7 +127,7 @@ class SFTModule(NexusModule):
         if batch_size == 0:
             return
             
-        ptr = int(self.bank_ptr)
+        ptr = int(self.instruction_ptr)
         bank_size = self.instruction_bank.size(0)
         current_time = self.bank_timestamps.max() + 1
         
@@ -159,4 +156,4 @@ class SFTModule(NexusModule):
             self.bank_quality_scores[ptr:ptr + batch_size] = quality_scores
             self.bank_timestamps[ptr:ptr + batch_size] = current_time
             
-        self.bank_ptr[0] = (ptr + batch_size) % bank_size
+        self.instruction_ptr[0] = (ptr + batch_size) % bank_size

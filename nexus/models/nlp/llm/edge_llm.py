@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from .base_llm import BaseLLM, BaseLLMConfig
 from nexus.core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 
 class EdgeLLMConfig(BaseLLMConfig):
     """Configuration class for EdgeLLM"""
@@ -73,13 +74,13 @@ class EdgeTransformerBlock(NexusModule):
         hidden_states = hidden_states + self.feed_forward(self.norm2(hidden_states))
         return hidden_states
 
-class EdgeLLM(BaseLLM):
+class EdgeLLM(WeightInitMixin, BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         # Convert dict config to EdgeLLMConfig if needed
         if not isinstance(config, EdgeLLMConfig):
             config = EdgeLLMConfig(**config)
         super().__init__(config)
-        
+
         # Override transformer layers with EdgeLLM-specific blocks
         self.layers = nn.ModuleList([
             EdgeTransformerBlock(
@@ -89,21 +90,9 @@ class EdgeLLM(BaseLLM):
                 dropout=config.dropout
             ) for _ in range(config.num_layers)
         ])
-        
-        # Initialize weights using EdgeLLM-specific method
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, module):
-        """Initialize weights specifically for EdgeLLM"""
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                torch.nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-        elif isinstance(module, nn.LayerNorm):
-            module.bias.data.zero_()
-            module.weight.data.fill_(1.0)
+
+        # Initialize weights using LLM preset
+        self.init_weights_llm()
         
     def forward(
         self,

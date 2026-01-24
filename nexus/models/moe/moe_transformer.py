@@ -2,22 +2,28 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from .expert_layer import ExpertTransformerLayer
 from .router import BalancedTopKRouter
 
-class EnhancedMoETransformer(NexusModule):
+class EnhancedMoETransformer(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate config
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=[
+            "hidden_size",
+            "num_layers",
+            "num_experts",
+            "vocab_size"
+        ])
+
         # Core dimensions
         self.hidden_size = config["hidden_size"]
         self.num_layers = config["num_layers"]
         self.num_experts = config["num_experts"]
         self.num_heads = config.get("num_heads", 8)
-        
+
         # Input embeddings
         self.token_embedding = nn.Embedding(
             config["vocab_size"],
@@ -27,32 +33,21 @@ class EnhancedMoETransformer(NexusModule):
             config.get("max_position_embeddings", 512),
             self.hidden_size
         )
-        
+
         # Expert transformer layers
         self.layers = nn.ModuleList([
             ExpertTransformerLayer(config)
             for _ in range(self.num_layers)
         ])
-        
+
         # Layer norm
         self.layer_norm = nn.LayerNorm(self.hidden_size)
-        
+
         # Output projection
         self.output_proj = nn.Linear(
             self.hidden_size,
             config["vocab_size"]
         )
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = [
-            "hidden_size",
-            "num_layers",
-            "num_experts",
-            "vocab_size"
-        ]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
     
     def forward(
         self,

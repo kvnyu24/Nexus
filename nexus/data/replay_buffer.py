@@ -3,7 +3,7 @@ from collections import deque
 from typing import Dict, List, Tuple, Union, Optional
 import torch
 import random
-import logging
+from nexus.utils.logging import Logger
 from pathlib import Path
 
 class ReplayBuffer:
@@ -18,7 +18,7 @@ class ReplayBuffer:
             
         self.capacity = capacity
         self.buffer = deque(maxlen=capacity)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
     def push(self, state: Union[np.ndarray, torch.Tensor], 
              action: Union[int, np.ndarray, torch.Tensor],

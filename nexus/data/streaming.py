@@ -4,7 +4,7 @@ from typing import Iterator, Optional, Dict, Any, Union
 import queue
 import threading
 import time
-import logging
+from nexus.utils.logging import Logger
 import numpy as np
 
 from .validation import DataValidation
@@ -37,7 +37,7 @@ class StreamingDataset(IterableDataset):
         self.buffer = queue.Queue(maxsize=buffer_size)
         self.stop_event = threading.Event()
         self.prefetch_thread = None
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
     def _convert_item(self, item: Any) -> Any:
         """Convert item to appropriate format."""

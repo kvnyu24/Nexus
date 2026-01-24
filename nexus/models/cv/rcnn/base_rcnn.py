@@ -2,29 +2,32 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, List, Tuple
 from ....core.base import NexusModule
+from ....core.initialization import WeightInitMixin
+from ....core.mixins import ConfigValidatorMixin
 from .backbone import FPNBackbone
 from .rpn import RegionProposalNetwork
 
-class BaseRCNN(NexusModule):
+class BaseRCNN(ConfigValidatorMixin, WeightInitMixin, NexusModule):
     """
     Base R-CNN implementation that serves as a foundation for specialized variants.
     Follows Nexus module patterns and interfaces.
     """
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate configuration
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["in_channels", "num_classes"])
+        self.validate_positive(config.get("num_classes", 0), "num_classes")
+
         # Core components
         self.backbone = FPNBackbone(config)
         self.rpn = RegionProposalNetwork(config)
-        
+
         # Configuration
         self.num_classes = config.get("num_classes", 80)
         self.roi_pool_size = config.get("roi_pool_size", 7)
         self.representation_size = config.get("representation_size", 1024)
-        
+
         # RoI pooling and box head
         self.box_head = nn.Sequential(
             nn.Linear(256 * self.roi_pool_size ** 2, self.representation_size),
@@ -32,32 +35,13 @@ class BaseRCNN(NexusModule):
             nn.Linear(self.representation_size, self.representation_size),
             nn.ReLU(inplace=True)
         )
-        
+
         # Classification and regression heads
         self.cls_head = nn.Linear(self.representation_size, self.num_classes + 1)  # +1 for background
         self.bbox_head = nn.Linear(self.representation_size, self.num_classes * 4)
-        
+
         # Initialize weights
-        self._init_weights()
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration parameters."""
-        required_keys = ["in_channels", "num_classes"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
-                
-        if config.get("num_classes", 0) <= 0:
-            raise ValueError("num_classes must be positive")
-            
-    def _init_weights(self) -> None:
-        """Initialize model weights following Nexus patterns."""
-        for module in [self.box_head, self.cls_head, self.bbox_head]:
-            for layer in module.modules():
-                if isinstance(layer, nn.Linear):
-                    nn.init.kaiming_normal_(layer.weight, mode='fan_out')
-                    if layer.bias is not None:
-                        nn.init.zeros_(layer.bias)
+        self.init_weights_vision()
                         
     def _roi_align(
         self,

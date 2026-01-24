@@ -4,7 +4,7 @@ from typing import Optional, Callable, Dict, Any, List, Union
 from pathlib import Path
 import os
 from PIL import Image
-import logging
+from nexus.utils.logging import Logger
 
 from .validation import DataValidation
 
@@ -44,7 +44,7 @@ class Dataset(TorchDataset):
         self.transform = transform
         self.target_transform = target_transform
         self.cache_images = cache_images
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         
         # Setup class mapping
         self.class_to_idx = {}

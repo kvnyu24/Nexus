@@ -3,9 +3,9 @@ import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
 from ...core.initialization import WeightInitMixin
-from ...core.mixins import FeatureBankMixin
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class VGG(FeatureBankMixin, WeightInitMixin, NexusModule):
+class VGG(ConfigValidatorMixin, FeatureBankMixin, WeightInitMixin, NexusModule):
     """
     Enhanced VGG implementation with modern improvements:
     - Batch normalization and layer normalization
@@ -18,10 +18,15 @@ class VGG(FeatureBankMixin, WeightInitMixin, NexusModule):
     """
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate config
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["num_classes", "architecture"])
+        self.validate_positive(config["num_classes"], "num_classes")
+        if "dropout" in config:
+            self.validate_range(config["dropout"], 0, 1, "dropout")
+        if "drop_path" in config:
+            self.validate_range(config["drop_path"], 0, 1, "drop_path")
+
         # Core dimensions
         self.in_channels = config.get("in_channels", 3)
         self.num_classes = config["num_classes"]
@@ -30,16 +35,16 @@ class VGG(FeatureBankMixin, WeightInitMixin, NexusModule):
         self.use_bottleneck = config.get("use_bottleneck", False)
         self.drop_path = config.get("drop_path", 0.0)
         self.layer_scale_init_value = config.get("layer_scale_init_value", 1e-6)
-        
+
         # Build VGG blocks
         self.features = self._make_layers(config["architecture"])
-        
+
         # Global pooling
         self.pool = nn.AdaptiveAvgPool2d((7, 7))
-        
+
         # Feature normalization
         self.feature_norm = nn.LayerNorm(512 * 7 * 7)
-        
+
         # Classifier with improved architecture
         self.classifier = nn.Sequential(
             nn.Linear(512 * 7 * 7, 4096),
@@ -47,39 +52,23 @@ class VGG(FeatureBankMixin, WeightInitMixin, NexusModule):
             nn.GELU(),
             nn.Dropout(config.get("dropout", 0.5)),
             nn.Linear(4096, 4096),
-            nn.LayerNorm(4096), 
+            nn.LayerNorm(4096),
             nn.GELU(),
             nn.Dropout(config.get("dropout", 0.5)),
             nn.Linear(4096, self.num_classes)
         )
-        
+
         # Enhanced feature bank with momentum using FeatureBankMixin
         bank_size = config.get("bank_size", 10000)
         self.register_feature_bank("feature", bank_size, 512)
         self.register_buffer("bank_labels", torch.zeros(bank_size, dtype=torch.long))
         self.momentum = config.get("bank_momentum", 0.9)
-        
+
         # Layer scale parameters
         self.gamma = nn.Parameter(self.layer_scale_init_value * torch.ones(512))
 
         # Initialize weights using WeightInitMixin
         self.init_weights_vision()
-
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration with enhanced checks"""
-        required = ["num_classes", "architecture"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-        if config["num_classes"] <= 0:
-            raise ValueError("num_classes must be positive")
-            
-        if "dropout" in config and not 0 <= config["dropout"] <= 1:
-            raise ValueError("dropout must be between 0 and 1")
-            
-        if "drop_path" in config and not 0 <= config["drop_path"] <= 1:
-            raise ValueError("drop_path must be between 0 and 1")
 
     def _make_layers(self, architecture: List[int]) -> nn.Sequential:
         """Create VGG blocks with enhanced features"""

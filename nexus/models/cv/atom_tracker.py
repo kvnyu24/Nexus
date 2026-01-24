@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
 from ...components.attention import SpatialAttention
 
 class TargetEncoder(NexusModule):
@@ -36,18 +37,18 @@ class SearchRegionEncoder(NexusModule):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.conv_layers(x)
 
-class ATOMTracker(NexusModule):
+class ATOMTracker(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Model dimensions
         self.hidden_dim = config.get("hidden_dim", 256)
         self.in_channels = config.get("in_channels", 3)
-        
+
         # Target and search region encoders
         self.target_encoder = TargetEncoder(self.in_channels, self.hidden_dim)
         self.search_encoder = SearchRegionEncoder(self.in_channels, self.hidden_dim)
-        
+
         # Cross-correlation prediction head
         self.prediction_head = nn.Sequential(
             nn.Conv2d(self.hidden_dim * 2, self.hidden_dim, 3, padding=1),
@@ -58,18 +59,9 @@ class ATOMTracker(NexusModule):
             nn.ReLU(inplace=True),
             nn.Conv2d(self.hidden_dim, 4, 1)  # 4 for bbox coordinates
         )
-        
+
         # Initialize weights
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, m: NexusModule):
-        if isinstance(m, nn.Conv2d):
-            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            if m.bias is not None:
-                nn.init.zeros_(m.bias)
-        elif isinstance(m, nn.BatchNorm2d):
-            nn.init.ones_(m.weight)
-            nn.init.zeros_(m.bias)
+        self.init_weights_vision()
             
     def forward(
         self,

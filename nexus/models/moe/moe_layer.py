@@ -2,35 +2,30 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional, List
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from .expert import ExpertModule, ExpertRouter
 
-class MoELayer(NexusModule):
+class MoELayer(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate config
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["num_experts", "hidden_size"])
+
         self.num_experts = config["num_experts"]
         self.hidden_size = config["hidden_size"]
         self.top_k = config.get("top_k", 2)
-        
+
         # Initialize experts
         self.experts = nn.ModuleList([
             ExpertModule(config) for _ in range(self.num_experts)
         ])
-        
+
         # Initialize router
         self.router = ExpertRouter(config)
-        
+
         # Layer norm for input
         self.layer_norm = nn.LayerNorm(self.hidden_size)
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required_keys = ["num_experts", "hidden_size"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
     
     def forward(
         self,

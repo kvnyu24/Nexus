@@ -20,9 +20,7 @@ class LSTM(BaseRNN):
         # Layer normalization
         output_size = self.hidden_size * 2 if self.bidirectional else self.hidden_size
         self.layer_norm = nn.LayerNorm(output_size)
-        
-        # Initialize weights
-        self.apply(self._init_weights)
+        # Weight initialization handled by BaseRNN via WeightInitMixin
         
     def _validate_input(
         self,

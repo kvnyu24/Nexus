@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from .base_llm import BaseLLM, BaseLLMConfig
 import math
 from nexus.core.base import NexusModule
+from ....core.initialization import WeightInitMixin
 class QwenConfig(BaseLLMConfig):
     """Configuration class for Qwen model"""
     def __init__(
@@ -143,23 +144,15 @@ class QwenBlock(NexusModule):
         self.input_layernorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_epsilon)
         self.post_attention_layernorm = nn.LayerNorm(config.hidden_size, eps=config.layer_norm_epsilon)
 
-class QwenModel(BaseLLM):
+class QwenModel(WeightInitMixin, BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         if not isinstance(config, QwenConfig):
             config = QwenConfig(**config)
         super().__init__(config)
-        
+
         self.layers = nn.ModuleList([
             QwenBlock(config) for _ in range(config.num_layers)
         ])
-        
-        # Initialize weights
-        self.apply(self._init_weights)
-        
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
-            if module.bias is not None:
-                module.bias.data.zero_()
-        elif isinstance(module, nn.Embedding):
-            torch.nn.init.normal_(module.weight, mean=0.0, std=0.02)
+
+        # Initialize weights using LLM preset
+        self.init_weights_llm()

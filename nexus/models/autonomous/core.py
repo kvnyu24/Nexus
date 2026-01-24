@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional, List, Tuple
 import torch
 import torch.nn as nn
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin
 from ..cv.rcnn import FPNBackbone
 from ..agents.interaction import InteractionModule
 from .perception import EnhancedPerceptionModule
@@ -12,12 +13,12 @@ from .behavior_prediction import BehaviorPredictionModule
 from .decision import DecisionMakingModule
 from ..reasoning.mcts_reasoning import MCTSReasoning
 
-class AutonomousDrivingSystem(NexusModule):
+class AutonomousDrivingSystem(ConfigValidatorMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
-        # Validate configuration
-        self._validate_config(config)
+        # Validate configuration using ConfigValidatorMixin
+        self.validate_config(config, required_keys=["hidden_dim", "num_heads", "dropout"])
 
         # Vision backbone (FPN)
         self.fpn_backbone = FPNBackbone(config)
@@ -63,14 +64,7 @@ class AutonomousDrivingSystem(NexusModule):
         
         # MCTS-based decision making
         self.mcts_reasoning = MCTSReasoning(config)
-    
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Following BehaviorPredictionModule validation pattern"""
-        required_keys = ["hidden_dim", "num_heads", "dropout"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
-    
+
     def forward(
         self,
         images: torch.Tensor,

@@ -3,19 +3,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ....core.base import NexusModule
+from ....core.mixins import ConfigValidatorMixin, FeatureBankMixin
 
-class EnhancedDPO(NexusModule):
+class EnhancedDPO(NexusModule, ConfigValidatorMixin, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
-        # Validate config
-        self._validate_config(config)
-        
+
+        # Validate config using mixin
+        self.validate_config(config, required_keys=["hidden_dim", "model_dim"])
+
         # Core parameters
         self.hidden_dim = config["hidden_dim"]
         self.beta = config.get("beta", 0.1)
         self.reference_free = config.get("reference_free", True)
-        
+
         # Preference head
         self.preference_head = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim),
@@ -23,35 +24,11 @@ class EnhancedDPO(NexusModule):
             nn.LayerNorm(self.hidden_dim),
             nn.Linear(self.hidden_dim, 1)
         )
-        
-        # Feature bank for preference pairs
-        self.register_buffer(
-            "preference_bank",
-            torch.zeros(
-                config.get("bank_size", 10000),
-                self.hidden_dim
-            )
-        )
-        self.register_buffer("preference_labels", torch.zeros(config.get("bank_size", 10000)))
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim", "model_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-    def update_preference_bank(self, features: torch.Tensor, labels: torch.Tensor):
-        """Update preference bank following EnhancedReID pattern"""
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.preference_bank.size(0):
-            ptr = 0
-            
-        self.preference_bank[ptr:ptr + batch_size] = features.detach()
-        self.preference_labels[ptr:ptr + batch_size] = labels.detach()
-        self.bank_ptr[0] = (ptr + batch_size) % self.preference_bank.size(0)
+
+        # Feature banks using mixin
+        bank_size = config.get("bank_size", 10000)
+        self.register_feature_bank("preference", bank_size, self.hidden_dim)
+        self.register_feature_bank("label", bank_size, 1)
         
     def compute_dpo_loss(
         self,
@@ -110,14 +87,14 @@ class EnhancedDPO(NexusModule):
             reference_rejected_logps
         )
         
-        # Update preference bank
-        self.update_preference_bank(
-            torch.cat([chosen_hidden_states, rejected_hidden_states]),
-            torch.cat([
-                torch.ones(chosen_hidden_states.size(0)),
-                torch.zeros(rejected_hidden_states.size(0))
-            ]).to(chosen_hidden_states.device)
-        )
+        # Update preference banks using mixin
+        combined_features = torch.cat([chosen_hidden_states, rejected_hidden_states])
+        combined_labels = torch.cat([
+            torch.ones(chosen_hidden_states.size(0), 1),
+            torch.zeros(rejected_hidden_states.size(0), 1)
+        ]).to(chosen_hidden_states.device)
+        self.update_feature_bank("preference", combined_features)
+        self.update_feature_bank("label", combined_labels)
         
         return {
             "loss": loss,

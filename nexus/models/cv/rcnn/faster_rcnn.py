@@ -2,63 +2,40 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, List, Tuple, Optional
 from ....core.base import NexusModule
+from ....core.initialization import WeightInitMixin
+from ....core.mixins import ConfigValidatorMixin
 from .backbone import FPNBackbone
 from .rpn import RegionProposalNetwork
 from .fast_rcnn import RoIHead, FastRCNNPredictor
 
-class FasterRCNN(NexusModule):
+class FasterRCNN(ConfigValidatorMixin, WeightInitMixin, NexusModule):
     """
     Faster R-CNN implementation following Nexus module patterns.
     Integrates FPN backbone, RPN, and Fast R-CNN head components.
     """
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         # Validate configuration
-        self._validate_config(config)
-        
+        self.validate_config(config, required_keys=["in_channels", "num_classes"])
+        self.validate_positive(config.get("num_classes", 0), "num_classes")
+
         # Initialize components
         self.backbone = FPNBackbone(config)
         self.rpn = RegionProposalNetwork(config)
         self.roi_head = RoIHead(config)
-        
+
         # Fast R-CNN specific components
         self.fast_rcnn_predictor = FastRCNNPredictor(
             in_channels=config.get("in_channels", 256),
             num_classes=config.get("num_classes", 80)
         )
-        
+
         # ROI pooling configuration
         self.roi_pool_size = config.get("roi_pool_size", 7)
-        
+
         # Initialize weights
-        self._init_weights()
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        """Validate configuration parameters."""
-        required_keys = ["in_channels", "num_classes"]
-        for key in required_keys:
-            if key not in config:
-                raise ValueError(f"Missing required configuration key: {key}")
-                
-        if config.get("num_classes", 0) <= 0:
-            raise ValueError("num_classes must be positive")
-            
-    def _init_weights(self) -> None:
-        """Initialize model weights."""
-        for module in [self.rpn, self.roi_head, self.fast_rcnn_predictor]:
-            if hasattr(module, 'apply'):
-                module.apply(self._init_layer_weights)
-                
-    def _init_layer_weights(self, module: NexusModule) -> None:
-        """Initialize layer weights following Nexus patterns."""
-        if isinstance(module, (nn.Conv2d, nn.Linear)):
-            nn.init.kaiming_normal_(module.weight, mode='fan_out', nonlinearity='relu')
-            if module.bias is not None:
-                nn.init.zeros_(module.bias)
-        elif isinstance(module, nn.BatchNorm2d):
-            nn.init.ones_(module.weight)
-            nn.init.zeros_(module.bias)
+        self.init_weights_vision()
             
     def _roi_align(
         self,

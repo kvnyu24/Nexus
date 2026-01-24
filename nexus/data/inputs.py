@@ -5,7 +5,7 @@ from PIL import Image
 import json
 from pathlib import Path
 from dataclasses import dataclass
-import logging
+from nexus.utils.logging import Logger
 from torchvision import transforms as T
 
 @dataclass
@@ -34,7 +34,7 @@ class InputProcessor:
     
     def __init__(self, config: InputConfig):
         self.config = config
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(self.__class__.__name__)
         self.processors = {
             'text': self.process_text,
             'image': self.process_image,

@@ -78,9 +78,9 @@ class ResidualBlock(InputValidationMixin, NexusModule):
         
         # Residual connection with gradient checkpointing
         if torch.jit.is_scripting():
-            out += identity
+            out = out + identity
         else:
-            torch.utils.checkpoint.checkpoint(lambda x, y: x + y, out, identity)
+            out = out + identity  # Simple addition; checkpointing not beneficial here
             
         out = self.relu(out)
         

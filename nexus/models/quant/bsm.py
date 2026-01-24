@@ -2,19 +2,24 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from ...core.mixins import ConfigValidatorMixin, FeatureBankMixin
 from nexus.utils.logging import Logger
 
-class BSM(NexusModule):
+class BSM(NexusModule, ConfigValidatorMixin, FeatureBankMixin):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         self.logger = Logger(self.__class__.__name__)
 
-        self._validate_config(config)
+        # Validate config using mixin
+        self.validate_config(config, required_keys=["hidden_dim", "market_dim"])
+        self.validate_positive(config["hidden_dim"], "hidden_dim")
+        self.validate_positive(config["market_dim"], "market_dim")
+
         self.hidden_dim = config["hidden_dim"]
         self.bank_size = config.get("bank_size", 10000)
         self.min_vol = config.get("min_vol", 0.001)
         self.max_vol = config.get("max_vol", 2.0)
-        
+
         # Market condition encoder with temporal attention
         self.market_encoder = nn.Sequential(
             nn.Linear(config["market_dim"], self.hidden_dim),
@@ -24,14 +29,14 @@ class BSM(NexusModule):
             nn.Linear(self.hidden_dim, self.hidden_dim),
             nn.LayerNorm(self.hidden_dim)
         )
-        
+
         # Temporal attention for time series
         self.temporal_attention = nn.MultiheadAttention(
             self.hidden_dim,
             num_heads=4,
             dropout=config.get("dropout", 0.1)
         )
-        
+
         # Volatility prediction network with uncertainty
         self.volatility_net = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim),
@@ -39,14 +44,14 @@ class BSM(NexusModule):
             nn.Dropout(config.get("dropout", 0.1)),
             nn.Linear(self.hidden_dim, 2),  # Mean and variance
         )
-        
+
         # Risk-free rate prediction with uncertainty
         self.rate_net = nn.Sequential(
             nn.Linear(self.hidden_dim, self.hidden_dim // 2),
             nn.ReLU(),
             nn.Linear(self.hidden_dim // 2, 2),  # Mean and variance
         )
-        
+
         # Option price adjustment network with market impact
         self.price_adjuster = nn.Sequential(
             nn.Linear(self.hidden_dim + 6, self.hidden_dim),  # +6 for BSM parameters + Greeks
@@ -56,52 +61,17 @@ class BSM(NexusModule):
             nn.ReLU(),
             nn.Linear(self.hidden_dim // 2, 2)  # Price adjustment mean and variance
         )
-        
+
         # Greeks calculation network
         self.greeks_net = nn.Sequential(
             nn.Linear(self.hidden_dim + 5, self.hidden_dim),  # +5 for BSM parameters
             nn.ReLU(),
             nn.Linear(self.hidden_dim, 4)  # Delta, Gamma, Theta, Vega
         )
-        
-        # Feature bank for market conditions
-        self.register_buffer(
-            "market_bank",
-            torch.zeros(self.bank_size, self.hidden_dim)
-        )
-        self.register_buffer(
-            "vol_history",
-            torch.zeros(self.bank_size)
-        )
-        self.register_buffer("bank_ptr", torch.zeros(1, dtype=torch.long))
-        self.register_buffer("bank_is_full", torch.zeros(1, dtype=torch.bool))
-        
-    def _validate_config(self, config: Dict[str, Any]) -> None:
-        required = ["hidden_dim", "market_dim"]
-        for key in required:
-            if key not in config:
-                raise ValueError(f"Missing required config key: {key}")
-                
-        if config["hidden_dim"] <= 0:
-            raise ValueError("hidden_dim must be positive")
-        if config["market_dim"] <= 0:
-            raise ValueError("market_dim must be positive")
-                
-    def update_market_bank(self, features: torch.Tensor, vol: torch.Tensor):
-        """Update market condition bank with volatility history"""
-        if not torch.isfinite(features).all() or not torch.isfinite(vol).all():
-            return  # Skip update if contains NaN/inf
-            
-        batch_size = features.size(0)
-        ptr = int(self.bank_ptr)
-        
-        if ptr + batch_size > self.market_bank.size(0):
-            ptr = 0
-            self.bank_is_full[0] = True
-            
-        self.market_bank[ptr:ptr + batch_size] = features.detach()
-        self.vol_history[ptr:ptr + batch_size] = vol.detach().squeeze(-1)
-        self.bank_ptr[0] = (ptr + batch_size) % self.market_bank.size(0)
+
+        # Feature bank for market conditions using mixin
+        self.register_feature_bank("market", self.bank_size, self.hidden_dim)
+        self.register_feature_bank("vol", self.bank_size, 1)
         
     def black_scholes(
         self,
@@ -207,8 +177,9 @@ class BSM(NexusModule):
         # Final price with bounds
         final_price = torch.clamp(base_price + adj_mean, min=0.0)
         
-        # Update market bank
-        self.update_market_bank(market_features, sigma)
+        # Update market bank using mixin
+        self.update_feature_bank("market", market_features)
+        self.update_feature_bank("vol", sigma)
         
         return {
             "option_price": final_price,
@@ -226,5 +197,5 @@ class BSM(NexusModule):
                 "theta": theta,
                 "vega": vega
             },
-            "bank_is_full": self.bank_is_full
+            "bank_is_full": self.is_bank_full("market")
         }

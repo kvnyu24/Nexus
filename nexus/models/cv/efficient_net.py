@@ -2,22 +2,10 @@ import torch
 import torch.nn as nn
 from typing import Dict, Any, Optional
 from ...core.base import NexusModule
+from ...core.initialization import WeightInitMixin
+from ...components.layers import DropPath
 import math
 
-class StochasticDepth(nn.Module):
-    def __init__(self, drop_rate: float = 0.0):
-        super().__init__()
-        self.drop_rate = drop_rate
-        
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        if not self.training or self.drop_rate == 0.:
-            return x
-            
-        keep_rate = 1 - self.drop_rate
-        shape = (x.shape[0],) + (1,) * (x.ndim - 1)
-        random_tensor = keep_rate + torch.rand(shape, dtype=x.dtype, device=x.device)
-        random_tensor = random_tensor.floor_()
-        return x.div(keep_rate) * random_tensor
 
 class MBConvBlock(NexusModule):
     def __init__(
@@ -67,8 +55,8 @@ class MBConvBlock(NexusModule):
             nn.BatchNorm2d(out_channels)
         )
         
-        # Stochastic depth
-        self.stochastic_depth = StochasticDepth(drop_rate)
+        # Stochastic depth (drop path)
+        self.stochastic_depth = DropPath(drop_rate)
         
         # Layer scale parameter
         self.layer_scale = nn.Parameter(torch.ones(1, out_channels, 1, 1) * 1e-5)
@@ -87,24 +75,24 @@ class MBConvBlock(NexusModule):
             
         return x
 
-class EfficientNet(NexusModule):
+class EfficientNet(WeightInitMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
-        
+
         self.width_multiplier = config.get("width_multiplier", 1.0)
         self.depth_multiplier = config.get("depth_multiplier", 1.0)
         self.num_classes = config.get("num_classes", 1000)
-        
+
         # Initial conv with larger kernel
         self.conv_stem = nn.Sequential(
             nn.Conv2d(3, self._scale_channels(32), 5, stride=2, padding=2, bias=False),
             nn.BatchNorm2d(self._scale_channels(32)),
             nn.SiLU(inplace=True)
         )
-        
+
         # Build stages with progressive stochastic depth
         self.stages = self._build_stages()
-        
+
         # Enhanced head with label smoothing
         self.head = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
@@ -113,27 +101,15 @@ class EfficientNet(NexusModule):
             nn.Dropout(config.get("dropout", 0.3)),
             nn.Linear(self._scale_channels(1280), self.num_classes)
         )
-        
-        # Initialize weights
-        self._initialize_weights()
-        
+
+        # Initialize weights using mixin
+        self.init_weights_vision()
+
     def _scale_channels(self, channels: int) -> int:
         return int(math.ceil(channels * self.width_multiplier))
-        
+
     def _scale_repeats(self, repeats: int) -> int:
         return int(math.ceil(repeats * self.depth_multiplier))
-        
-    def _initialize_weights(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
-            elif isinstance(m, nn.BatchNorm2d):
-                nn.init.ones_(m.weight)
-                nn.init.zeros_(m.bias)
-            elif isinstance(m, nn.Linear):
-                nn.init.normal_(m.weight, 0, 0.01)
-                if m.bias is not None:
-                    nn.init.zeros_(m.bias)
         
     def forward(self, x: torch.Tensor, return_features: Optional[bool] = False) -> Dict[str, torch.Tensor]:
         x = self.conv_stem(x)
