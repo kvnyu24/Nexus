@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ...core.base import NexusModule
+from ...core.mixins import FeatureBankMixin
 
-class AgentMemoryStream(NexusModule):
+
+class AgentMemoryStream(FeatureBankMixin, NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__(config)
         
@@ -14,19 +16,12 @@ class AgentMemoryStream(NexusModule):
         self.dropout = config.get("dropout", 0.1)
         
         # Enhanced memory components with separate short and long-term storage
-        self.register_buffer(
-            "episodic_memory",
-            torch.zeros(self.memory_size, self.hidden_dim)
-        )
-        self.register_buffer(
-            "semantic_memory", 
-            torch.zeros(self.memory_size, self.hidden_dim)
-        )
-        self.register_buffer(
-            "working_memory",
-            torch.zeros(100, self.hidden_dim)  # Smaller, more active memory
-        )
-        self.register_buffer("memory_ptr", torch.zeros(1, dtype=torch.long))
+        # Using FeatureBankMixin for episodic and semantic memories
+        self.register_feature_bank("episodic", self.memory_size, self.hidden_dim)
+        self.register_feature_bank("semantic", self.memory_size, self.hidden_dim)
+        self.register_feature_bank("working", 100, self.hidden_dim)  # Smaller, more active memory
+
+        # Memory mask for attention (tracks which slots are valid)
         self.register_buffer("memory_mask", torch.ones(self.memory_size, dtype=torch.bool))
         
         # Enhanced memory processing with attention
@@ -77,12 +72,16 @@ class AgentMemoryStream(NexusModule):
             
         memory_encoding = self.memory_encoder(combined)
         
-        # Retrieve relevant memories using attention
+        # Retrieve relevant memories using attention (using FeatureBankMixin buffers)
+        episodic_bank = self.get_feature_bank("episodic")
+        if episodic_bank.size(0) == 0:
+            # Handle empty bank case
+            episodic_bank = torch.zeros(1, self.hidden_dim, device=memory_encoding.device)
         retrieved_memory, attention_weights = self.memory_attention(
             memory_encoding.unsqueeze(0),
-            self.episodic_memory.unsqueeze(0),
-            self.episodic_memory.unsqueeze(0),
-            key_padding_mask=~self.memory_mask.unsqueeze(0)
+            episodic_bank.unsqueeze(0),
+            episodic_bank.unsqueeze(0),
+            key_padding_mask=~self.memory_mask[:episodic_bank.size(0)].unsqueeze(0) if self.is_bank_full("episodic") else None
         )
         retrieved_memory = retrieved_memory.squeeze(0)
         
@@ -99,9 +98,9 @@ class AgentMemoryStream(NexusModule):
             "retrieved_memory": retrieved_memory,
             "importance": importance,
             "attention_weights": attention_weights,
-            "episodic_memory": self.episodic_memory,
-            "semantic_memory": self.semantic_memory,
-            "working_memory": self.working_memory
+            "episodic_memory": self.get_feature_bank("episodic"),
+            "semantic_memory": self.get_feature_bank("semantic"),
+            "working_memory": self.get_feature_bank("working")
         }
         
     def _update_memory(
@@ -110,37 +109,43 @@ class AgentMemoryStream(NexusModule):
         importance: torch.Tensor,
         retrieved_memory: torch.Tensor
     ):
-        """Enhanced memory update with consolidation and pruning"""
+        """Enhanced memory update with consolidation and pruning using FeatureBankMixin"""
         batch_size = encoding.size(0)
-        ptr = int(self.memory_ptr)
-        
-        # Circular buffer implementation
-        if ptr + batch_size > self.memory_size:
-            ptr = 0
-            
-        # Update working memory (most recent memories)
-        working_size = min(batch_size, self.working_memory.size(0))
-        self.working_memory = torch.roll(self.working_memory, shifts=-working_size, dims=0)
-        self.working_memory[-working_size:] = encoding[:working_size].detach()
-        
+
+        # Update working memory using FeatureBankMixin
+        self.update_feature_bank("working", encoding)
+
         # Consolidate memories using GRU
         consolidated_memory, _ = self.memory_consolidation(
             torch.cat([encoding, retrieved_memory], dim=0).unsqueeze(0)
         )
         consolidated_memory = consolidated_memory.squeeze(0)
-        
-        # Update episodic and semantic memories
-        self.episodic_memory[ptr:ptr + batch_size] = consolidated_memory[:batch_size].detach()
-        self.semantic_memory[ptr:ptr + batch_size] = (
-            consolidated_memory[:batch_size].detach() * importance
-        )
-        
-        # Update memory mask and pointer
-        self.memory_mask[ptr:ptr + batch_size] = True
-        self.memory_ptr[0] = (ptr + batch_size) % self.memory_size
-        
-        # Prune low-importance memories periodically
-        if ptr == 0:
+
+        # Update episodic memory using FeatureBankMixin
+        self.update_feature_bank("episodic", consolidated_memory[:batch_size])
+
+        # Update semantic memory with importance weighting using FeatureBankMixin
+        semantic_features = consolidated_memory[:batch_size] * importance
+        self.update_feature_bank("semantic", semantic_features)
+
+        # Update memory mask based on episodic pointer
+        ptr = int(self.episodic_ptr)
+        start_ptr = (ptr - batch_size) % self.memory_size
+        if start_ptr < ptr:
+            self.memory_mask[start_ptr:ptr] = True
+        else:
+            self.memory_mask[start_ptr:] = True
+            self.memory_mask[:ptr] = True
+
+        # Prune low-importance memories periodically (when pointer wraps)
+        if ptr < batch_size:
             importance_threshold = importance.mean() * 0.5
-            low_importance_mask = importance < importance_threshold
-            self.memory_mask[ptr:ptr + batch_size][low_importance_mask] = False
+            low_importance_mask = importance.squeeze(-1) < importance_threshold
+            if start_ptr < ptr:
+                self.memory_mask[start_ptr:ptr][low_importance_mask] = False
+            else:
+                # Handle wrap-around case
+                first_part_size = self.memory_size - start_ptr
+                self.memory_mask[start_ptr:][low_importance_mask[:first_part_size]] = False
+                if ptr > 0:
+                    self.memory_mask[:ptr][low_importance_mask[first_part_size:]] = False

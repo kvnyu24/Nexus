@@ -359,3 +359,436 @@ class StaticKVCache(NexusModule):
             for k, v in self.cache:
                 k.zero_()
                 v.zero_()
+
+
+class QuantizedKVCache(NexusModule):
+    """
+    Quantized KV Cache for memory-efficient inference.
+
+    Stores KV cache in lower precision (FP8, INT8, INT4) to reduce memory
+    footprint during inference. Supports dynamic quantization with optional
+    group-wise scaling for better accuracy.
+
+    Memory savings:
+    - FP8: 2x reduction from FP16
+    - INT8: 2x reduction from FP16
+    - INT4: 4x reduction from FP16
+
+    Args:
+        num_layers: Number of transformer layers
+        max_batch_size: Maximum batch size
+        max_seq_len: Maximum sequence length
+        num_heads: Number of attention heads
+        head_dim: Dimension per head
+        quant_type: Quantization type - 'fp8', 'int8', or 'int4'
+        group_size: Quantization group size for INT4/INT8 (default: 128)
+        symmetric: Whether to use symmetric quantization (default: True)
+    """
+
+    SUPPORTED_QUANT_TYPES = {'fp8', 'int8', 'int4'}
+
+    def __init__(
+        self,
+        num_layers: int,
+        max_batch_size: int,
+        max_seq_len: int,
+        num_heads: int,
+        head_dim: int,
+        quant_type: str = 'int8',
+        group_size: int = 128,
+        symmetric: bool = True
+    ):
+        super().__init__()
+
+        if quant_type not in self.SUPPORTED_QUANT_TYPES:
+            raise ValueError(f"Unsupported quant_type: {quant_type}. "
+                           f"Supported: {self.SUPPORTED_QUANT_TYPES}")
+
+        self.num_layers = num_layers
+        self.max_batch_size = max_batch_size
+        self.max_seq_len = max_seq_len
+        self.num_heads = num_heads
+        self.head_dim = head_dim
+        self.quant_type = quant_type
+        self.group_size = group_size
+        self.symmetric = symmetric
+
+        # Determine storage dtype based on quantization type
+        if quant_type == 'fp8':
+            # Use float8_e4m3fn if available, otherwise simulate with int8
+            self.storage_dtype = torch.int8
+            self.use_fp8 = True
+        elif quant_type == 'int8':
+            self.storage_dtype = torch.int8
+            self.use_fp8 = False
+        else:  # int4
+            # Pack two int4 values into one int8
+            self.storage_dtype = torch.int8
+            self.use_fp8 = False
+
+        # Cache will be allocated lazily
+        self.k_cache: Optional[List[torch.Tensor]] = None
+        self.v_cache: Optional[List[torch.Tensor]] = None
+
+        # Scale factors for dequantization (per group)
+        self.k_scales: Optional[List[torch.Tensor]] = None
+        self.v_scales: Optional[List[torch.Tensor]] = None
+
+        # Zero points for asymmetric quantization
+        self.k_zeros: Optional[List[torch.Tensor]] = None
+        self.v_zeros: Optional[List[torch.Tensor]] = None
+
+        # Track current sequence lengths
+        self.seq_lens: Optional[torch.Tensor] = None
+        self._allocated = False
+
+    def allocate(
+        self,
+        device: torch.device = torch.device('cuda'),
+        dtype: torch.dtype = torch.float16
+    ):
+        """
+        Allocate cache memory.
+
+        Args:
+            device: Device to allocate on
+            dtype: Original dtype for scale factors
+        """
+        cache_shape = (
+            self.max_batch_size,
+            self.num_heads,
+            self.max_seq_len,
+            self.head_dim
+        )
+
+        # For INT4, we pack 2 values per byte
+        if self.quant_type == 'int4':
+            packed_dim = (self.head_dim + 1) // 2
+            cache_shape = (
+                self.max_batch_size,
+                self.num_heads,
+                self.max_seq_len,
+                packed_dim
+            )
+
+        self.k_cache = [
+            torch.zeros(cache_shape, dtype=self.storage_dtype, device=device)
+            for _ in range(self.num_layers)
+        ]
+        self.v_cache = [
+            torch.zeros(cache_shape, dtype=self.storage_dtype, device=device)
+            for _ in range(self.num_layers)
+        ]
+
+        # Calculate number of groups for scaling
+        num_groups = (self.max_seq_len * self.head_dim + self.group_size - 1) // self.group_size
+        scale_shape = (self.max_batch_size, self.num_heads, num_groups)
+
+        self.k_scales = [
+            torch.ones(scale_shape, dtype=dtype, device=device)
+            for _ in range(self.num_layers)
+        ]
+        self.v_scales = [
+            torch.ones(scale_shape, dtype=dtype, device=device)
+            for _ in range(self.num_layers)
+        ]
+
+        if not self.symmetric:
+            self.k_zeros = [
+                torch.zeros(scale_shape, dtype=dtype, device=device)
+                for _ in range(self.num_layers)
+            ]
+            self.v_zeros = [
+                torch.zeros(scale_shape, dtype=dtype, device=device)
+                for _ in range(self.num_layers)
+            ]
+
+        self.seq_lens = torch.zeros(
+            self.max_batch_size, dtype=torch.long, device=device
+        )
+        self._allocated = True
+
+    def quantize(
+        self,
+        tensor: torch.Tensor,
+        return_params: bool = False
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[torch.Tensor]]:
+        """
+        Quantize tensor to target dtype.
+
+        Args:
+            tensor: Input tensor in FP16/FP32
+            return_params: Whether to return scale and zero point
+
+        Returns:
+            Quantized tensor, and optionally (scale, zero_point)
+        """
+        original_shape = tensor.shape
+        flat = tensor.reshape(-1)
+
+        if self.quant_type == 'fp8':
+            # FP8 E4M3 simulation: scale to [-448, 448] range
+            abs_max = flat.abs().max().clamp(min=1e-12)
+            scale = 448.0 / abs_max
+            quantized = (flat * scale).clamp(-448, 448)
+            # Store as int8 representation
+            quantized = (quantized / 448.0 * 127).to(torch.int8)
+            scale = abs_max / 127.0
+
+        elif self.quant_type == 'int8':
+            if self.symmetric:
+                abs_max = flat.abs().max().clamp(min=1e-12)
+                scale = abs_max / 127.0
+                quantized = (flat / scale).round().clamp(-127, 127).to(torch.int8)
+                zero_point = None
+            else:
+                min_val = flat.min()
+                max_val = flat.max()
+                scale = (max_val - min_val).clamp(min=1e-12) / 255.0
+                zero_point = (-min_val / scale).round().clamp(0, 255)
+                quantized = ((flat - min_val) / scale).round().clamp(0, 255).to(torch.int8)
+
+        else:  # int4
+            if self.symmetric:
+                abs_max = flat.abs().max().clamp(min=1e-12)
+                scale = abs_max / 7.0
+                quantized = (flat / scale).round().clamp(-7, 7)
+                zero_point = None
+            else:
+                min_val = flat.min()
+                max_val = flat.max()
+                scale = (max_val - min_val).clamp(min=1e-12) / 15.0
+                zero_point = (-min_val / scale).round().clamp(0, 15)
+                quantized = ((flat - min_val) / scale).round().clamp(0, 15)
+
+            # Pack two int4 values into one int8
+            quantized = quantized.to(torch.int8)
+            if len(quantized) % 2 != 0:
+                quantized = torch.cat([quantized, torch.zeros(1, dtype=torch.int8, device=tensor.device)])
+            low = quantized[::2] & 0x0F
+            high = (quantized[1::2] & 0x0F) << 4
+            quantized = (low | high).to(torch.int8)
+
+        # Reshape quantized tensor
+        if self.quant_type == 'int4':
+            new_shape = list(original_shape)
+            new_shape[-1] = (new_shape[-1] + 1) // 2
+            quantized = quantized.reshape(new_shape)
+        else:
+            quantized = quantized.reshape(original_shape)
+
+        if return_params:
+            return quantized, scale, zero_point if not self.symmetric else None
+        return quantized, scale, None
+
+    def dequantize(
+        self,
+        tensor: torch.Tensor,
+        scale: torch.Tensor,
+        zero_point: Optional[torch.Tensor] = None,
+        original_dim: Optional[int] = None
+    ) -> torch.Tensor:
+        """
+        Dequantize tensor back to FP16/FP32.
+
+        Args:
+            tensor: Quantized tensor
+            scale: Scale factor
+            zero_point: Zero point (for asymmetric quantization)
+            original_dim: Original last dimension (for INT4 unpacking)
+
+        Returns:
+            Dequantized tensor
+        """
+        if self.quant_type == 'int4':
+            # Unpack int4 from int8
+            original_shape = list(tensor.shape)
+            flat = tensor.reshape(-1)
+
+            low = (flat & 0x0F).to(torch.float32)
+            high = ((flat >> 4) & 0x0F).to(torch.float32)
+
+            # Interleave low and high
+            unpacked = torch.zeros(len(flat) * 2, dtype=torch.float32, device=tensor.device)
+            unpacked[::2] = low
+            unpacked[1::2] = high
+
+            # Handle signed values for symmetric quantization
+            if self.symmetric:
+                # Convert from unsigned [0, 15] to signed [-8, 7]
+                unpacked = unpacked - 8
+
+            # Reshape and trim to original size
+            original_shape[-1] = original_shape[-1] * 2
+            if original_dim is not None:
+                original_shape[-1] = original_dim
+            dequantized = unpacked[:torch.prod(torch.tensor(original_shape))].reshape(original_shape)
+
+            if self.symmetric:
+                dequantized = dequantized * scale
+            else:
+                dequantized = (dequantized - zero_point) * scale
+
+        elif self.quant_type == 'fp8':
+            dequantized = tensor.to(torch.float32) * scale
+
+        else:  # int8
+            dequantized = tensor.to(torch.float32)
+            if self.symmetric:
+                dequantized = dequantized * scale
+            else:
+                dequantized = (dequantized - zero_point) * scale
+
+        return dequantized
+
+    def update(
+        self,
+        layer_idx: int,
+        key: torch.Tensor,
+        value: torch.Tensor,
+        start_pos: Optional[int] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Update cache with new key/value tensors (quantizing on write).
+
+        Args:
+            layer_idx: Which layer's cache to update
+            key: New keys (batch, num_heads, seq_len, head_dim)
+            value: New values (batch, num_heads, seq_len, head_dim)
+            start_pos: Starting position for update
+
+        Returns:
+            Full dequantized keys and values
+        """
+        if not self._allocated:
+            self.allocate(device=key.device, dtype=key.dtype)
+
+        batch_size, _, seq_len, _ = key.shape
+
+        if start_pos is None:
+            start_pos = self.seq_lens[0].item()
+
+        # Quantize new KV
+        k_quant, k_scale, k_zero = self.quantize(key, return_params=True)
+        v_quant, v_scale, v_zero = self.quantize(value, return_params=True)
+
+        # Update quantized cache
+        self.k_cache[layer_idx][:batch_size, :, start_pos:start_pos + seq_len, :] = k_quant
+        self.v_cache[layer_idx][:batch_size, :, start_pos:start_pos + seq_len, :] = v_quant
+
+        # Store scales (simplified: one scale per update, stored at group position)
+        group_idx = start_pos // self.group_size
+        self.k_scales[layer_idx][:batch_size, :, group_idx] = k_scale
+        self.v_scales[layer_idx][:batch_size, :, group_idx] = v_scale
+
+        if not self.symmetric and self.k_zeros is not None:
+            self.k_zeros[layer_idx][:batch_size, :, group_idx] = k_zero
+            self.v_zeros[layer_idx][:batch_size, :, group_idx] = v_zero
+
+        # Update sequence lengths
+        new_seq_len = start_pos + seq_len
+        self.seq_lens[:batch_size] = new_seq_len
+
+        # Return dequantized full cache
+        return self.get(layer_idx, batch_size)
+
+    def get(
+        self,
+        layer_idx: int,
+        batch_size: Optional[int] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Get dequantized cached key/value for a layer.
+
+        Args:
+            layer_idx: Layer index
+            batch_size: Batch size to retrieve
+
+        Returns:
+            Dequantized key and value tensors
+        """
+        if not self._allocated:
+            raise RuntimeError("Cache not allocated")
+
+        batch_size = batch_size or self.max_batch_size
+        seq_len = self.seq_lens[0].item()
+
+        if seq_len == 0:
+            return None, None
+
+        # Get quantized cache
+        k_quant = self.k_cache[layer_idx][:batch_size, :, :seq_len, :]
+        v_quant = self.v_cache[layer_idx][:batch_size, :, :seq_len, :]
+
+        # Get average scale for simplicity (in practice, would use per-group scales)
+        num_groups = (seq_len + self.group_size - 1) // self.group_size
+        k_scale = self.k_scales[layer_idx][:batch_size, :, :num_groups].mean(dim=-1, keepdim=True)
+        v_scale = self.v_scales[layer_idx][:batch_size, :, :num_groups].mean(dim=-1, keepdim=True)
+
+        k_zero = None
+        v_zero = None
+        if not self.symmetric and self.k_zeros is not None:
+            k_zero = self.k_zeros[layer_idx][:batch_size, :, :num_groups].mean(dim=-1, keepdim=True)
+            v_zero = self.v_zeros[layer_idx][:batch_size, :, :num_groups].mean(dim=-1, keepdim=True)
+
+        # Dequantize
+        k = self.dequantize(k_quant, k_scale, k_zero, original_dim=self.head_dim)
+        v = self.dequantize(v_quant, v_scale, v_zero, original_dim=self.head_dim)
+
+        return k, v
+
+    def clear(self):
+        """Clear all cached values."""
+        if self._allocated:
+            for layer_idx in range(self.num_layers):
+                self.k_cache[layer_idx].zero_()
+                self.v_cache[layer_idx].zero_()
+                self.k_scales[layer_idx].fill_(1.0)
+                self.v_scales[layer_idx].fill_(1.0)
+                if self.k_zeros is not None:
+                    self.k_zeros[layer_idx].zero_()
+                    self.v_zeros[layer_idx].zero_()
+            self.seq_lens.zero_()
+
+    def get_memory_stats(self) -> Dict[str, float]:
+        """
+        Get memory usage statistics.
+
+        Returns:
+            Dictionary with memory usage in MB
+        """
+        if not self._allocated:
+            return {'allocated': False, 'total_mb': 0.0}
+
+        cache_bytes = sum(
+            t.numel() * t.element_size()
+            for layer_caches in [self.k_cache, self.v_cache]
+            for t in layer_caches
+        )
+        scale_bytes = sum(
+            t.numel() * t.element_size()
+            for layer_scales in [self.k_scales, self.v_scales]
+            for t in layer_scales
+        )
+
+        # Calculate equivalent FP16 memory
+        fp16_bytes = (
+            self.num_layers * 2 *  # k and v
+            self.max_batch_size *
+            self.num_heads *
+            self.max_seq_len *
+            self.head_dim *
+            2  # FP16 = 2 bytes
+        )
+
+        return {
+            'cache_mb': cache_bytes / (1024 ** 2),
+            'scales_mb': scale_bytes / (1024 ** 2),
+            'total_mb': (cache_bytes + scale_bytes) / (1024 ** 2),
+            'fp16_equivalent_mb': fp16_bytes / (1024 ** 2),
+            'compression_ratio': fp16_bytes / (cache_bytes + scale_bytes)
+        }
+
+    def forward(self, *args, **kwargs):
+        """Not used - cache is managed through update/get methods."""
+        raise NotImplementedError("Use update() and get() methods instead")

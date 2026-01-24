@@ -5,15 +5,32 @@ from .rotary_embedding import *
 from .alibi import ALiBi, ALiBiPositionalEncoding
 from .yarn import YaRN, DynamicNTKScaling, RotaryEmbeddingExtended
 
+# Advanced positional encoding components
+from .learned_pe import LearnedPositionalEncoding
+from .sinusoidal import SinusoidalPositionalEncoding
+from .relative_bias import RelativePositionalBias
+from .multiscale_rope import MultiScaleRotaryEmbedding
+from .cope import CoPE, CoPEWithRoPE
+
 __all__ = [
     # Existing
     'PositionalEncoding',
     'RotaryEmbedding',
-    # New - ALiBi
+    # ALiBi
     'ALiBi',
     'ALiBiPositionalEncoding',
-    # New - YaRN and NTK
+    # YaRN and NTK
     'YaRN',
     'DynamicNTKScaling',
     'RotaryEmbeddingExtended',
+    # Learned and Sinusoidal PE
+    'LearnedPositionalEncoding',
+    'SinusoidalPositionalEncoding',
+    # Relative Positional Bias (T5-style)
+    'RelativePositionalBias',
+    # Multi-scale RoPE
+    'MultiScaleRotaryEmbedding',
+    # Contextual Position Encoding
+    'CoPE',
+    'CoPEWithRoPE',
 ]

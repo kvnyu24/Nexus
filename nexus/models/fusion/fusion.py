@@ -118,10 +118,9 @@ class FusionModule(FeatureBankMixin, NexusModule):
             nn.LayerNorm(self.hidden_dim)
         )
         
-        # Memory bank for storing important cross-modal patterns
+        # Memory bank for storing important cross-modal patterns using FeatureBankMixin
         self.memory_size = config.get("memory_size", 1024)
-        self.register_buffer("feature_memory", torch.zeros(self.memory_size, self.hidden_dim))
-        self.register_buffer("memory_ptr", torch.zeros(1, dtype=torch.long))
+        self.register_feature_bank("feature", self.memory_size, self.hidden_dim)
         
         # Visualization support
         self.visualizer = HierarchicalVisualizer(config)
@@ -249,13 +248,14 @@ class FusionModule(FeatureBankMixin, NexusModule):
         # Enhanced output projection with memory update
         output = self.output_proj(fused) + fused
         
-        # Update memory bank with important patterns
+        # Update memory bank with important patterns using FeatureBankMixin
         if self.training:
-            ptr = int(self.memory_ptr)
-            if ptr + batch_size > self.memory_size:
-                ptr = 0
-            self.feature_memory[ptr:ptr + batch_size] = output.detach()
-            self.memory_ptr[0] = (ptr + batch_size) % self.memory_size
+            # Handle sequence outputs by taking mean across sequence dimension
+            if output.dim() == 3:
+                features_to_store = output.mean(dim=1)
+            else:
+                features_to_store = output
+            self.update_feature_bank("feature", features_to_store)
         
         return {
             "fused_features": output,
