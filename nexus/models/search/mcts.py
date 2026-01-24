@@ -121,4 +121,8 @@ class MCTS(NexusModule, FeatureBankMixin):
             "action_probs": action_probs,
             "root_value": root.value(),
             "visit_counts": visit_counts
-        } 
+        }
+
+
+# Alias for backwards compatibility
+EnhancedMCTS = MCTS

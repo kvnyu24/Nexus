@@ -74,7 +74,7 @@ class EdgeTransformerBlock(NexusModule):
         hidden_states = hidden_states + self.feed_forward(self.norm2(hidden_states))
         return hidden_states
 
-class EdgeLLM(WeightInitMixin, BaseLLM):
+class EdgeLLM(BaseLLM):
     def __init__(self, config: Dict[str, Any]):
         # Convert dict config to EdgeLLMConfig if needed
         if not isinstance(config, EdgeLLMConfig):

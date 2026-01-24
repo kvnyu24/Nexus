@@ -1,6 +1,7 @@
 from .transformer import MultiModalTransformerBlock
 from .residual import ResidualBlock, InvertedResidualBlock
 from .feedforward import FeedForward, MLPBlock, ValueHead
+from ..layers.depthwise_separable import DepthwiseSeparableConv, DepthwiseConv2d
 
 __all__ = [
     'MultiModalTransformerBlock',
@@ -8,5 +9,7 @@ __all__ = [
     'InvertedResidualBlock',
     'FeedForward',
     'MLPBlock',
-    'ValueHead'
+    'ValueHead',
+    'DepthwiseSeparableConv',
+    'DepthwiseConv2d'
 ]

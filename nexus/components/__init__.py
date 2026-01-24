@@ -31,6 +31,14 @@ __all__ = [
     'LinearAttention',
     'CausalLinearAttention',
     'FAVORPlusAttention',
+    # Long-context / Distributed attention
+    'RingAttention',
+    'BlockwiseRingAttention',
+    'ChunkedPrefill',
+    'ChunkedPrefillScheduler',
+    'ContextCompression',
+    'HierarchicalContextCompression',
+    'AdaptiveContextCompression',
 
     # Normalization
     'RMSNorm',

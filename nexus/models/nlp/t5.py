@@ -87,3 +87,7 @@ class T5(NexusModule):
             "encoder_states": encoder_states,
             "decoder_states": decoder_states
         }
+
+
+# Alias for backwards compatibility
+EnhancedT5 = T5

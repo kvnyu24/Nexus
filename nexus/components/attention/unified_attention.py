@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from typing import Optional, Dict, Any, Union, Tuple
 from .flash_attention import FlashAttention
-from .multi_head_attention import MultiHeadSelfAttention
+from .self_attention import MultiHeadSelfAttention
 from .efficient_attention import MemoryEfficientAttention
 from nexus.core.base import NexusModule
 from nexus.core.initialization import WeightInitializer

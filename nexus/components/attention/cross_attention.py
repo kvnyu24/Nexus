@@ -81,3 +81,34 @@ class CrossAttention(BaseAttention):
         if return_attention:
             return output, attention_weights
         return output
+
+
+class CrossAttentionLayer(NexusModule):
+    """Cross attention layer with config-based initialization.
+
+    This is a wrapper around CrossAttention for compatibility with
+    config-dict-based model definitions.
+    """
+
+    def __init__(self, config: dict):
+        super().__init__()
+        hidden_size = config.get("hidden_size", 256)
+        num_heads = config.get("num_heads", 8)
+        dropout = config.get("dropout", 0.1)
+
+        self.attention = CrossAttention(
+            query_dim=hidden_size,
+            key_dim=hidden_size,
+            num_heads=num_heads,
+            dropout=dropout
+        )
+        self.norm = nn.LayerNorm(hidden_size)
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        context: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        # Pre-norm style
+        return x + self.attention(self.norm(x), context, attention_mask)

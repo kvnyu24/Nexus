@@ -5,7 +5,7 @@ from .temporal_attention import *
 
 __all__ = [
     'AdaptiveReIDWithMemory',
-    'TemporalReID', 
+    'TemporalReIDModule',
     'ReIDBackbone',
     'TemporalAttention'
 ]

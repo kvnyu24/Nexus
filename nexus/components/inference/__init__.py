@@ -1,7 +1,8 @@
 """
 Inference optimization components for LLMs.
 
-Includes speculative decoding, multi-token prediction, and KV cache management.
+Includes speculative decoding, multi-token prediction, KV cache management,
+prefix caching, and continuous batching.
 """
 from .speculative import (
     SpeculativeDecoder,
@@ -15,16 +16,41 @@ from .multi_token import (
 from .kv_cache import (
     KVCache,
     PagedKVCache,
-    StaticKVCache
+    StaticKVCache,
+    QuantizedKVCache
+)
+from .prefix_cache import (
+    PrefixCache,
+    RadixPrefixCache
+)
+from .continuous_batching import (
+    ContinuousBatcher,
+    IterationLevelBatcher,
+    GenerationRequest,
+    RequestStatus,
+    BatchState
 )
 
 __all__ = [
+    # Speculative decoding
     'SpeculativeDecoder',
     'NGramSpeculator',
+    # Multi-token prediction
     'MultiTokenPredictionHead',
     'MedusaHead',
     'EAGLEHead',
+    # KV cache
     'KVCache',
     'PagedKVCache',
-    'StaticKVCache'
+    'StaticKVCache',
+    'QuantizedKVCache',
+    # Prefix caching
+    'PrefixCache',
+    'RadixPrefixCache',
+    # Continuous batching
+    'ContinuousBatcher',
+    'IterationLevelBatcher',
+    'GenerationRequest',
+    'RequestStatus',
+    'BatchState'
 ]

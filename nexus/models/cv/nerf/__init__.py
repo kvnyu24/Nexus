@@ -1,5 +1,5 @@
 from .nerf import NeRFNetwork
-from .networks import ColorNetwork, DensityNetwork, SinusoidalEncoding
+from .networks import ColorNetwork, DensityNetwork
 from .renderer import NeRFRenderer
 from .hierarchical import HierarchicalNeRF, HierarchicalSampling
 from .mipnerf import MipNeRFNetwork
@@ -11,7 +11,6 @@ __all__ = [
     'NeRFRenderer',
     'ColorNetwork',
     'DensityNetwork',
-    'SinusoidalEncoding',
     'HierarchicalNeRF',
     'HierarchicalSampling',
     'MipNeRFNetwork',
