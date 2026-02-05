@@ -1,6 +1,7 @@
 from . import peft
 from . import quantization
 from . import pruning
+from . import distillation
 
 from .peft import (
     LoRALinear,
@@ -19,6 +20,19 @@ from .peft import (
     AdaLoRALinear,
     AdaLoRAConfig,
     AdaLoRAScheduler,
+    LoRAPlusLinear,
+    LoRAPlusConfig,
+    LoRAPlusOptimizer,
+    apply_lora_plus,
+    merge_lora_plus,
+    LISAOptimizer,
+    LISAConfig,
+    LISATrainingWrapper,
+    create_lisa_optimizer,
+    rsLoRALinear,
+    rsLoRAConfig,
+    apply_rslora,
+    merge_rslora,
 )
 
 from .quantization import (
@@ -26,6 +40,17 @@ from .quantization import (
     GPTQConfig,
     AWQQuantizer,
     AWQConfig,
+    QuIPSharpLinear,
+    QuIPSharpConfig,
+    QuIPSharpQuantizer,
+    SqueezeLLMLinear,
+    SqueezeLLMConfig,
+    SqueezeLLMQuantizer,
+    apply_squeezellm,
+    AQLMLinear,
+    AQLMConfig,
+    AQLMQuantizer,
+    apply_aqlm,
 )
 
 from .pruning import (
@@ -35,6 +60,19 @@ from .pruning import (
     WandaConfig,
     SliceGPTPruner,
     SliceGPTConfig,
+    ShortGPTPruner,
+    ShortGPTConfig,
+    prune_with_shortgpt,
+)
+
+from .distillation import (
+    RationaleKDConfig,
+    RationaleKDLoss,
+    RationaleKDTrainer,
+    create_rationale_kd_trainer,
+    MinitronConfig,
+    MinitronPruner,
+    apply_minitron,
 )
 
 __all__ = [
@@ -59,11 +97,41 @@ __all__ = [
     'AdaLoRALinear',
     'AdaLoRAConfig',
     'AdaLoRAScheduler',
-    # Quantization
+    # PEFT - LoRA+
+    'LoRAPlusLinear',
+    'LoRAPlusConfig',
+    'LoRAPlusOptimizer',
+    'apply_lora_plus',
+    'merge_lora_plus',
+    # PEFT - LISA
+    'LISAOptimizer',
+    'LISAConfig',
+    'LISATrainingWrapper',
+    'create_lisa_optimizer',
+    # PEFT - rsLoRA
+    'rsLoRALinear',
+    'rsLoRAConfig',
+    'apply_rslora',
+    'merge_rslora',
+    # Quantization - GPTQ/AWQ
     'GPTQQuantizer',
     'GPTQConfig',
     'AWQQuantizer',
     'AWQConfig',
+    # Quantization - QuIP#
+    'QuIPSharpLinear',
+    'QuIPSharpConfig',
+    'QuIPSharpQuantizer',
+    # Quantization - SqueezeLLM
+    'SqueezeLLMLinear',
+    'SqueezeLLMConfig',
+    'SqueezeLLMQuantizer',
+    'apply_squeezellm',
+    # Quantization - AQLM
+    'AQLMLinear',
+    'AQLMConfig',
+    'AQLMQuantizer',
+    'apply_aqlm',
     # Pruning
     'SparseGPTPruner',
     'SparseGPTConfig',
@@ -71,4 +139,15 @@ __all__ = [
     'WandaConfig',
     'SliceGPTPruner',
     'SliceGPTConfig',
+    'ShortGPTPruner',
+    'ShortGPTConfig',
+    'prune_with_shortgpt',
+    # Distillation
+    'RationaleKDConfig',
+    'RationaleKDLoss',
+    'RationaleKDTrainer',
+    'create_rationale_kd_trainer',
+    'MinitronConfig',
+    'MinitronPruner',
+    'apply_minitron',
 ]
