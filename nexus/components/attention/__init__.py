@@ -24,6 +24,24 @@ from .context_compression import (
     AdaptiveContextCompression
 )
 
+# MLA v2 (simplified low-rank KV compression)
+from .mla import MultiHeadLatentAttentionV2, MLAV2
+
+# Paged Attention (OS-inspired KV cache management)
+from .paged_attention import BlockTable, PagedKVCache, PagedAttention
+
+# Neighborhood Attention (local sliding-window, 1D and 2D)
+from .neighborhood_attention import (
+    NeighborhoodAttention,
+    NeighborhoodAttention1D,
+    NeighborhoodAttention2D,
+    NA1D,
+    NA2D,
+)
+
+# SwitchHead (MoE Attention)
+from .switch_attention import SwitchHeadAttention, SwitchHead
+
 __all__ = [
     # Existing
     'MultiHeadSelfAttention',
@@ -67,4 +85,20 @@ __all__ = [
     'ContextCompression',
     'HierarchicalContextCompression',
     'AdaptiveContextCompression',
+    # New - MLA V2 (simplified low-rank KV compression)
+    'MultiHeadLatentAttentionV2',
+    'MLAV2',
+    # New - Paged Attention (OS-inspired KV cache management)
+    'BlockTable',
+    'PagedKVCache',
+    'PagedAttention',
+    # New - Neighborhood Attention (local sliding-window)
+    'NeighborhoodAttention',
+    'NeighborhoodAttention1D',
+    'NeighborhoodAttention2D',
+    'NA1D',
+    'NA2D',
+    # New - SwitchHead (MoE Attention)
+    'SwitchHeadAttention',
+    'SwitchHead',
 ]

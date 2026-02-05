@@ -2,8 +2,8 @@ from .attention import *
 from .blocks import *
 from .embeddings import *
 from .encoders import *
-from .normalization import RMSNorm, QKNorm, LayerNorm2d, GroupNorm2d
-from .activations import SwiGLU, GeGLU, ReGLU, GLUVariant, GEGLU, SwiGLUFFN
+from .normalization import RMSNorm, QKNorm, LayerNorm2d, GroupNorm2d, DeepNorm, DynamicTanh, HybridNorm
+from .activations import SwiGLU, GeGLU, ReGLU, GLUVariant, GEGLU, SwiGLUFFN, GLUFeedForward
 
 # New component modules
 from . import ssm
@@ -45,6 +45,9 @@ __all__ = [
     'QKNorm',
     'LayerNorm2d',
     'GroupNorm2d',
+    'DeepNorm',
+    'DynamicTanh',
+    'HybridNorm',
 
     # Activations / FFN variants
     'SwiGLU',
@@ -53,6 +56,7 @@ __all__ = [
     'GLUVariant',
     'GEGLU',
     'SwiGLUFFN',
+    'GLUFeedForward',
 
     # Embeddings
     'PositionalEncoding',

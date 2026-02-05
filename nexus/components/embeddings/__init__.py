@@ -12,6 +12,21 @@ from .relative_bias import RelativePositionalBias
 from .multiscale_rope import MultiScaleRotaryEmbedding
 from .cope import CoPE, CoPEWithRoPE
 
+# NTK-Aware RoPE (non-uniform frequency scaling)
+from .ntk_rope import NTKAwareRoPE, NTKRoPE
+
+# LongRoPE (evolutionary-searched per-dimension scaling)
+from .long_rope import LongRoPE
+
+# FIRE (Functional Interpolation for Relative Positional Encoding)
+from .fire import FIRE, ProgressiveInterpolation
+
+# Resonance RoPE (integer wavelength snapping)
+from .resonance_rope import ResonanceRoPE, ResonanceYaRN
+
+# CLEX (Continuous Length Extrapolation)
+from .clex import CLEX
+
 __all__ = [
     # Existing
     'PositionalEncoding',
@@ -33,4 +48,17 @@ __all__ = [
     # Contextual Position Encoding
     'CoPE',
     'CoPEWithRoPE',
+    # NTK-Aware RoPE
+    'NTKAwareRoPE',
+    'NTKRoPE',
+    # LongRoPE
+    'LongRoPE',
+    # FIRE
+    'FIRE',
+    'ProgressiveInterpolation',
+    # Resonance RoPE
+    'ResonanceRoPE',
+    'ResonanceYaRN',
+    # CLEX
+    'CLEX',
 ]

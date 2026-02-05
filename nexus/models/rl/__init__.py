@@ -2,6 +2,7 @@
 from .dqn.dqn import *
 from .dqn.ddqn import *
 from .dqn.dueling_dqn import *
+from .dqn.rainbow import *
 
 # Policy gradient methods
 from .ppo import *
@@ -12,6 +13,14 @@ from .reinforce import *
 from .ddpg import *
 from .td3 import *
 from .sac import *
+
+# Multi-agent RL
+from .mappo import *
+from .qmix import *
+
+# Model-based RL
+from .dreamer import *
+from .mbpo import *
 
 # Offline RL
 from .iql import *
@@ -25,6 +34,7 @@ from .grpo import *
 
 # Exploration
 from .icm import *
+from .rnd import *
 
 # Planning
 from .prm import *
@@ -40,6 +50,9 @@ __all__ = [
     'DQNAgent',
     'DoubleDQNAgent',
     'DuelingDQNAgent',
+    'RainbowNetwork',
+    'RainbowAgent',
+    'NoisyLinear',
 
     # Policy gradient
     'PPOAgent',
@@ -52,6 +65,22 @@ __all__ = [
     'DDPGAgent',
     'TD3Agent',
     'SACAgent',
+
+    # Multi-agent RL
+    'MAPPOAgent',
+    'SharedCritic',
+    'MAPPOActor',
+    'QMIXAgent',
+    'QMIXNetwork',
+    'MixingNetwork',
+
+    # Model-based RL
+    'DreamerAgent',
+    'WorldModel',
+    'DreamerActorCritic',
+    'RSSM',
+    'MBPOAgent',
+    'EnsembleDynamicsModel',
 
     # Offline RL
     'IQLAgent',
@@ -68,6 +97,10 @@ __all__ = [
     # Exploration
     'ICM',
     'ICMWrapper',
+    'RNDModule',
+    'RNDWrapper',
+    'FixedRandomNetwork',
+    'PredictorNetwork',
 
     # Planning
     'PRMAgent',
@@ -77,4 +110,11 @@ __all__ = [
 
     # Preference learning
     'EnhancedDPO',
+    'EnhancedRewardModel',
+    'KTOAgent',
+    'SimPOAgent',
+    'ORPOAgent',
+    'IPOAgent',
+    'RLOOAgent',
+    'ReMaxAgent',
 ]

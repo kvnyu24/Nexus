@@ -205,3 +205,119 @@ class SwiGLUFFN(NexusModule):
         x = self.swiglu(x)
         x = self.dropout(x)
         return x + residual
+
+
+class GLUFeedForward(NexusModule):
+    """Generic GLU-based Feed-Forward Network.
+
+    A configurable FFN block that accepts the activation type as a
+    parameter, allowing easy switching between SwiGLU, GeGLU, ReGLU,
+    or any custom gated activation.  Includes optional pre-normalization
+    and a residual connection.
+
+    This is the recommended building block for transformer FFN layers
+    when flexibility over the activation variant is needed.
+
+    Activation mapping:
+        - ``'swiglu'`` / ``'silu'``: Swish-gated (Llama, Mistral)
+        - ``'geglu'`` / ``'gelu'``: GELU-gated (Falcon, GPT-J)
+        - ``'reglu'`` / ``'relu'``: ReLU-gated
+        - A callable can also be passed directly.
+
+    Reference: https://arxiv.org/abs/2002.05202
+
+    Args:
+        dim: Input and output dimension.
+        hidden_dim: Intermediate hidden dimension.  If ``None`` the
+            Llama convention ``4 * dim * 2/3`` rounded up is used.
+        activation: Activation type string or callable (see above).
+        bias: Whether linear layers include bias.
+        dropout: Dropout probability applied after the down-projection.
+        multiple_of: Round ``hidden_dim`` to a multiple of this value
+            for hardware-friendly tensor shapes.
+        norm_type: Optional pre-normalization: ``'layer'``, ``'rms'``,
+            or ``None``.
+        residual: Whether to add a residual connection around the FFN.
+    """
+
+    ACTIVATION_MAP = {
+        'swiglu': F.silu,
+        'silu': F.silu,
+        'geglu': F.gelu,
+        'gelu': F.gelu,
+        'reglu': F.relu,
+        'relu': F.relu,
+    }
+
+    def __init__(
+        self,
+        dim: int,
+        hidden_dim: Optional[int] = None,
+        activation: str = 'swiglu',
+        bias: bool = False,
+        dropout: float = 0.0,
+        multiple_of: int = 256,
+        norm_type: Optional[str] = None,
+        residual: bool = True,
+    ):
+        super().__init__()
+        self.dim = dim
+        self.residual = residual
+
+        # Resolve activation
+        if isinstance(activation, str):
+            act_fn = self.ACTIVATION_MAP.get(activation.lower())
+            if act_fn is None:
+                raise ValueError(
+                    f"Unknown activation '{activation}'. "
+                    f"Supported: {list(self.ACTIVATION_MAP.keys())}"
+                )
+        elif callable(activation):
+            act_fn = activation
+        else:
+            raise TypeError(
+                f"activation must be a string or callable, got {type(activation)}"
+            )
+
+        self.glu = GLUVariant(
+            dim=dim,
+            hidden_dim=hidden_dim,
+            activation=act_fn,
+            bias=bias,
+            multiple_of=multiple_of,
+        )
+
+        self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
+
+        # Optional pre-normalization
+        if norm_type == 'layer':
+            self.norm: Optional[nn.Module] = nn.LayerNorm(dim)
+        elif norm_type == 'rms':
+            from nexus.components.normalization import RMSNorm
+            self.norm = RMSNorm(dim)
+        else:
+            self.norm = None
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Forward pass.
+
+        Args:
+            x: Input tensor of shape ``(..., dim)``.
+
+        Returns:
+            Output tensor of shape ``(..., dim)``.
+        """
+        shortcut = x
+        if self.norm is not None:
+            x = self.norm(x)
+        x = self.glu(x)
+        x = self.dropout(x)
+        if self.residual:
+            x = x + shortcut
+        return x
+
+    def extra_repr(self) -> str:
+        return (
+            f'dim={self.dim}, hidden_dim={self.glu.hidden_dim}, '
+            f'residual={self.residual}'
+        )

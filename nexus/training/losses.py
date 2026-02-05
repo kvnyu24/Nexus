@@ -498,6 +498,218 @@ class SFTLoss(NexusModule):
         return losses
     
 
+class SigmoidContrastiveLoss(NexusModule):
+    """SigLIP-style sigmoid contrastive loss.
+
+    Instead of using a global softmax over all pairs (as in CLIP/InfoNCE),
+    this loss applies a per-pair sigmoid loss. This eliminates the need
+    for a global normalization constant, making the loss more scalable
+    and amenable to distributed training with large batch sizes.
+
+    Reference: "Sigmoid Loss for Language Image Pre-Training" (Zhai et al., 2023)
+
+    For each pair (i, j), the loss is:
+        L_ij = -log(sigmoid(y_ij * (sim(i,j) / temperature - bias)))
+
+    where y_ij = +1 for positive pairs and y_ij = -1 for negative pairs.
+
+    Args:
+        temperature: Temperature for scaling similarity. Default: 0.1.
+        bias: Learnable or fixed bias term. Default: 0.0.
+
+    Example:
+        >>> loss_fn = SigmoidContrastiveLoss(temperature=0.1)
+        >>> loss = loss_fn(image_features, text_features)
+    """
+
+    def __init__(self, temperature: float = 0.1, bias: float = 0.0):
+        super().__init__()
+        self.temperature = temperature
+        self.bias = nn.Parameter(torch.tensor(bias))
+
+    def forward(
+        self,
+        features_a: torch.Tensor,
+        features_b: torch.Tensor,
+    ) -> torch.Tensor:
+        """Compute sigmoid contrastive loss.
+
+        Args:
+            features_a: First set of normalized features (B, D).
+            features_b: Second set of normalized features (B, D).
+
+        Returns:
+            Scalar loss value.
+        """
+        # Normalize features
+        features_a = F.normalize(features_a, dim=-1)
+        features_b = F.normalize(features_b, dim=-1)
+
+        # Compute pairwise similarities
+        logits = (features_a @ features_b.T) / self.temperature + self.bias
+
+        # Create labels: diagonal is positive (1), rest is negative (-1)
+        batch_size = features_a.shape[0]
+        labels = 2.0 * torch.eye(batch_size, device=logits.device) - 1.0
+
+        # Per-pair sigmoid loss: -log(sigmoid(y * logit))
+        loss = -F.logsigmoid(labels * logits).mean()
+
+        return loss
+
+
+class VICRegLoss(NexusModule):
+    """VICReg: Variance-Invariance-Covariance Regularization Loss.
+
+    VICReg is a self-supervised learning objective that avoids
+    representational collapse through three explicit regularization terms:
+        1. Variance: keeps embedding variance above a threshold
+        2. Invariance: minimizes MSE between augmented view embeddings
+        3. Covariance: decorrelates embedding dimensions
+
+    Reference: "VICReg: Variance-Invariance-Covariance Regularization
+    for Self-Supervised Learning" (Bardes et al., 2022)
+
+    Args:
+        sim_coeff: Weight for the invariance (similarity) term. Default: 25.0.
+        std_coeff: Weight for the variance term. Default: 25.0.
+        cov_coeff: Weight for the covariance term. Default: 1.0.
+        variance_target: Target standard deviation for the variance term.
+            Default: 1.0.
+
+    Example:
+        >>> loss_fn = VICRegLoss()
+        >>> loss = loss_fn(z1, z2)  # z1, z2 are embeddings of augmented views
+    """
+
+    def __init__(
+        self,
+        sim_coeff: float = 25.0,
+        std_coeff: float = 25.0,
+        cov_coeff: float = 1.0,
+        variance_target: float = 1.0,
+    ):
+        super().__init__()
+        self.sim_coeff = sim_coeff
+        self.std_coeff = std_coeff
+        self.cov_coeff = cov_coeff
+        self.variance_target = variance_target
+
+    def forward(
+        self,
+        z1: torch.Tensor,
+        z2: torch.Tensor,
+    ) -> torch.Tensor:
+        """Compute VICReg loss.
+
+        Args:
+            z1: Embeddings from first augmented view (B, D).
+            z2: Embeddings from second augmented view (B, D).
+
+        Returns:
+            Scalar loss value.
+        """
+        batch_size, dim = z1.shape
+
+        # Invariance loss: MSE between paired embeddings
+        sim_loss = F.mse_loss(z1, z2)
+
+        # Variance loss: hinge loss on per-dimension std
+        std_z1 = torch.sqrt(z1.var(dim=0) + 1e-4)
+        std_z2 = torch.sqrt(z2.var(dim=0) + 1e-4)
+        std_loss = (
+            torch.relu(self.variance_target - std_z1).mean()
+            + torch.relu(self.variance_target - std_z2).mean()
+        )
+
+        # Covariance loss: penalize off-diagonal covariance elements
+        z1_centered = z1 - z1.mean(dim=0)
+        z2_centered = z2 - z2.mean(dim=0)
+        cov_z1 = (z1_centered.T @ z1_centered) / (batch_size - 1)
+        cov_z2 = (z2_centered.T @ z2_centered) / (batch_size - 1)
+
+        # Zero out diagonal (we only penalize off-diagonal)
+        cov_z1 = cov_z1 - torch.diag(cov_z1.diag())
+        cov_z2 = cov_z2 - torch.diag(cov_z2.diag())
+
+        cov_loss = (cov_z1.pow(2).sum() + cov_z2.pow(2).sum()) / dim
+
+        loss = (
+            self.sim_coeff * sim_loss
+            + self.std_coeff * std_loss
+            + self.cov_coeff * cov_loss
+        )
+
+        return loss
+
+
+class BarlowTwinsLoss(NexusModule):
+    """Barlow Twins Loss: Cross-Correlation Identity Regularization.
+
+    Barlow Twins measures the cross-correlation matrix between the
+    embeddings of two augmented views and pushes it towards the identity
+    matrix. This avoids collapse by making embedding dimensions
+    decorrelated (off-diagonal near 0) while keeping each dimension
+    informative (diagonal near 1).
+
+    Reference: "Barlow Twins: Self-Supervised Learning via Redundancy
+    Reduction" (Zbontar et al., 2021)
+
+    Loss = sum_i (1 - C_ii)^2 + lambda * sum_{i!=j} C_ij^2
+
+    where C is the cross-correlation matrix of the two embedding sets.
+
+    Args:
+        lambd: Weight for the off-diagonal (redundancy reduction) term.
+            Default: 0.005.
+
+    Example:
+        >>> loss_fn = BarlowTwinsLoss(lambd=0.005)
+        >>> loss = loss_fn(z1, z2)
+    """
+
+    def __init__(self, lambd: float = 0.005):
+        super().__init__()
+        self.lambd = lambd
+
+    def forward(
+        self,
+        z1: torch.Tensor,
+        z2: torch.Tensor,
+    ) -> torch.Tensor:
+        """Compute Barlow Twins loss.
+
+        Args:
+            z1: Embeddings from first augmented view (B, D).
+            z2: Embeddings from second augmented view (B, D).
+
+        Returns:
+            Scalar loss value.
+        """
+        batch_size = z1.shape[0]
+
+        # Normalize along batch dimension
+        z1_norm = (z1 - z1.mean(dim=0)) / (z1.std(dim=0) + 1e-4)
+        z2_norm = (z2 - z2.mean(dim=0)) / (z2.std(dim=0) + 1e-4)
+
+        # Cross-correlation matrix (D x D)
+        cross_corr = (z1_norm.T @ z2_norm) / batch_size
+
+        # Loss: diagonal should be 1, off-diagonal should be 0
+        dim = cross_corr.shape[0]
+        identity = torch.eye(dim, device=cross_corr.device)
+
+        # On-diagonal: (1 - C_ii)^2
+        on_diag = ((identity - cross_corr) * identity).pow(2).sum()
+
+        # Off-diagonal: lambda * C_ij^2
+        off_diag = ((cross_corr * (1 - identity))).pow(2).sum()
+
+        loss = on_diag + self.lambd * off_diag
+
+        return loss
+
+
 class EnhancedSFTLoss(NexusModule):
     def __init__(self, config: Dict[str, Any]):
         super().__init__()

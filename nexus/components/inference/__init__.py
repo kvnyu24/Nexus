@@ -2,7 +2,8 @@
 Inference optimization components for LLMs.
 
 Includes speculative decoding, multi-token prediction, KV cache management,
-prefix caching, and continuous batching.
+prefix caching, continuous batching, and advanced decoding strategies
+(EAGLE, Medusa, Lookahead).
 """
 from .speculative import (
     SpeculativeDecoder,
@@ -30,6 +31,21 @@ from .continuous_batching import (
     RequestStatus,
     BatchState
 )
+from .eagle import (
+    EAGLEDraftHead,
+    EAGLETreeStructure,
+    EAGLEDecoder
+)
+from .medusa import (
+    MedusaFFNHead,
+    MedusaDecoder
+)
+from .lookahead import (
+    NGramPool,
+    LookaheadBranch,
+    VerificationBranch,
+    LookaheadDecoder
+)
 
 __all__ = [
     # Speculative decoding
@@ -52,5 +68,17 @@ __all__ = [
     'IterationLevelBatcher',
     'GenerationRequest',
     'RequestStatus',
-    'BatchState'
+    'BatchState',
+    # EAGLE speculative decoding
+    'EAGLEDraftHead',
+    'EAGLETreeStructure',
+    'EAGLEDecoder',
+    # Medusa decoding
+    'MedusaFFNHead',
+    'MedusaDecoder',
+    # Lookahead decoding
+    'NGramPool',
+    'LookaheadBranch',
+    'VerificationBranch',
+    'LookaheadDecoder',
 ]
