@@ -146,7 +146,7 @@ def dequantize_from_fp4(quantized: torch.Tensor) -> torch.Tensor:
     """
     # Extract sign and magnitude
     sign = (quantized >> 3) & 0x1
-    magnitude_idx = quantized & 0x7
+    magnitude_idx = (quantized & 0x7).long()  # Convert to long for indexing
 
     # Get FP4 values
     fp4_values = FP4_E2M1_VALUES.to(quantized.device)
@@ -339,6 +339,9 @@ class FP4Linear(NexusModule):
 
         # Dequantize for computation
         weight = self.weight_fp4.dequantize()
+
+        # Ensure weight is in correct dtype for computation
+        weight = weight.to(x.dtype)
 
         return F.linear(x, weight, self.bias)
 

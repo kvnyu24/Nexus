@@ -14,6 +14,19 @@ from .rcnn import *
 from .resnet import *
 from .vgg import *
 
+# New CV models
+from .dinov2 import *
+from .siglip import *
+from .eva02 import *
+from .intern_vl import *
+from .yolo_world import *
+from .yolov10 import *
+from .sam import *
+from .sam2 import *
+from .medsam import *
+from .grounding_dino import *
+from .rt_detr import *
+
 __all__ = [
     # Vision
     'VisionTransformer',
@@ -45,15 +58,30 @@ __all__ = [
     # CityReconstructionModel
     'CityReconstructionModel',
 
-
     # ReID
     'AdaptiveReIDWithMemory',
     'TemporalReID',
     'ReIDBackbone',
-    'TemporalAttention'
-
+    'TemporalAttention',
 
     # Backbone
     'ResNet',
     'VGG',
+
+    # Vision Transformers
+    'DINOv2',
+    'SigLIP',
+    'EVA02',
+    'InternVL',
+
+    # Object Detection
+    'YOLOWorld',
+    'YOLOv10',
+    'GroundingDINO',
+    'RTDETR',
+
+    # Segmentation
+    'SAM',
+    'SAM2',
+    'MedSAM',
 ]

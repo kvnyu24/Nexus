@@ -42,6 +42,9 @@ from .neighborhood_attention import (
 # SwitchHead (MoE Attention)
 from .switch_attention import SwitchHeadAttention, SwitchHead
 
+# FlashAttention-3 (Hopper GPU optimizations with FP8)
+from .flash_attention_3 import FlashAttention3, FlashAttention3Core, is_flash_attention_3_available
+
 __all__ = [
     # Existing
     'MultiHeadSelfAttention',
@@ -101,4 +104,8 @@ __all__ = [
     # New - SwitchHead (MoE Attention)
     'SwitchHeadAttention',
     'SwitchHead',
+    # New - FlashAttention-3 (Hopper GPU optimizations)
+    'FlashAttention3',
+    'FlashAttention3Core',
+    'is_flash_attention_3_available',
 ]

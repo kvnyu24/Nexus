@@ -33,6 +33,16 @@ from .mixed_precision import (
     get_recommended_config,
 )
 
+from .gradient_methods import (
+    SelectiveCheckpoint,
+    SelectiveCheckpointConfig,
+    CheckpointPolicy,
+    ActivationOffloader,
+    apply_selective_checkpointing,
+    estimate_checkpointing_memory_savings,
+    estimate_offloading_memory_savings,
+)
+
 __all__ = [
     # Core training
     'BaseTrainer',
@@ -66,4 +76,13 @@ __all__ = [
     'get_fp8_memory_savings',
     'is_fp8_available',
     'get_recommended_config',
+
+    # Gradient methods
+    'SelectiveCheckpoint',
+    'SelectiveCheckpointConfig',
+    'CheckpointPolicy',
+    'ActivationOffloader',
+    'apply_selective_checkpointing',
+    'estimate_checkpointing_memory_savings',
+    'estimate_offloading_memory_savings',
 ]

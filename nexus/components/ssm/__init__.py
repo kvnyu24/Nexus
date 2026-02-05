@@ -63,6 +63,27 @@ from .rwkv6 import (
     RWKV6Model
 )
 
+from .s4d import (
+    S4DKernel,
+    S4DLayer,
+    S4DBlock,
+    S4DRecurrentCell
+)
+
+from .liquid_s4 import (
+    LiquidS4Kernel,
+    LiquidS4Layer,
+    LiquidS4Block,
+    LiquidS4Model
+)
+
+from .rwkv7 import (
+    RWKV7TimeMixing,
+    RWKV7ChannelMixing,
+    RWKV7Block,
+    RWKV7Model
+)
+
 __all__ = [
     # Mamba
     'SelectiveSSM',
@@ -76,10 +97,20 @@ __all__ = [
     'S4Kernel',
     'S4Layer',
     'S4Block',
+    # S4D (Diagonal State Spaces)
+    'S4DKernel',
+    'S4DLayer',
+    'S4DBlock',
+    'S4DRecurrentCell',
     # S5
     'S5SSM',
     'S5Layer',
     'S5Block',
+    # Liquid-S4
+    'LiquidS4Kernel',
+    'LiquidS4Layer',
+    'LiquidS4Block',
+    'LiquidS4Model',
     # Linear RNN base
     'LinearRNN',
     'ShortConvolution',
@@ -102,4 +133,9 @@ __all__ = [
     'RWKV6ChannelMixing',
     'RWKV6Block',
     'RWKV6Model',
+    # RWKV-7 (Goose)
+    'RWKV7TimeMixing',
+    'RWKV7ChannelMixing',
+    'RWKV7Block',
+    'RWKV7Model',
 ]

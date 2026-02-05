@@ -3,6 +3,9 @@ from .qlora import QLoRALinear, QLoRAConfig, NF4Quantize, DoubleQuantization
 from .dora import DoRALinear, DoRAConfig
 from .galore import GaLoreProjector, GaLoreOptimizer, GaLoreConfig
 from .adalora import AdaLoRALinear, AdaLoRAConfig, AdaLoRAScheduler
+from .lora_plus import LoRAPlusLinear, LoRAPlusConfig, LoRAPlusOptimizer, apply_lora_plus, merge_lora_plus
+from .lisa import LISAOptimizer, LISAConfig, LISATrainingWrapper, create_lisa_optimizer
+from .rslora import rsLoRALinear, rsLoRAConfig, apply_rslora, merge_rslora, analyze_rslora_ranks
 
 __all__ = [
     # LoRA
@@ -26,4 +29,21 @@ __all__ = [
     'AdaLoRALinear',
     'AdaLoRAConfig',
     'AdaLoRAScheduler',
+    # LoRA+
+    'LoRAPlusLinear',
+    'LoRAPlusConfig',
+    'LoRAPlusOptimizer',
+    'apply_lora_plus',
+    'merge_lora_plus',
+    # LISA
+    'LISAOptimizer',
+    'LISAConfig',
+    'LISATrainingWrapper',
+    'create_lisa_optimizer',
+    # rsLoRA
+    'rsLoRALinear',
+    'rsLoRAConfig',
+    'apply_rslora',
+    'merge_rslora',
+    'analyze_rslora_ranks',
 ]

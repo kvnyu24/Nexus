@@ -255,13 +255,13 @@
 
 ### 9.1 Diffusion / Flow
 - [EXISTS] Base Diffusion / Conditional Diffusion / Stable Diffusion / UNet
-- [ ] DiT (Diffusion Transformer) — Transformer replaces U-Net in diffusion (ICCV 2023)
-- [ ] MMDiT (Multimodal Diffusion Transformer) — Dual-stream text-image transformer (SD3, 2024)
-- [ ] Consistency Models — Single-step generation from diffusion ODE (ICML 2023)
-- [ ] Latent Consistency Models (LCM) — 2-4 step generation from SD (2023)
-- [ ] Rectified Flow — Straight-path ODE transport (ICLR 2023, powers SD3/FLUX)
-- [ ] Flow Matching — Simulation-free CNF training (ICLR 2023)
-- [ ] PixArt-alpha — Efficient DiT training at 10% cost (2023)
+- [EXISTS] DiT (Diffusion Transformer) — Transformer replaces U-Net in diffusion (ICCV 2023)
+- [EXISTS] MMDiT (Multimodal Diffusion Transformer) — Dual-stream text-image transformer (SD3, 2024)
+- [EXISTS] Consistency Models — Single-step generation from diffusion ODE (ICML 2023)
+- [EXISTS] Latent Consistency Models (LCM) — 2-4 step generation from SD (2023)
+- [EXISTS] Rectified Flow — Straight-path ODE transport (ICLR 2023, powers SD3/FLUX)
+- [EXISTS] Flow Matching — Simulation-free CNF training (ICLR 2023)
+- [EXISTS] PixArt-alpha — Efficient DiT training at 10% cost (2023)
 
 ### 9.2 GANs
 - [EXISTS] Base GAN / Conditional GAN / CycleGAN / WGAN
@@ -270,15 +270,15 @@
 - [EXISTS] VAE (encoder/decoder)
 
 ### 9.4 Video Generation
-- [ ] CogVideoX — Expert transformer for text-to-video (ICLR 2025)
-- [ ] VideoPoet — Autoregressive multimodal video LLM (Google, ICML 2024)
+- [EXISTS] CogVideoX — Expert transformer for text-to-video (ICLR 2025)
+- [EXISTS] VideoPoet — Autoregressive multimodal video LLM (Google, ICML 2024)
 
 ### 9.5 Audio / Speech
-- [ ] VALL-E — Neural codec language model for zero-shot TTS (Microsoft, 2023)
-- [ ] Voicebox — Flow-matching speech generation (Meta, ICLR 2024)
-- [ ] SoundStorm — Non-autoregressive parallel audio generation (Google, 2023)
-- [ ] MusicGen — Controllable music generation (Meta, NeurIPS 2023)
-- [ ] NaturalSpeech 3 — Factorized codec + diffusion TTS (ICML 2024)
+- [EXISTS] VALL-E — Neural codec language model for zero-shot TTS (Microsoft, 2023)
+- [EXISTS] Voicebox — Flow-matching speech generation (Meta, ICLR 2024)
+- [EXISTS] SoundStorm — Non-autoregressive parallel audio generation (Google, 2023)
+- [EXISTS] MusicGen — Controllable music generation (Meta, NeurIPS 2023)
+- [EXISTS] NaturalSpeech 3 — Factorized codec + diffusion TTS (ICML 2024)
 
 ---
 
@@ -466,10 +466,10 @@
 
 ## 20. DIFFUSION TRAINING ADVANCES
 
-- [ ] Flow Matching — Simulation-free CNF training (ICLR 2023)
-- [ ] Rectified Flow — Straight-path ODE (ICLR 2023)
-- [ ] Consistency Training (iCT) — Improved standalone consistency training (2023)
-- [ ] Easy Consistency Tuning (ECT) — Bootstrap from diffusion models (ICLR 2025)
+- [EXISTS] Flow Matching — Simulation-free CNF training (ICLR 2023)
+- [EXISTS] Rectified Flow — Straight-path ODE (ICLR 2023)
+- [EXISTS] Consistency Training (iCT) — Improved standalone consistency training (2023)
+- [EXISTS] Easy Consistency Tuning (ECT) — Bootstrap from diffusion models (ICLR 2025)
 
 ---
 

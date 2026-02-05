@@ -301,6 +301,9 @@ class MXFP8Linear(NexusModule):
         # Dequantize for computation (hardware would do FP8 matmul)
         weight = self.weight_mxfp8.dequantize()
 
+        # Ensure weight is in correct dtype for computation
+        weight = weight.to(x.dtype)
+
         return F.linear(x, weight, self.bias)
 
 

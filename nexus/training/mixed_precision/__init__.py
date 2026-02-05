@@ -56,6 +56,24 @@ from .grad_scaler import (
     create_grad_scaler,
 )
 
+from .mxfp8 import (
+    MXFP8Config,
+    MXFP8Tensor,
+    MXFP8Linear,
+    MXFP8GradientScaler,
+    to_mxfp8,
+    get_mxfp8_memory_savings,
+)
+
+from .fp4 import (
+    FP4Config,
+    FP4Tensor,
+    FP4Linear,
+    FP4GradientScaler,
+    to_fp4,
+    get_fp4_memory_savings,
+)
+
 
 __all__ = [
     # Configuration
@@ -78,6 +96,22 @@ __all__ = [
     "AdaptiveGradScaler",
     "ScalerState",
     "create_grad_scaler",
+
+    # MXFP8
+    "MXFP8Config",
+    "MXFP8Tensor",
+    "MXFP8Linear",
+    "MXFP8GradientScaler",
+    "to_mxfp8",
+    "get_mxfp8_memory_savings",
+
+    # FP4
+    "FP4Config",
+    "FP4Tensor",
+    "FP4Linear",
+    "FP4GradientScaler",
+    "to_fp4",
+    "get_fp4_memory_savings",
 ]
 
 
