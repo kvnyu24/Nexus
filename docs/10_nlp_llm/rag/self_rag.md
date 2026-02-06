@@ -1,6 +1,6 @@
 # Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection
 
-## Overview & Motivation
+## 1. Overview
 
 Self-RAG addresses a fundamental limitation of standard RAG: it retrieves for every query, regardless of whether retrieval is beneficial. This wastes computation and can introduce irrelevant information.
 
@@ -25,7 +25,13 @@ Query: "What was the GDP of France in 2023?"
 
 Self-RAG learns to distinguish these cases.
 
-## Theoretical Background
+**When to Use Self-RAG**:
+- Quality-critical applications (medical, legal)
+- When retrieval is expensive (reduce unnecessary calls)
+- Need for interpretable decision-making
+- Mixed workloads with varying retrieval needs
+
+## 2. Theory: Retrieval-Augmented Generation
 
 ### Reflection Token Framework
 

@@ -48,25 +48,33 @@ This approach enables:
 
 **Key Papers**: Lightman et al. (2023) - OpenAI
 
-### Outcome Reward Model (ORM)
+### [Outcome Reward Model (ORM)](./orm.md)
+
 **Core Innovation**: Simple final-outcome evaluation
 
 - Only scores final result
 - Simpler to train than PRM
 - Works for single-step decisions
 - Baseline for comparison
+- Efficient Best-of-N sampling
 
-**When to Use**: Tasks with clear right/wrong answers, single-step decisions.
+**When to Use**: Tasks with clear right/wrong answers, single-step decisions, code generation with test suites.
 
-### Generative Reward Model
-**Core Innovation**: Language model that generates reward explanations
+**Key Papers**: Cobbe et al. (2021)
 
-- Produces natural language feedback
-- Interpretable reward assignments
-- Can be fine-tuned for specific domains
-- Combines scoring with reasoning
+### [Generative Reward Model (GRM)](./generative_rm.md)
 
-**When to Use**: When interpretability is critical, educational applications.
+**Core Innovation**: LLM-as-judge with natural language explanations (RLAIF)
+
+- Produces interpretable natural language feedback
+- Enables Constitutional AI and self-improvement
+- 85%+ agreement with human evaluators
+- Scalable oversight for complex tasks
+- Critique-revision loops
+
+**When to Use**: When interpretability is critical, open-ended tasks, scarce human feedback, Constitutional AI.
+
+**Key Papers**: Bai et al. (2022) - Anthropic Constitutional AI
 
 ## Comparison Table
 
