@@ -316,19 +316,169 @@ class PaLME(NexusModule):
 
 ```python
 class ActionPredictionHead(nn.Module):
-    def __init__(self, hidden_dim, action_dim=7):
+    def __init__(self, hidden_dim, action_dim=7, action_type='continuous'):
         super().__init__()
-        
-        self.action_predictor = nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(0.1),
-            nn.Linear(hidden_dim, action_dim)
-        )
-    
+        self.action_type = action_type
+
+        if action_type == 'continuous':
+            # Continuous action prediction
+            self.action_predictor = nn.Sequential(
+                nn.Linear(hidden_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Dropout(0.1),
+                nn.Linear(hidden_dim, action_dim)
+            )
+        elif action_type == 'discrete':
+            # Discrete action tokenization
+            self.action_predictor = nn.Linear(hidden_dim, action_dim * 256)  # 256 bins per dimension
+
     def forward(self, features):
-        continuous_action = self.action_predictor(features)
-        return continuous_action
+        if self.action_type == 'continuous':
+            continuous_action = self.action_predictor(features)
+            # Apply tanh to bound actions to [-1, 1]
+            return torch.tanh(continuous_action)
+        else:
+            logits = self.action_predictor(features)
+            # Reshape to [batch, action_dim, num_bins]
+            logits = logits.view(-1, self.action_dim, 256)
+            return logits
+```
+
+### 5.3 Multi-Sensor State Encoder
+
+```python
+class RobotStateEncoder(nn.Module):
+    """Encode proprioceptive and sensor state."""
+
+    def __init__(self, config):
+        super().__init__()
+
+        # Joint position encoder
+        self.joint_encoder = nn.Sequential(
+            nn.Linear(config['num_joints'], 128),
+            nn.ReLU(),
+            nn.Linear(128, config['hidden_dim'])
+        )
+
+        # End-effector pose encoder
+        self.ee_encoder = nn.Sequential(
+            nn.Linear(7, 64),  # xyz + quaternion
+            nn.ReLU(),
+            nn.Linear(64, config['hidden_dim'])
+        )
+
+        # Force/torque encoder (if available)
+        if config.get('has_force_sensor', False):
+            self.force_encoder = nn.Sequential(
+                nn.Linear(6, 32),  # 3D force + 3D torque
+                nn.ReLU(),
+                nn.Linear(32, config['hidden_dim'])
+            )
+
+        # Fusion layer
+        num_modalities = 2 + (1 if config.get('has_force_sensor', False) else 0)
+        self.fusion = nn.Linear(num_modalities * config['hidden_dim'], config['hidden_dim'])
+
+    def forward(self, state_dict):
+        """
+        Args:
+            state_dict: Dictionary with keys:
+                - 'joint_positions': [B, num_joints]
+                - 'ee_pose': [B, 7]
+                - 'force_torque': [B, 6] (optional)
+        Returns:
+            state_embedding: [B, hidden_dim]
+        """
+        encodings = []
+
+        # Encode joint positions
+        joint_emb = self.joint_encoder(state_dict['joint_positions'])
+        encodings.append(joint_emb)
+
+        # Encode end-effector pose
+        ee_emb = self.ee_encoder(state_dict['ee_pose'])
+        encodings.append(ee_emb)
+
+        # Encode force/torque if available
+        if 'force_torque' in state_dict and hasattr(self, 'force_encoder'):
+            force_emb = self.force_encoder(state_dict['force_torque'])
+            encodings.append(force_emb)
+
+        # Fuse all modalities
+        combined = torch.cat(encodings, dim=-1)
+        state_embedding = self.fusion(combined)
+
+        return state_embedding
+
+### 5.4 Vision Encoder for Robotics
+
+```python
+class RoboticVisionEncoder(nn.Module):
+    """Multi-view RGB-D vision encoder for robotics."""
+
+    def __init__(self, config):
+        super().__init__()
+
+        # RGB encoder
+        from torchvision.models import resnet50
+        self.rgb_encoder = resnet50(pretrained=True)
+        self.rgb_encoder.fc = nn.Identity()  # Remove classification head
+
+        # Depth encoder (smaller network)
+        self.depth_encoder = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool2d((1, 1)),
+            nn.Flatten()
+        )
+
+        # Projection to common space
+        self.rgb_proj = nn.Linear(2048, config['hidden_dim'])
+        self.depth_proj = nn.Linear(128, config['hidden_dim'])
+
+        # Multi-view fusion
+        self.view_attention = nn.MultiheadAttention(
+            config['hidden_dim'],
+            num_heads=8,
+            batch_first=True
+        )
+
+    def forward(self, images_dict):
+        """
+        Args:
+            images_dict: Dictionary with keys:
+                - 'rgb': [B, num_views, 3, H, W]
+                - 'depth': [B, num_views, 1, H, W]
+        Returns:
+            vision_features: [B, num_views, hidden_dim]
+        """
+        B, num_views = images_dict['rgb'].shape[:2]
+
+        # Flatten batch and views
+        rgb = images_dict['rgb'].view(B * num_views, 3, -1, -1)
+        depth = images_dict['depth'].view(B * num_views, 1, -1, -1)
+
+        # Encode RGB and depth
+        rgb_feats = self.rgb_encoder(rgb)  # [B*V, 2048]
+        depth_feats = self.depth_encoder(depth)  # [B*V, 128]
+
+        # Project to common space
+        rgb_emb = self.rgb_proj(rgb_feats)
+        depth_emb = self.depth_proj(depth_feats)
+
+        # Fuse RGB and depth
+        fused = rgb_emb + depth_emb  # [B*V, hidden_dim]
+
+        # Reshape to multi-view
+        fused = fused.view(B, num_views, -1)
+
+        # Apply cross-view attention
+        attended, _ = self.view_attention(fused, fused, fused)
+
+        return attended
 ```
 
 ## 6. Code Walkthrough
@@ -376,34 +526,296 @@ with torch.no_grad():
 
 ### 7.1 Action Smoothing
 
+Smooth noisy action predictions for stable robot control:
+
 ```python
 class ActionSmoother:
-    def __init__(self, alpha=0.7):
+    def __init__(self, alpha=0.7, history_length=5):
         self.alpha = alpha
-        self.prev_action = None
-    
+        self.history_length = history_length
+        self.action_history = []
+
     def smooth(self, action):
-        if self.prev_action is None:
-            self.prev_action = action
+        """Exponential moving average smoothing."""
+        self.action_history.append(action.clone())
+
+        if len(self.action_history) > self.history_length:
+            self.action_history.pop(0)
+
+        if len(self.action_history) == 1:
             return action
-        
-        smoothed = self.alpha * action + (1 - self.alpha) * self.prev_action
-        self.prev_action = smoothed
+
+        # Exponential moving average
+        smoothed = self.action_history[0] * (1 - self.alpha)
+        for i, hist_action in enumerate(self.action_history[1:], 1):
+            weight = self.alpha * ((1 - self.alpha) ** i)
+            smoothed = smoothed + hist_action * weight
+
         return smoothed
+
+class KalmanActionFilter:
+    """More sophisticated filtering for action smoothing."""
+
+    def __init__(self, action_dim, process_noise=0.01, measurement_noise=0.1):
+        self.action_dim = action_dim
+        self.Q = torch.eye(action_dim) * process_noise  # Process noise
+        self.R = torch.eye(action_dim) * measurement_noise  # Measurement noise
+        self.P = torch.eye(action_dim)  # Error covariance
+        self.x = None  # State estimate
+
+    def update(self, measurement):
+        if self.x is None:
+            self.x = measurement
+            return measurement
+
+        # Predict
+        x_pred = self.x
+        P_pred = self.P + self.Q
+
+        # Update
+        K = P_pred @ torch.inverse(P_pred + self.R)  # Kalman gain
+        self.x = x_pred + K @ (measurement - x_pred)
+        self.P = (torch.eye(self.action_dim) - K) @ P_pred
+
+        return self.x
 ```
 
 ### 7.2 Sim-to-Real Transfer
 
+Domain randomization and adaptation techniques:
+
 ```python
 class DomainAdapter:
-    def __init__(self):
-        self.texture_randomizer = TextureRandomizer()
-        self.lighting_randomizer = LightingRandomizer()
-    
+    """Domain randomization for sim-to-real transfer."""
+
+    def __init__(self, config):
+        self.texture_randomizer = TextureRandomizer(
+            color_jitter=config.get('color_jitter', 0.3),
+            brightness_range=(0.7, 1.3)
+        )
+        self.lighting_randomizer = LightingRandomizer(
+            intensity_range=(0.5, 1.5),
+            direction_variance=0.2
+        )
+        self.camera_randomizer = CameraRandomizer(
+            fov_range=(50, 70),
+            position_noise=0.05
+        )
+
     def adapt_observation(self, sim_obs):
+        # Apply random transformations
         obs = self.texture_randomizer(sim_obs)
         obs = self.lighting_randomizer(obs)
+        obs = self.camera_randomizer(obs)
+
+        # Add sensor noise
+        obs = obs + torch.randn_like(obs) * 0.02
+
         return obs
+
+class DomainAdversarialAdapter(nn.Module):
+    """Adversarial domain adaptation for sim-to-real."""
+
+    def __init__(self, feature_dim):
+        super().__init__()
+        self.domain_classifier = nn.Sequential(
+            nn.Linear(feature_dim, 256),
+            nn.ReLU(),
+            nn.Dropout(0.5),
+            nn.Linear(256, 2)  # sim vs real
+        )
+
+    def forward(self, features, alpha=1.0):
+        # Gradient reversal layer
+        reversed_features = GradientReversalLayer.apply(features, alpha)
+        domain_logits = self.domain_classifier(reversed_features)
+        return domain_logits
+
+class GradientReversalLayer(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, x, alpha):
+        ctx.alpha = alpha
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        return -ctx.alpha * grad_output, None
+```
+
+### 7.3 Hierarchical Policy Structure
+
+Decompose long-horizon tasks into subtasks:
+
+```python
+class HierarchicalPolicy:
+    """High-level planner + low-level controller."""
+
+    def __init__(self, high_level_model, low_level_model):
+        self.high_level = high_level_model  # PaLM-E for goal generation
+        self.low_level = low_level_model  # Fine-tuned for specific skills
+
+        self.current_subgoal = None
+        self.subgoal_threshold = 0.1
+
+    def execute(self, observation, instruction):
+        # High-level: Generate subgoal from language
+        if self.current_subgoal is None or self.is_subgoal_achieved():
+            self.current_subgoal = self.high_level.generate_subgoal(
+                observation, instruction
+            )
+
+        # Low-level: Execute action to reach subgoal
+        action = self.low_level.predict_action(observation, self.current_subgoal)
+
+        return action
+
+    def is_subgoal_achieved(self):
+        # Check if current subgoal is reached
+        return self.compute_subgoal_distance() < self.subgoal_threshold
+```
+
+### 7.4 Model Distillation for Deployment
+
+Compress large model for real-time robot control:
+
+```python
+class PolicyDistiller:
+    """Distill PaLM-E into smaller student model."""
+
+    def __init__(self, teacher_model, student_model):
+        self.teacher = teacher_model
+        self.student = student_model
+        self.temperature = 3.0
+
+    def distill(self, dataloader, num_epochs=10):
+        """Knowledge distillation training loop."""
+
+        optimizer = torch.optim.Adam(self.student.parameters(), lr=1e-4)
+
+        for epoch in range(num_epochs):
+            for batch in dataloader:
+                # Teacher predictions (frozen)
+                with torch.no_grad():
+                    teacher_out = self.teacher(
+                        images=batch['images'],
+                        text_tokens=batch['text']
+                    )
+                    teacher_actions = teacher_out['action_logits']
+
+                # Student predictions
+                student_out = self.student(
+                    images=batch['images'],
+                    text_tokens=batch['text']
+                )
+                student_actions = student_out['action_logits']
+
+                # Distillation loss (KL divergence)
+                loss_distill = F.kl_div(
+                    F.log_softmax(student_actions / self.temperature, dim=-1),
+                    F.softmax(teacher_actions / self.temperature, dim=-1),
+                    reduction='batchmean'
+                ) * (self.temperature ** 2)
+
+                # Hard label loss
+                loss_hard = F.mse_loss(student_actions, batch['actions'])
+
+                # Combined loss
+                loss = 0.7 * loss_distill + 0.3 * loss_hard
+
+                optimizer.zero_grad()
+                loss.backward()
+                optimizer.step()
+
+        return self.student
+```
+
+### 7.5 Online Adaptation
+
+Fine-tune policy during deployment:
+
+```python
+class OnlineAdapter:
+    """Adapt policy based on execution feedback."""
+
+    def __init__(self, model, buffer_size=1000):
+        self.model = model
+        self.buffer = ReplayBuffer(buffer_size)
+        self.optimizer = torch.optim.Adam(model.parameters(), lr=1e-5)
+
+    def collect_experience(self, obs, action, reward, next_obs):
+        """Store experience in replay buffer."""
+        self.buffer.add(obs, action, reward, next_obs)
+
+    def adapt(self, batch_size=32):
+        """Perform online adaptation step."""
+
+        if len(self.buffer) < batch_size:
+            return
+
+        # Sample batch from buffer
+        batch = self.buffer.sample(batch_size)
+
+        # Compute loss (behavioral cloning + reward)
+        outputs = self.model(images=batch['obs'], text_tokens=batch['text'])
+        predicted_actions = outputs['action_logits']
+
+        # Weighted by reward
+        weights = torch.sigmoid(batch['rewards'])
+        loss = (weights * F.mse_loss(
+            predicted_actions,
+            batch['actions'],
+            reduction='none'
+        )).mean()
+
+        # Update model
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+```
+
+### 7.6 Multi-Task Batching
+
+Efficiently train on diverse robotics tasks:
+
+```python
+class MultiTaskBatcher:
+    """Sample balanced batches across tasks."""
+
+    def __init__(self, task_datasets, batch_size=32):
+        self.task_datasets = task_datasets
+        self.batch_size = batch_size
+        self.task_weights = {task: 1.0 for task in task_datasets.keys()}
+
+    def get_batch(self):
+        """Sample batch with balanced task representation."""
+
+        batch = {
+            'images': [],
+            'text': [],
+            'actions': [],
+            'task_ids': []
+        }
+
+        # Samples per task
+        samples_per_task = max(1, self.batch_size // len(self.task_datasets))
+
+        for task_id, dataset in self.task_datasets.items():
+            # Sample from this task
+            indices = torch.randint(0, len(dataset), (samples_per_task,))
+
+            for idx in indices:
+                sample = dataset[idx]
+                batch['images'].append(sample['image'])
+                batch['text'].append(sample['instruction'])
+                batch['actions'].append(sample['action'])
+                batch['task_ids'].append(task_id)
+
+        # Collate
+        batch['images'] = torch.stack(batch['images'])
+        batch['actions'] = torch.stack(batch['actions'])
+        batch['task_ids'] = torch.tensor(batch['task_ids'])
+
+        return batch
 ```
 
 ## 8. Experiments & Results

@@ -56,11 +56,11 @@ Diffusion models are a class of generative models that learn to gradually denois
 
 ### Fast Sampling Methods
 
-8. **[Consistency Models](./consistency_models.md)**
+8. **[Consistency Models](./consistency_models.md)** ✅
    - Single-step generation
    - Self-consistency property
    - Consistency training and distillation
-   - Improved sampling efficiency
+   - Improved consistency training (iCT)
 
 9. **[Latent Consistency Models (LCM)](./lcm.md)**
    - Distilling latent diffusion models
