@@ -306,7 +306,7 @@ for episode in range(num_episodes):
 
 ### Policy Network
 
-The policy is implemented in `/Users/kevinyu/Projects/Nexus/nexus/models/imitation/dagger.py`:
+The policy is implemented in `Nexus/nexus/models/imitation/dagger.py`:
 
 ```python
 class DAggerPolicy(NexusModule):

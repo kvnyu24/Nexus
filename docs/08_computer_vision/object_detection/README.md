@@ -113,7 +113,7 @@ transforms = [
 
 ## Implementation Resources
 
-All implementations available in `/Users/kevinyu/Projects/Nexus/nexus/models/cv/`:
+All implementations available in `Nexus/nexus/models/cv/`:
 
 - DETR: `detr.py`
 - R-CNN family: `rcnn/` directory

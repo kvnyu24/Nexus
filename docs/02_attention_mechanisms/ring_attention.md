@@ -341,7 +341,7 @@ This makes Ring Attention practical even with limited inter-device bandwidth.
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/ring_attention.py`
+See `Nexus/nexus/components/attention/ring_attention.py`
 
 Key components:
 
@@ -1386,7 +1386,7 @@ loss.backward()  # Gradients are computed correctly across all chunks
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/ring_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/ring_attention.py`
 - **Distributed Training Guide**: PyTorch distributed tutorial for setting up multi-GPU training
 - **Long Context Benchmarks**: SCROLLS, ZeroSCROLLS for evaluating long-context models
 - **Position Encodings**: RoPE, ALiBi for handling ultra-long sequences

@@ -207,7 +207,7 @@ This separation allows the model to learn:
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/cross_attention.py`
+See `Nexus/nexus/components/attention/cross_attention.py`
 
 ```python
 class CrossAttention(BaseAttention):
@@ -683,6 +683,6 @@ else:
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/cross_attention.py`
-- **Base Class**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/base_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/cross_attention.py`
+- **Base Class**: `Nexus/nexus/components/attention/base_attention.py`
 - **Perceiver**: Uses cross-attention to compress inputs to fixed-size latent

@@ -511,7 +511,7 @@ def create_attention_mask(batch):
 
 ### GPS Architecture
 
-Located in `/Users/kevinyu/Projects/Nexus/nexus/models/gnn/gps.py`.
+Located in `Nexus/nexus/models/gnn/gps.py`.
 
 #### Laplacian Positional Encoding
 

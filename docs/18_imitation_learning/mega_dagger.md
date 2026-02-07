@@ -265,7 +265,7 @@ weight_net_lr = 1e-4         # Slower for weighting network
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/imitation/mega_dagger.py`:
+Implementation in `Nexus/nexus/models/imitation/mega_dagger.py`:
 
 ### Expert Weighting Module
 

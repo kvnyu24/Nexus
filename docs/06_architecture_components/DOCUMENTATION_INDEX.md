@@ -188,7 +188,7 @@ moe = DeepSeekMoE(
 All components are implemented in:
 
 ```
-/Users/kevinyu/Projects/Nexus/nexus/components/
+Nexus/nexus/components/
 ├── moe/
 │   ├── router.py              # Routing mechanisms
 │   ├── expert.py              # Expert layers and MoE

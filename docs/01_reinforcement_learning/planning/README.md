@@ -364,8 +364,8 @@ Track and use model uncertainty.
 
 ## Code Locations
 
-- **AlphaZero**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/alphazero.py`
-- **PRM Agent**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/prm.py`
+- **AlphaZero**: `Nexus/nexus/models/rl/alphazero.py`
+- **PRM Agent**: `Nexus/nexus/models/rl/prm.py`
 - **MCTS**: Included in AlphaZero implementation
 
 ## References

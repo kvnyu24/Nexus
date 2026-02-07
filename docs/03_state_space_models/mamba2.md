@@ -352,7 +352,7 @@ def ssd_chunk_fused(Q, K, V, A, chunk_size):
 
 ## Code Walkthrough
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/mamba2.py` for full implementation.
+See `Nexus/nexus/components/ssm/mamba2.py` for full implementation.
 
 ### Key Functions
 
@@ -688,4 +688,4 @@ When implementing Mamba-2 from scratch:
 
 ---
 
-*For implementation reference, see `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/mamba2.py`*
+*For implementation reference, see `Nexus/nexus/components/ssm/mamba2.py`*

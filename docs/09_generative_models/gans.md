@@ -92,7 +92,7 @@ min_G max_D V(D, G) = E_x,c[log D(x, c)] + E_z,c[log(1 - D(G(z, c), c))]
 
 ### Code Structure
 
-Implementations are in `/Users/kevinyu/Projects/Nexus/nexus/models/gan/`:
+Implementations are in `Nexus/nexus/models/gan/`:
 
 - `base_gan.py` - Standard GAN with generator and discriminator
 - `conditional_gan.py` - Class-conditional generation
@@ -565,4 +565,4 @@ n_critic = 1  # Standard GAN: balanced training
 
 ---
 
-*Implementations: `/Users/kevinyu/Projects/Nexus/nexus/models/gan/`*
+*Implementations: `Nexus/nexus/models/gan/`*

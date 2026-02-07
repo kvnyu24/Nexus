@@ -291,7 +291,7 @@ def normalize_answer(answer):
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/self_consistency.py`
+Reference: `Nexus/nexus/models/nlp/reasoning/self_consistency.py`
 
 ### Basic Usage
 

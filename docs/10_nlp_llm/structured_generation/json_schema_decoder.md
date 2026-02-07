@@ -273,7 +273,7 @@ def update_state(self, token_id: int):
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/structured/json_schema.py`
+Reference: `Nexus/nexus/models/nlp/structured/json_schema.py`
 
 ### Core Generation Loop
 
@@ -601,7 +601,7 @@ if state == EXPECT_VALUE:
 
 ### Code References
 
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/structured/json_schema.py`
+- Nexus Implementation: `Nexus/nexus/models/nlp/structured/json_schema.py`
 - Example Schemas: Lines 394-419 in json_schema.py
 - Tests: Look for json_schema test files
 - Integration Examples: Check examples directory

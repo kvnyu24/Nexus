@@ -26,7 +26,7 @@ This document tracks the completion status of all documentation files referenced
 #### 1. diffusion/conditional_diffusion.md
 **Status**: ❌ Missing
 **Referenced in**: diffusion/README.md (line 19)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/conditional_diffusion.py`
+**Implementation**: `Nexus/nexus/models/diffusion/conditional_diffusion.py`
 
 **Expected Sections**:
 1. Overview: Conditioning mechanisms for diffusion models
@@ -43,7 +43,7 @@ This document tracks the completion status of all documentation files referenced
 #### 2. diffusion/stable_diffusion.md
 **Status**: ❌ Missing
 **Referenced in**: diffusion/README.md (line 18), main README.md (line 18)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/stable_diffusion.py`
+**Implementation**: `Nexus/nexus/models/diffusion/stable_diffusion.py`
 
 **Expected Sections**:
 1. Overview: Latent diffusion models, why latent space matters
@@ -62,7 +62,7 @@ This document tracks the completion status of all documentation files referenced
 #### 3. diffusion/unet.md
 **Status**: ❌ Missing
 **Referenced in**: diffusion/README.md (line 31)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/unet.py`
+**Implementation**: `Nexus/nexus/models/diffusion/unet.py`
 
 **Expected Sections**:
 1. Overview: U-Net architecture for diffusion models
@@ -79,7 +79,7 @@ This document tracks the completion status of all documentation files referenced
 #### 4. diffusion/mmdit.md
 **Status**: ❌ Missing
 **Referenced in**: diffusion/README.md (line 23), main README.md (line 23)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/mmdit.py`
+**Implementation**: `Nexus/nexus/models/diffusion/mmdit.py`
 
 **Expected Sections**:
 1. Overview: Multimodal Diffusion Transformer (SD3, FLUX)
@@ -98,7 +98,7 @@ This document tracks the completion status of all documentation files referenced
 #### 5. diffusion/pixart_alpha.md
 **Status**: ❌ Missing
 **Referenced in**: diffusion/README.md (line 24), main README.md (line 24)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/pixart_alpha.py`
+**Implementation**: `Nexus/nexus/models/diffusion/pixart_alpha.py`
 
 **Expected Sections**:
 1. Overview: Efficient high-resolution text-to-image
@@ -115,7 +115,7 @@ This document tracks the completion status of all documentation files referenced
 #### 6. diffusion/consistency_models.md
 **Status**: ❌ Missing
 **Referenced in**: diffusion/README.md (line 59), main README.md (line 28)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/consistency_model.py`
+**Implementation**: `Nexus/nexus/models/diffusion/consistency_model.py`
 
 **Expected Sections**:
 1. Overview: Single-step and few-step generation
@@ -155,7 +155,7 @@ This document tracks the completion status of all documentation files referenced
 #### 8. audio_video/cogvideox.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 11), main README.md (line 37)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/video/cogvideox.py`
+**Implementation**: `Nexus/nexus/models/video/cogvideox.py`
 
 **Expected Sections**:
 1. Overview: Expert transformer for text-to-video
@@ -174,7 +174,7 @@ This document tracks the completion status of all documentation files referenced
 #### 9. audio_video/videopoet.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 17), main README.md (line 38)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/video/videopoet.py`
+**Implementation**: `Nexus/nexus/models/video/videopoet.py`
 
 **Expected Sections**:
 1. Overview: LLM approach to video generation
@@ -191,7 +191,7 @@ This document tracks the completion status of all documentation files referenced
 #### 10. audio_video/valle.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 25), main README.md (line 41)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/audio/valle.py`
+**Implementation**: `Nexus/nexus/models/audio/valle.py`
 
 **Expected Sections**:
 1. Overview: Neural codec language modeling for TTS
@@ -210,7 +210,7 @@ This document tracks the completion status of all documentation files referenced
 #### 11. audio_video/voicebox.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 31), main README.md (line 42)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/audio/voicebox.py`
+**Implementation**: `Nexus/nexus/models/audio/voicebox.py`
 
 **Expected Sections**:
 1. Overview: Non-autoregressive speech generation
@@ -227,7 +227,7 @@ This document tracks the completion status of all documentation files referenced
 #### 12. audio_video/soundstorm.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 37), main README.md (line 43)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/audio/soundstorm.py`
+**Implementation**: `Nexus/nexus/models/audio/soundstorm.py`
 
 **Expected Sections**:
 1. Overview: Parallel audio generation
@@ -244,7 +244,7 @@ This document tracks the completion status of all documentation files referenced
 #### 13. audio_video/musicgen.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 43), main README.md (line 44)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/audio/musicgen.py`
+**Implementation**: `Nexus/nexus/models/audio/musicgen.py`
 
 **Expected Sections**:
 1. Overview: Text-to-music generation
@@ -261,7 +261,7 @@ This document tracks the completion status of all documentation files referenced
 #### 14. audio_video/naturalspeech3.md
 **Status**: ❌ Missing
 **Referenced in**: audio_video/README.md (line 49), main README.md (line 45)
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/audio/naturalspeech3.py`
+**Implementation**: `Nexus/nexus/models/audio/naturalspeech3.py`
 
 **Expected Sections**:
 1. Overview: Factorized diffusion for speech
@@ -360,34 +360,34 @@ All missing documentation should follow this 10-section template:
 All implementation files exist and are complete:
 
 ### Diffusion Models ✅
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/base_diffusion.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/conditional_diffusion.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/stable_diffusion.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/unet.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/dit.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/mmdit.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/consistency_model.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/flow_matching.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/rectified_flow.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/pixart_alpha.py`
+- `Nexus/nexus/models/diffusion/base_diffusion.py`
+- `Nexus/nexus/models/diffusion/conditional_diffusion.py`
+- `Nexus/nexus/models/diffusion/stable_diffusion.py`
+- `Nexus/nexus/models/diffusion/unet.py`
+- `Nexus/nexus/models/diffusion/dit.py`
+- `Nexus/nexus/models/diffusion/mmdit.py`
+- `Nexus/nexus/models/diffusion/consistency_model.py`
+- `Nexus/nexus/models/diffusion/flow_matching.py`
+- `Nexus/nexus/models/diffusion/rectified_flow.py`
+- `Nexus/nexus/models/diffusion/pixart_alpha.py`
 
 ### Audio Models ✅
-- `/Users/kevinyu/Projects/Nexus/nexus/models/audio/valle.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/audio/voicebox.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/audio/soundstorm.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/audio/musicgen.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/audio/naturalspeech3.py`
+- `Nexus/nexus/models/audio/valle.py`
+- `Nexus/nexus/models/audio/voicebox.py`
+- `Nexus/nexus/models/audio/soundstorm.py`
+- `Nexus/nexus/models/audio/musicgen.py`
+- `Nexus/nexus/models/audio/naturalspeech3.py`
 
 ### Video Models ✅
-- `/Users/kevinyu/Projects/Nexus/nexus/models/video/cogvideox.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/video/videopoet.py`
+- `Nexus/nexus/models/video/cogvideox.py`
+- `Nexus/nexus/models/video/videopoet.py`
 
 ### GAN & VAE Models ✅
-- `/Users/kevinyu/Projects/Nexus/nexus/models/gan/base_gan.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/gan/conditional_gan.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/gan/cycle_gan.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/gan/wgan.py`
-- `/Users/kevinyu/Projects/Nexus/nexus/models/cv/vae/vae.py`
+- `Nexus/nexus/models/gan/base_gan.py`
+- `Nexus/nexus/models/gan/conditional_gan.py`
+- `Nexus/nexus/models/gan/cycle_gan.py`
+- `Nexus/nexus/models/gan/wgan.py`
+- `Nexus/nexus/models/cv/vae/vae.py`
 
 ## Priority Ranking
 
@@ -434,7 +434,7 @@ All implementation files exist and are complete:
 
 1. **Read Implementation File**
    ```bash
-   cat /Users/kevinyu/Projects/Nexus/nexus/models/[category]/[model].py
+   cat Nexus/nexus/models/[category]/[model].py
    ```
 
 2. **Study README References**

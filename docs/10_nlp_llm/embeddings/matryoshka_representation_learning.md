@@ -237,7 +237,7 @@ def get_embedding(self, x, dim):
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/embeddings/matryoshka.py`
+Reference: `Nexus/nexus/models/nlp/embeddings/matryoshka.py`
 
 ### Core Components
 
@@ -554,7 +554,7 @@ total_loss = sum(losses)
 
 ### Code & Resources
 
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/embeddings/matryoshka.py`
+- Nexus Implementation: `Nexus/nexus/models/nlp/embeddings/matryoshka.py`
 - Sentence Transformers: https://www.sbert.net/examples/training/matryoshka/README.html
 - OpenAI Embeddings: Use Matryoshka-style flexible dimensions
 

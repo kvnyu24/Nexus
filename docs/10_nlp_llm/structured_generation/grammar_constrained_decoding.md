@@ -211,7 +211,7 @@ def update_state(self, token_id: int):
 
 ### Core Generation Loop
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/structured/grammar_constrained.py`
+Reference: `Nexus/nexus/models/nlp/structured/grammar_constrained.py`
 
 ```python
 def generate(self, input_ids, max_length=100, temperature=1.0, top_p=1.0):
@@ -467,6 +467,6 @@ next_token = sample(probs)
 
 ### Code References
 
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/structured/grammar_constrained.py`
+- Nexus Implementation: `Nexus/nexus/models/nlp/structured/grammar_constrained.py`
 - Tests: Look for grammar_constrained test files
 - Examples: Check examples directory for JSON generation demos

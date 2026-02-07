@@ -131,7 +131,7 @@ With KL term:
 
 ### Code Structure
 
-Implementation is in `/Users/kevinyu/Projects/Nexus/nexus/models/cv/vae/vae.py`.
+Implementation is in `Nexus/nexus/models/cv/vae/vae.py`.
 
 **Key Components:**
 
@@ -687,4 +687,4 @@ sap = compute_sap(latent_codes, ground_truth_factors)
 
 ---
 
-*Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/vae/vae.py`*
+*Implementation: `Nexus/nexus/models/cv/vae/vae.py`*

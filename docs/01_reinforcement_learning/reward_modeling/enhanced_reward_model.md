@@ -92,7 +92,7 @@ This is more robust than single reward model that might overfit or be miscalibra
 
 ## 5. Implementation Details
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/preference/reward_model.py`:
+From `Nexus/nexus/models/rl/preference/reward_model.py`:
 
 ```python
 config = {
@@ -187,7 +187,7 @@ Typical improvements over single reward model:
 - Ouyang, L., et al. (2022). **Training Language Models to Follow Instructions with Human Feedback.** OpenAI.
 
 ### Implementation
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/preference/reward_model.py`
+- Nexus: `Nexus/nexus/models/rl/preference/reward_model.py`
 
 ---
 

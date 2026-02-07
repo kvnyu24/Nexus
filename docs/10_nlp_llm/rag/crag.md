@@ -256,7 +256,7 @@ Output: "The capital of France is Paris."
 
 ### Architecture Components
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/crag.py`
+Reference: `Nexus/nexus/models/nlp/rag/crag.py`
 
 CRAG consists of:
 

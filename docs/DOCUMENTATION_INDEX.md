@@ -335,7 +335,7 @@ The comprehensive guides include:
    - Include mathematical formulations where appropriate
    - Provide working code examples
 
-3. **Reference implementation**: Link to actual code in `/Users/kevinyu/Projects/Nexus/nexus/models/`
+3. **Reference implementation**: Link to actual code in `Nexus/nexus/models/`
    - Explain key design decisions
    - Show how to use the model
    - Document configuration options

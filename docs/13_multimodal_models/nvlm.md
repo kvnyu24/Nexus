@@ -1263,15 +1263,15 @@ def interpolate_pos_embed(pos_embed, num_patches):
 ### Resources
 
 - NVIDIA AI Blog: https://blogs.nvidia.com/
-- Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/` (to be added)
+- Implementation: `Nexus/nexus/models/multimodal/` (to be added)
 - Hugging Face: https://huggingface.co/nvidia
 
 ### Related Models in Nexus
 
-- **LLaVA-NeXT**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/llava_next.py`
-- **Qwen2-VL**: `/Users/kevinyu/Projects/Nexus/docs/13_multimodal_models/qwen2_vl.md`
-- **Phi-3-Vision**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/phi3_vision.py`
-- **Molmo**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/molmo.py`
+- **LLaVA-NeXT**: `Nexus/nexus/models/multimodal/llava_next.py`
+- **Qwen2-VL**: `Nexus/docs/13_multimodal_models/qwen2_vl.md`
+- **Phi-3-Vision**: `Nexus/nexus/models/multimodal/phi3_vision.py`
+- **Molmo**: `Nexus/nexus/models/multimodal/molmo.py`
 
 ### Benchmarks & Datasets
 

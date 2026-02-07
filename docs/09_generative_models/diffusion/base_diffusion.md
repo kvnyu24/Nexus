@@ -124,7 +124,7 @@ Think of diffusion as teaching a model to:
 
 ### Code Structure
 
-Implementation path: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/base_diffusion.py`
+Implementation path: `Nexus/nexus/models/diffusion/base_diffusion.py`
 
 **Key Components:**
 
@@ -372,4 +372,4 @@ For 256×256 images:
 
 ---
 
-*Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/base_diffusion.py`*
+*Implementation: `Nexus/nexus/models/diffusion/base_diffusion.py`*

@@ -464,7 +464,7 @@ If you understand OS virtual memory, PagedAttention is identical:
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/paged_attention.py`
+See `Nexus/nexus/components/attention/paged_attention.py`
 
 #### BlockTable: Logical to Physical Mapping
 
@@ -1792,7 +1792,7 @@ Benefits:
   - Supports: LLaMA, Falcon, GPT-2, OPT, Bloom, etc.
   - Highly optimized CUDA kernels
 
-- **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/paged_attention.py`
+- **Nexus Implementation**: `Nexus/nexus/components/attention/paged_attention.py`
   - Educational implementation with detailed comments
   - Demonstrates core concepts clearly
   - Includes BlockTable, PagedKVCache, and PagedAttention
@@ -1814,9 +1814,9 @@ Benefits:
 ### Related Work
 
 - **Attention Mechanisms**:
-  - Flash Attention: [flash_attention.md](/Users/kevinyu/Projects/Nexus/docs/02_attention_mechanisms/flash_attention.md)
-  - Multi-Head Attention: [multi_head_attention.md](/Users/kevinyu/Projects/Nexus/docs/02_attention_mechanisms/multi_head_attention.md)
-  - Grouped Query Attention: [grouped_query_attention.md](/Users/kevinyu/Projects/Nexus/docs/02_attention_mechanisms/grouped_query_attention.md)
+  - Flash Attention: [flash_attention.md](Nexus/docs/02_attention_mechanisms/flash_attention.md)
+  - Multi-Head Attention: [multi_head_attention.md](Nexus/docs/02_attention_mechanisms/multi_head_attention.md)
+  - Grouped Query Attention: [grouped_query_attention.md](Nexus/docs/02_attention_mechanisms/grouped_query_attention.md)
 
 - **Inference Optimization**:
   - Continuous Batching: Part of vLLM system
@@ -1826,6 +1826,6 @@ Benefits:
 ---
 
 **Document Navigation**:
-- [Attention Mechanisms Overview](/Users/kevinyu/Projects/Nexus/docs/02_attention_mechanisms/README.md)
-- [Next: Ring Attention](/Users/kevinyu/Projects/Nexus/docs/02_attention_mechanisms/ring_attention.md) (for extremely long sequences)
-- [Previous: Flash Attention](/Users/kevinyu/Projects/Nexus/docs/02_attention_mechanisms/flash_attention.md)
+- [Attention Mechanisms Overview](Nexus/docs/02_attention_mechanisms/README.md)
+- [Next: Ring Attention](Nexus/docs/02_attention_mechanisms/ring_attention.md) (for extremely long sequences)
+- [Previous: Flash Attention](Nexus/docs/02_attention_mechanisms/flash_attention.md)

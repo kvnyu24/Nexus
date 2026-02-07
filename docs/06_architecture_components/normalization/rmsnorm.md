@@ -169,7 +169,7 @@ Notice RMSNorm skips centering!
 ## Implementation Details
 
 ### Code Location
-- **File**: `/Users/kevinyu/Projects/Nexus/nexus/components/normalization.py`
+- **File**: `Nexus/nexus/components/normalization.py`
 - **Class**: `RMSNorm`
 
 ### Basic Implementation

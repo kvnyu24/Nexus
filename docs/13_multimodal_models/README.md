@@ -53,7 +53,7 @@ Common architectural patterns across multimodal models:
 
 ## Implementation Reference
 
-All models are implemented in `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/`:
+All models are implemented in `Nexus/nexus/models/multimodal/`:
 - Modular design following NexusModule base class
 - Support for ConfigValidatorMixin and FeatureBankMixin
 - Efficient implementations with attention to memory usage

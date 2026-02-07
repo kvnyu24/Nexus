@@ -363,7 +363,7 @@ W_merged = W_base + drop_and_rescale([ΔW_task1, ΔW_task2])
 
 - **Hugging Face PEFT**: https://github.com/huggingface/peft
 - **bitsandbytes**: https://github.com/TimDettmers/bitsandbytes
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/`
+- **Nexus**: `Nexus/nexus/models/compression/peft/`
 
 ### Tutorials
 

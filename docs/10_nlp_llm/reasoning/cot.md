@@ -229,7 +229,7 @@ student_loss = cross_entropy(
 
 ### Basic Usage
 
-Reference implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/chain_of_thoughts.py`
+Reference implementation: `Nexus/nexus/models/nlp/reasoning/chain_of_thoughts.py`
 
 ```python
 from nexus.models.nlp.reasoning.chain_of_thoughts import ChainOfThoughtModule

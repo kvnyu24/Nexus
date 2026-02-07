@@ -370,7 +370,7 @@ Standard parameters (same as DQN):
 
 ### Nexus Implementation
 
-Location: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/qrdqn.py`
+Location: `Nexus/nexus/models/rl/dqn/qrdqn.py`
 
 #### Network Definition (Lines 28-100)
 
@@ -932,7 +932,7 @@ def test_quantile_loss():
 
 ### Implementations
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/qrdqn.py`
+- **Nexus**: `Nexus/nexus/models/rl/dqn/qrdqn.py`
 - **Dopamine**: [Google's QR-DQN](https://github.com/google/dopamine)
 - **Stable-Baselines3**: [SB3 QR-DQN](https://sb3-contrib.readthedocs.io/en/master/modules/qrdqn.html)
 - **CleanRL**: [Single-file implementation](https://github.com/vwxyzjn/cleanrl)

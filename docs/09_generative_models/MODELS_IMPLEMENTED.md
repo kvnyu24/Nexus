@@ -51,7 +51,7 @@ Each model documentation includes:
 
 ## Implementation Paths
 
-All implementations are in `/Users/kevinyu/Projects/Nexus/nexus/models/`:
+All implementations are in `Nexus/nexus/models/`:
 
 ```
 nexus/models/

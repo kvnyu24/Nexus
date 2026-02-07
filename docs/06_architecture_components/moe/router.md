@@ -29,7 +29,7 @@ router = ExpertRouter(
 weights, indices, aux_loss = router(hidden_states)
 ```
 
-**Code**: `/Users/kevinyu/Projects/Nexus/nexus/components/moe/router.py` - `ExpertRouter`
+**Code**: `Nexus/nexus/components/moe/router.py` - `ExpertRouter`
 
 ### 2. Expert Choice
 
@@ -49,7 +49,7 @@ expert_weights, token_indices, scores = router(hidden_states)
 
 **Benefit**: Natural load balancing, no auxiliary loss needed
 
-**Code**: `/Users/kevinyu/Projects/Nexus/nexus/components/moe/router.py` - `ExpertChoiceRouter`
+**Code**: `Nexus/nexus/components/moe/router.py` - `ExpertChoiceRouter`
 
 ### 3. Noisy Top-K
 
@@ -86,7 +86,7 @@ aux_loss = load_balance(router_logits, expert_indices)
 total_loss = task_loss + aux_loss
 ```
 
-**Code**: `/Users/kevinyu/Projects/Nexus/nexus/components/moe/router.py` - `LoadBalancingLoss`
+**Code**: `Nexus/nexus/components/moe/router.py` - `LoadBalancingLoss`
 
 ### Z-Loss
 
@@ -122,7 +122,7 @@ adjusted_logits = balancer(router_logits, expert_indices)
 
 **Benefit**: No hyperparameter tuning for loss coefficient
 
-**Code**: `/Users/kevinyu/Projects/Nexus/nexus/components/moe/router.py` - `LossFreeBalancing`
+**Code**: `Nexus/nexus/components/moe/router.py` - `LossFreeBalancing`
 
 ## Mathematical Formulation
 

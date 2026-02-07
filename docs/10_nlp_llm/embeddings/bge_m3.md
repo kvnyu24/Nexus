@@ -318,7 +318,7 @@ def _maxsim_score(self, q_emb, d_emb):
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/embeddings/bge_m3.py`
+Reference: `Nexus/nexus/models/nlp/embeddings/bge_m3.py`
 
 ### Forward Pass
 
@@ -612,7 +612,7 @@ if attention_mask is not None:
 
 ### Code & Libraries
 
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/embeddings/bge_m3.py`
+- Nexus Implementation: `Nexus/nexus/models/nlp/embeddings/bge_m3.py`
 - Official BGE: https://github.com/FlagOpen/FlagEmbedding
 - SPLADE: https://github.com/naver/splade
 - ColBERT: https://github.com/stanford-futuredata/ColBERT

@@ -1322,7 +1322,7 @@ messages = sum(
 - **DGL**: https://www.dgl.ai/
 - **Jraph (JAX)**: https://github.com/deepmind/jraph
 - **Spektral (TensorFlow)**: https://graphneural.network/
-- **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/gnn/message_passing.py`
+- **Nexus Implementation**: `Nexus/nexus/models/gnn/message_passing.py`
 
 ### Surveys and Tutorials
 

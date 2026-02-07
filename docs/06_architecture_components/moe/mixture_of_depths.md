@@ -128,7 +128,7 @@ Only 5/9 tokens processed → 44% compute savings
 ## Implementation Details
 
 ### Code Location
-- **File**: `/Users/kevinyu/Projects/Nexus/nexus/components/layers/mixture_of_depths.py`
+- **File**: `Nexus/nexus/components/layers/mixture_of_depths.py`
 - **Classes**: `MoDRouter`, `MoDBlock`
 
 ### Basic Usage

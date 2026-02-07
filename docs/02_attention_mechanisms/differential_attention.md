@@ -437,7 +437,7 @@ O = A_diff·V = (A₁ - λ·A₂)·V
 
 ### Core Implementation
 
-The reference implementation from `/Users/kevinyu/Projects/Nexus/nexus/components/attention/differential.py`:
+The reference implementation from `Nexus/nexus/components/attention/differential.py`:
 
 ```python
 class DifferentialAttention(NexusModule):
@@ -1541,9 +1541,9 @@ for epoch in range(100):
 
 ### Implementation
 
-- **Reference Code**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/differential.py`
-- **Attention Utils**: `/Users/kevinyu/Projects/Nexus/nexus/utils/attention_utils.py`
-- **Visualization**: `/Users/kevinyu/Projects/Nexus/nexus/visualization/attention.py`
+- **Reference Code**: `Nexus/nexus/components/attention/differential.py`
+- **Attention Utils**: `Nexus/nexus/utils/attention_utils.py`
+- **Visualization**: `Nexus/nexus/visualization/attention.py`
 
 ### Models Using Differential Attention
 

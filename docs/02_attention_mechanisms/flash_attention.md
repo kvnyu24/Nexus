@@ -197,7 +197,7 @@ This is mathematically equivalent to computing global max first, but done increm
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/flash_attention.py`
+See `Nexus/nexus/components/attention/flash_attention.py`
 
 Key components:
 
@@ -707,7 +707,7 @@ flash_attn = FlashAttention(...)  # Just use as-is
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/flash_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/flash_attention.py`
 - **FlashAttention-2 Extension**: Improved parallelism and work partitioning
 - **Official Repo**: [github.com/Dao-AILab/flash-attention](https://github.com/Dao-AILab/flash-attention)
 - **Triton Tutorial**: [triton-lang.org/main/getting-started/tutorials/06-fused-attention.html](https://triton-lang.org/main/getting-started/tutorials/06-fused-attention.html)

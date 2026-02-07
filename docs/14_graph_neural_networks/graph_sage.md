@@ -1225,7 +1225,7 @@ sizes = get_sample_sizes(avg_deg, num_layers=2)
 - **DGL**: https://www.dgl.ai/
 - **Original GraphSAGE**: https://github.com/williamleif/GraphSAGE
 - **PinSAGE (Industry)**: https://github.com/pinterest/pinSAGE
-- **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/gnn/graph_sage.py`
+- **Nexus Implementation**: `Nexus/nexus/models/gnn/graph_sage.py`
 
 ### Surveys
 

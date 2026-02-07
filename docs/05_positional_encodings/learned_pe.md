@@ -755,7 +755,7 @@ pos_enc = LearnedPositionalEncoding(max_seq_len=512, dim=768)
 
 ## Code from Nexus Implementation
 
-The full Nexus implementation is in `/Users/kevinyu/Projects/Nexus/nexus/components/embeddings/learned_pe.py`:
+The full Nexus implementation is in `Nexus/nexus/components/embeddings/learned_pe.py`:
 
 ```python
 """

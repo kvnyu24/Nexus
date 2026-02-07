@@ -272,9 +272,9 @@ torch.onnx.export(
 
 ## Implementation Resources
 
-- **SAM**: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/sam.py`
-- **SAM 2**: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/sam2.py`
-- **MedSAM**: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/medsam.py`
+- **SAM**: `Nexus/nexus/models/cv/sam.py`
+- **SAM 2**: `Nexus/nexus/models/cv/sam2.py`
+- **MedSAM**: `Nexus/nexus/models/cv/medsam.py`
 
 ## References
 

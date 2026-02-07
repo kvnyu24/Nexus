@@ -1149,7 +1149,7 @@ Long-range information needs multiple hops to propagate fully.
 - **PyTorch Geometric**: https://pytorch-geometric.readthedocs.io/
 - **GraphGPS**: https://github.com/rampasek/GraphGPS
 - **OGB Datasets**: https://ogb.stanford.edu/
-- **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/gnn/exphormer.py`
+- **Nexus Implementation**: `Nexus/nexus/models/gnn/exphormer.py`
 
 ### Theoretical Background
 

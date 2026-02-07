@@ -151,7 +151,7 @@ At test time, you can:
 
 ### Architecture Specifications
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/decision_transformer.py`:
+From `Nexus/nexus/models/rl/decision_transformer.py`:
 
 ```python
 config = {
@@ -622,7 +622,7 @@ timesteps = torch.clamp(timesteps, 0, max_ep_len - 1)
 - Kostrikov, I., et al. (2021). **Offline Reinforcement Learning with Implicit Q-Learning.** ICLR 2022.
 
 ### Implementation Reference
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/decision_transformer.py`
+- Nexus Implementation: `Nexus/nexus/models/rl/decision_transformer.py`
 
 ---
 

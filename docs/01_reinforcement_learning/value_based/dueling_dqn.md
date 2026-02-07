@@ -315,7 +315,7 @@ Same as DQN/Double DQN:
 
 ### Nexus Implementation
 
-Location: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/dueling_dqn.py`
+Location: `Nexus/nexus/models/rl/dqn/dueling_dqn.py`
 
 #### Network Architecture (Lines 8-40)
 
@@ -804,7 +804,7 @@ with torch.no_grad():
 
 ### Implementations
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/dueling_dqn.py`
+- **Nexus**: `Nexus/nexus/models/rl/dqn/dueling_dqn.py`
 - **Dopamine**: [Google's implementation](https://github.com/google/dopamine)
 - **Stable-Baselines3**: [SB3 DQN with dueling](https://github.com/DLR-RM/stable-baselines3)
 - **CleanRL**: [Single-file implementation](https://github.com/vwxyzjn/cleanrl)

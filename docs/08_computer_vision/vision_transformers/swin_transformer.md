@@ -190,7 +190,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/swin_transformer.py`
+Reference: `Nexus/nexus/models/cv/swin_transformer.py`
 
 ### 1. Window Partition and Reverse
 
@@ -709,7 +709,7 @@ class PatchMerging(nn.Module):
 ### Implementation
 - Official: https://github.com/microsoft/Swin-Transformer
 - timm: https://github.com/huggingface/pytorch-image-models
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/swin_transformer.py`
+- Nexus: `Nexus/nexus/models/cv/swin_transformer.py`
 
 ### Analysis
 5. **Understanding the Role of Shifted Windows**

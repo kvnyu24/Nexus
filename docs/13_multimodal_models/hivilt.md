@@ -227,7 +227,7 @@ Inputs: Image I, Text T
 
 ### 5.1 HiViLT Core Implementation
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/hivilt.py`
+Reference: `Nexus/nexus/models/multimodal/hivilt.py`
 
 ```python
 import torch
@@ -847,9 +847,9 @@ x2 = stage2(x0 + x1)
 
 ### Resources
 
-- Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/hivilt.py`
-- Vision Encoder: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/vit.py`
-- Text Encoder: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/t5.py`
+- Implementation: `Nexus/nexus/models/multimodal/hivilt.py`
+- Vision Encoder: `Nexus/nexus/models/cv/vit.py`
+- Text Encoder: `Nexus/nexus/models/nlp/t5.py`
 
 ### Benchmarks
 

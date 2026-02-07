@@ -489,7 +489,7 @@ Average: ~2.5M elements vs 67M for full!
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/chunked_prefill.py`
+See `Nexus/nexus/components/attention/chunked_prefill.py`
 
 Key components:
 
@@ -1466,7 +1466,7 @@ cache_k = cache_k[:, :, :cache_length, :]
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/chunked_prefill.py`
-- **Continuous Batching**: `/Users/kevinyu/Projects/Nexus/docs/07_inference_optimizations/10_continuous_batching.md`
-- **PagedAttention**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/paged_attention.py`
-- **Inference Optimizations**: `/Users/kevinyu/Projects/Nexus/docs/07_inference_optimizations/`
+- **Implementation**: `Nexus/nexus/components/attention/chunked_prefill.py`
+- **Continuous Batching**: `Nexus/docs/07_inference_optimizations/10_continuous_batching.md`
+- **PagedAttention**: `Nexus/nexus/components/attention/paged_attention.py`
+- **Inference Optimizations**: `Nexus/docs/07_inference_optimizations/`

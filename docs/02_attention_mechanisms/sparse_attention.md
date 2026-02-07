@@ -211,7 +211,7 @@ Sparse Attention (w=256, g=2):
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/sparse_attention.py`
+See `Nexus/nexus/components/attention/sparse_attention.py`
 
 ```python
 class SparseAttention(NexusModule):
@@ -711,7 +711,7 @@ else:
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/sparse_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/sparse_attention.py`
 - **Block-Sparse Kernels**: Triton, xFormers
 - **Longformer Repo**: [github.com/allenai/longformer](https://github.com/allenai/longformer)
 - **BigBird Repo**: [github.com/google-research/bigbird](https://github.com/google-research/bigbird)

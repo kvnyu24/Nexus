@@ -300,7 +300,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/eva02.py`
+Reference: `Nexus/nexus/models/cv/eva02.py`
 
 ### 1. 2D Rotary Position Embeddings
 
@@ -855,7 +855,7 @@ with torch.no_grad():
 
 ### Implementation
 - Official: https://github.com/baaivision/EVA
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/eva02.py`
+- Nexus: `Nexus/nexus/models/cv/eva02.py`
 - Hugging Face: https://huggingface.co/BAAI/EVA02
 
 ### Downstream Applications

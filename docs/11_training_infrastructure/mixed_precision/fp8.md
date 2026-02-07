@@ -150,7 +150,7 @@ Total GPU: 28 GB (75% savings!)
 
 ### Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/training/mixed_precision/fp8.py`
+Reference: `Nexus/nexus/training/mixed_precision/fp8.py`
 
 **FP8 Linear Layer**:
 

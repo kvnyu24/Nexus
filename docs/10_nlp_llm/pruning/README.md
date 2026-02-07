@@ -473,7 +473,7 @@ Pruning and quantization are complementary!
 
 ### Research
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/pruning/`
+- **Nexus**: `Nexus/nexus/models/compression/pruning/`
 - **SparseGPT**: https://github.com/IST-DASLab/sparsegpt
 - **Wanda**: https://github.com/locuslab/wanda
 

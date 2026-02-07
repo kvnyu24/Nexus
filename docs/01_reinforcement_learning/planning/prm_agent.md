@@ -298,7 +298,7 @@ Best of both worlds!
 
 ## 5. Implementation Details
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/prm.py`:
+From `Nexus/nexus/models/rl/prm.py`:
 
 ```python
 config = {
@@ -1180,13 +1180,13 @@ h_cache = {
 
 ### Implementation Reference
 
-- **Nexus PRM Agent**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/prm.py`
+- **Nexus PRM Agent**: `Nexus/nexus/models/rl/prm.py`
 
 ### Related Nexus Documentation
 
 - **MCTS**: `mcts.md` - Tree search for discrete spaces
 - **AlphaZero**: `alphazero.md` - Neural network-guided MCTS
-- **Process Reward Model**: `/Users/kevinyu/Projects/Nexus/docs/01_reinforcement_learning/reward_modeling/process_reward_model.md`
+- **Process Reward Model**: `Nexus/docs/01_reinforcement_learning/reward_modeling/process_reward_model.md`
 
 ---
 

@@ -386,7 +386,7 @@ With MLA: 4K context needs ~128MB → plenty of room for batching
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/mla.py`
+See `Nexus/nexus/components/attention/mla.py`
 
 Key components:
 
@@ -1274,9 +1274,9 @@ def __init__(self, d_model, num_heads, d_latent, ...):
 ## See Also
 
 **Implementation**:
-- `/Users/kevinyu/Projects/Nexus/nexus/components/attention/mla.py` - MLA implementation
-- `/Users/kevinyu/Projects/Nexus/nexus/components/attention/latent_attention.py` - Full DeepSeek-style MLA with decoupled RoPE
-- `/Users/kevinyu/Projects/Nexus/nexus/components/attention/grouped_query.py` - GQA for comparison
+- `Nexus/nexus/components/attention/mla.py` - MLA implementation
+- `Nexus/nexus/components/attention/latent_attention.py` - Full DeepSeek-style MLA with decoupled RoPE
+- `Nexus/nexus/components/attention/grouped_query.py` - GQA for comparison
 
 **Models Using MLA**:
 - DeepSeek-V2 (236B parameters, 21B active)

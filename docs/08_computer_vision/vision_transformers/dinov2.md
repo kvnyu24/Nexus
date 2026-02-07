@@ -252,7 +252,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/dinov2.py`
+Reference: `Nexus/nexus/models/cv/dinov2.py`
 
 ### 1. DINO Projection Head
 
@@ -785,7 +785,7 @@ transform = Compose([
 
 ### Implementation
 - Official: https://github.com/facebookresearch/dinov2
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/dinov2.py`
+- Nexus: `Nexus/nexus/models/cv/dinov2.py`
 - Hugging Face: https://huggingface.co/facebook/dinov2-base
 
 ### Datasets

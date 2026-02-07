@@ -315,7 +315,7 @@ def selective_scan_fwd_kernel(u, delta, A, B, C, D, out, state):
 
 ## Code Walkthrough
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/mamba.py`.
+See `Nexus/nexus/components/ssm/mamba.py`.
 
 ### Key Components
 
@@ -630,4 +630,4 @@ x_conv = self.conv(x)[:, :, :seq_len]  # Truncate to original length
 
 ---
 
-*For implementation reference, see `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/mamba.py`*
+*For implementation reference, see `Nexus/nexus/components/ssm/mamba.py`*

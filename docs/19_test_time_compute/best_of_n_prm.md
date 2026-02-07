@@ -330,7 +330,7 @@ selection = 'max'         # or 'weighted', 'majority_vote'
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/test_time/best_of_n_prm.py`:
+Implementation in `Nexus/nexus/models/test_time/best_of_n_prm.py`:
 
 ### Process Reward Model
 

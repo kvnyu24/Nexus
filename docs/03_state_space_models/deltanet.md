@@ -368,7 +368,7 @@ def forward_chunked(self, x, chunk_size=64):
 
 ## Code Walkthrough
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/deltanet.py` for full implementation.
+See `Nexus/nexus/components/ssm/deltanet.py` for full implementation.
 
 ### Key Functions
 
@@ -684,4 +684,4 @@ When implementing DeltaNet from scratch:
 
 ---
 
-*For implementation reference, see `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/deltanet.py`*
+*For implementation reference, see `Nexus/nexus/components/ssm/deltanet.py`*

@@ -286,7 +286,7 @@ Like taking a blurry photo and gradually increasing resolution.
 
 ## 5. Implementation Details
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/search/mcts.py`:
+From `Nexus/nexus/models/search/mcts.py`:
 
 ```python
 config = MCTSConfig(
@@ -1072,9 +1072,9 @@ for _ in range(K_samples):
 
 ### Implementation Reference
 
-- **Nexus MCTS**: `/Users/kevinyu/Projects/Nexus/nexus/models/search/mcts.py`
-- **MCTS Node**: `/Users/kevinyu/Projects/Nexus/nexus/models/search/mcts_node.py`
-- **MCTS Config**: `/Users/kevinyu/Projects/Nexus/nexus/models/search/mcts_config.py`
+- **Nexus MCTS**: `Nexus/nexus/models/search/mcts.py`
+- **MCTS Node**: `Nexus/nexus/models/search/mcts_node.py`
+- **MCTS Config**: `Nexus/nexus/models/search/mcts_config.py`
 
 ---
 

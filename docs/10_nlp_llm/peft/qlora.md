@@ -182,7 +182,7 @@ model = apply_qlora(model, config=config)
 
 ### NF4 Quantization Process
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/qlora.py`
+Reference: `Nexus/nexus/models/compression/peft/qlora.py`
 
 ```python
 class NF4Quantize(NexusModule):
@@ -531,7 +531,7 @@ optimizer = AdamW8bit(model.parameters(), lr=2e-4)
 
 4. **bitsandbytes Library**: https://github.com/TimDettmers/bitsandbytes
 
-5. **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/qlora.py`
+5. **Nexus Implementation**: `Nexus/nexus/models/compression/peft/qlora.py`
 
 6. **Guanaco Models**: https://huggingface.co/timdettmers/guanaco-65b
 

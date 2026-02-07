@@ -499,7 +499,7 @@ Distillation vs training from scratch (achieving 35% MMLU with 1.5B model):
 
 ### Research
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/distillation/`
+- **Nexus**: `Nexus/nexus/models/compression/distillation/`
 - **MiniLLM**: https://github.com/microsoft/LMOps/tree/main/minillm
 - **Distilling Step-by-Step**: https://github.com/google-research/distilling-step-by-step
 

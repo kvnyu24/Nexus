@@ -317,8 +317,8 @@ Using RM in RLHF for summarization:
 
 ## Code Locations
 
-- **Enhanced RM**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/preference/reward_model.py`
-- **PRM**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/reward_models/process_reward_model.py`
+- **Enhanced RM**: `Nexus/nexus/models/rl/preference/reward_model.py`
+- **PRM**: `Nexus/nexus/models/rl/reward_models/process_reward_model.py`
 - **ORM**: Included in PRM file as `OutcomeRewardModel`
 
 ## References

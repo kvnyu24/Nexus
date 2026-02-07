@@ -175,7 +175,7 @@ After merging, the adapted model is indistinguishable from a fully fine-tuned mo
 
 ### LoRALinear Implementation
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/lora.py`
+Reference: `Nexus/nexus/models/compression/peft/lora.py`
 
 ```python
 class LoRALinear(NexusModule):
@@ -449,7 +449,7 @@ target_modules=['.*q_proj', '.*v_proj']  # Matches any q_proj, v_proj
 
 3. **Implementation**: Hugging Face PEFT library: https://github.com/huggingface/peft
 
-4. **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/lora.py`
+4. **Nexus Implementation**: `Nexus/nexus/models/compression/peft/lora.py`
 
 5. **Related Work**:
    - Adapter Layers (Houlsby et al., 2019): https://arxiv.org/abs/1902.00751

@@ -226,7 +226,7 @@ For episode = 1 to M:
 
 ### Nexus Implementation
 
-Location: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/dqn.py`
+Location: `Nexus/nexus/models/rl/dqn/dqn.py`
 
 #### Network Definition (Lines 8-20)
 
@@ -329,7 +329,7 @@ Hard update: Completely copy weights from online to target network. Called every
 
 ### Complete Training Example
 
-Location: `/Users/kevinyu/Projects/Nexus/examples/rl/train_dqn.py`
+Location: `Nexus/examples/rl/train_dqn.py`
 
 ```python
 import gym

@@ -187,7 +187,7 @@ Output: "The 2023 Nobel Prize in Physics was awarded to Pierre Agostini, Ferenc 
 
 ### Reflection Token Architecture
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/self_rag.py`
+Reference: `Nexus/nexus/models/nlp/rag/self_rag.py`
 
 ```python
 class ReflectionTokens(NexusModule):

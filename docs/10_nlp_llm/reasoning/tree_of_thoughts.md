@@ -182,7 +182,7 @@ Score (0.0 to 1.0):"""
 
 ### Basic ToT Implementation
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/tree_of_thoughts.py`
+Reference: `Nexus/nexus/models/nlp/reasoning/tree_of_thoughts.py`
 
 ```python
 from nexus.models.nlp.reasoning.tree_of_thoughts import TreeOfThoughts

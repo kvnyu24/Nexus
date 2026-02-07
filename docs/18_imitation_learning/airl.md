@@ -239,7 +239,7 @@ reward_weight_decay = 1e-4
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/imitation/airl.py`:
+Implementation in `Nexus/nexus/models/imitation/airl.py`:
 
 ### Reward Network
 

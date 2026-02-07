@@ -215,7 +215,7 @@ This is smoother than hard updates every N steps.
 
 ### Nexus Implementation
 
-Location: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/ddqn.py`
+Location: `Nexus/nexus/models/rl/dqn/ddqn.py`
 
 #### Network Definition (Lines 8-20)
 
@@ -634,7 +634,7 @@ print(f"Overestimation: {q_val - np.mean(true_returns):.2f}")
 
 ### Code Implementations
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/ddqn.py`
+- **Nexus**: `Nexus/nexus/models/rl/dqn/ddqn.py`
 - **Dopamine**: [dopamine/agents/dqn/dqn_agent.py](https://github.com/google/dopamine/blob/master/dopamine/agents/dqn/dqn_agent.py)
 - **Stable-Baselines3**: [DQN with Double Q-learning](https://stable-baselines3.readthedocs.io/en/master/modules/dqn.html)
 

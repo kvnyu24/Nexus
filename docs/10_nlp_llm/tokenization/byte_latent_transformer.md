@@ -355,7 +355,7 @@ class LocalByteDecoder(nn.Module):
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/tokenization/byte_latent_transformer.py`
+Reference: `Nexus/nexus/models/nlp/tokenization/byte_latent_transformer.py`
 
 ### Main BLT Forward Pass
 
@@ -663,7 +663,7 @@ patch_embedding = hidden_states.mean(dim=1)
 
 ### Code References
 
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/tokenization/byte_latent_transformer.py`
+- Nexus Implementation: `Nexus/nexus/models/nlp/tokenization/byte_latent_transformer.py`
 - Meta BLT: https://github.com/facebookresearch/blt (if released)
 
 ### Concepts

@@ -1140,7 +1140,7 @@ if isolated > 0:
 - **PyTorch Geometric**: https://pytorch-geometric.readthedocs.io/
 - **DGL**: https://www.dgl.ai/
 - **Original GATv2 Code**: https://github.com/tech-srl/how_attentive_are_gats
-- **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/gnn/gatv2.py`
+- **Nexus Implementation**: `Nexus/nexus/models/gnn/gatv2.py`
 
 ### Related Work
 

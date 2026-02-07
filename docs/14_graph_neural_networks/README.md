@@ -125,7 +125,7 @@ Legend:
 
 ## Implementation Reference
 
-All models implemented in `/Users/kevinyu/Projects/Nexus/nexus/models/gnn/`:
+All models implemented in `Nexus/nexus/models/gnn/`:
 - Modular design with shared components
 - Support for batched graph processing
 - Integration with PyTorch Geometric conventions

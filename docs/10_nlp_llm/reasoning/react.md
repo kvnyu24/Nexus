@@ -379,7 +379,7 @@ class ReActState:
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/react.py`
+Reference: `Nexus/nexus/models/nlp/reasoning/react.py`
 
 ### Basic Usage
 

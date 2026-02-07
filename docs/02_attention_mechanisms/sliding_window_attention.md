@@ -260,7 +260,7 @@ Note: Window maintains constant size (4), slides with position
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/sliding_window.py`
+See `Nexus/nexus/components/attention/sliding_window.py`
 
 ```python
 class SlidingWindowAttention(NexusModule):
@@ -1178,8 +1178,8 @@ for layer in range(32):
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/sliding_window.py`
-- **Example Model**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/longformer.py`
+- **Implementation**: `Nexus/nexus/components/attention/sliding_window.py`
+- **Example Model**: `Nexus/nexus/models/nlp/longformer.py`
 - **Position Encodings**: See `docs/05_positional_encodings/` for RoPE and other position methods
 - **Mistral Documentation**: Official Mistral 7B model card and benchmarks
 - **Longformer GitHub**: [github.com/allenai/longformer](https://github.com/allenai/longformer)

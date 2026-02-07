@@ -291,7 +291,7 @@ Note: Masks must be transformed consistently with images (flip, resize, etc.).
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/cv/rcnn/mask_rcnn.py`.
+Implementation in `Nexus/nexus/models/cv/rcnn/mask_rcnn.py`.
 
 ### Mask Head
 
@@ -795,7 +795,7 @@ for idx in sorted_indices:
 - MMDetection: https://github.com/open-mmlab/mmdetection
 - TorchVision: https://pytorch.org/vision/stable/models.html#mask-r-cnn
 - Original Detectron: https://github.com/facebookresearch/Detectron
-- Local: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/rcnn/mask_rcnn.py`
+- Local: `Nexus/nexus/models/cv/rcnn/mask_rcnn.py`
 
 ### Applications
 

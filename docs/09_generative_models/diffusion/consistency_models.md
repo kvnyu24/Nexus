@@ -1022,7 +1022,7 @@ for steps in [1, 2, 4, 8]:
 
 **Nexus Implementation**:
 ```
-/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/consistency_model.py
+Nexus/nexus/models/diffusion/consistency_model.py
 ```
 
 ### Applications
@@ -1045,6 +1045,6 @@ for steps in [1, 2, 4, 8]:
 ---
 
 **Status**: ✅ Complete
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/consistency_model.py` (754 lines)
+**Implementation**: `Nexus/nexus/models/diffusion/consistency_model.py` (754 lines)
 **Key Innovation**: Single-step generation via self-consistency property
 **Performance**: 400x speedup vs DDPM, near-parity quality with 2-4 steps

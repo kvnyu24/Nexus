@@ -411,7 +411,7 @@ Warp specialization: Different warps do different things
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/flash_attention_3.py`
+See `Nexus/nexus/components/attention/flash_attention_3.py`
 
 **High-Level Structure**:
 ```python
@@ -1399,7 +1399,7 @@ print(f"Time: {avg_time:.2f} ± {std_time:.2f} ms")
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/flash_attention_3.py`
+- **Implementation**: `Nexus/nexus/components/attention/flash_attention_3.py`
 - **Hardware Guide**: NVIDIA H100 documentation
 - **Training Scripts**: Use FlashAttention-3 in production training pipelines
 - **Inference**: Consider PagedAttention for serving workloads

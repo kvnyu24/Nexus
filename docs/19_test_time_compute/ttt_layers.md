@@ -244,7 +244,7 @@ Where:
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/test_time/ttt_layers.py`:
+Implementation in `Nexus/nexus/models/test_time/ttt_layers.py`:
 
 ### Linear TTT Model
 

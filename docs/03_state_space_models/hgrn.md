@@ -307,7 +307,7 @@ def forward_recurrent(self, x, state):
 
 ## Code Walkthrough
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/hgrn.py` for full implementation.
+See `Nexus/nexus/components/ssm/hgrn.py` for full implementation.
 
 ### Key Functions
 
@@ -620,4 +620,4 @@ When implementing HGRN from scratch:
 
 ---
 
-*For implementation reference, see `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/hgrn.py`*
+*For implementation reference, see `Nexus/nexus/components/ssm/hgrn.py`*

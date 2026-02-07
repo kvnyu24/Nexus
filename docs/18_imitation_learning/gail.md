@@ -263,7 +263,7 @@ policy_labels = torch.ones_like(logits) * 0.1
 
 ### Discriminator Implementation
 
-The discriminator is implemented in `/Users/kevinyu/Projects/Nexus/nexus/models/imitation/gail.py`:
+The discriminator is implemented in `Nexus/nexus/models/imitation/gail.py`:
 
 ```python
 class GAILDiscriminator(NexusModule):

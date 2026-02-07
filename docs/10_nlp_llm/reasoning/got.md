@@ -411,7 +411,7 @@ Score (0.0-1.0):"""
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/graph_of_thoughts.py`
+Reference: `Nexus/nexus/models/nlp/reasoning/graph_of_thoughts.py`
 
 ### Basic Usage
 

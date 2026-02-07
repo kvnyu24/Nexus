@@ -282,7 +282,7 @@ def compute_kernel_fast(self, L):
 
 ## Code Walkthrough
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/s4d.py` for full implementation.
+See `Nexus/nexus/components/ssm/s4d.py` for full implementation.
 
 ### Key Functions
 
@@ -665,4 +665,4 @@ When implementing S4D from scratch:
 
 ---
 
-*For implementation reference, see `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/s4d.py`*
+*For implementation reference, see `Nexus/nexus/components/ssm/s4d.py`*

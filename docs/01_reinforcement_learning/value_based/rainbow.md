@@ -349,7 +349,7 @@ Higher KL → More surprising → Higher priority.
 
 ### Nexus Implementation
 
-Location: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/rainbow.py`
+Location: `Nexus/nexus/models/rl/dqn/rainbow.py`
 
 #### Noisy Linear Layer (Lines 36-118)
 
@@ -998,7 +998,7 @@ print(f"Current: {current / 1e6:.1f} MB, Peak: {peak / 1e6:.1f} MB")
 
 ### Implementations
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/dqn/rainbow.py`
+- **Nexus**: `Nexus/nexus/models/rl/dqn/rainbow.py`
 - **Dopamine** (Official): [Google's implementation](https://github.com/google/dopamine)
 - **Stable-Baselines3**: [SB3-Contrib Rainbow](https://github.com/Stable-Baselines-Team/stable-baselines3-contrib)
 - **CleanRL**: [Single-file Rainbow](https://github.com/vwxyzjn/cleanrl)

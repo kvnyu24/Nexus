@@ -35,7 +35,7 @@ Sequential reasoning that breaks down complex problems into intermediate steps. 
 - Simple prompting technique
 - 40%+ accuracy gains on GSM8K
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/chain_of_thoughts.py`
+**Implementation**: `Nexus/nexus/models/nlp/chain_of_thoughts.py`
 
 ---
 
@@ -50,7 +50,7 @@ Explores multiple reasoning paths in a tree structure with BFS/DFS search.
 - Thought evaluation and pruning
 - 74% accuracy on Game of 24
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/tree_of_thoughts.py`
+**Implementation**: `Nexus/nexus/models/nlp/reasoning/tree_of_thoughts.py`
 
 ---
 
@@ -65,7 +65,7 @@ Arbitrary graph structures over thoughts with operations: Generate, Aggregate, R
 - Iterative refinement loops
 - 62% accuracy on sorting tasks
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/graph_of_thoughts.py`
+**Implementation**: `Nexus/nexus/models/nlp/reasoning/graph_of_thoughts.py`
 
 ---
 
@@ -80,7 +80,7 @@ Samples multiple CoT paths and aggregates via majority voting.
 - +16.7% gain on GSM8K
 - Temperature-based diversity
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/self_consistency.py`
+**Implementation**: `Nexus/nexus/models/nlp/reasoning/self_consistency.py`
 
 ---
 
@@ -95,7 +95,7 @@ Interleaves reasoning (Thought) and acting (Action) with tool use.
 - Reduces hallucination
 - +44% gain on ALFWorld
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/react.py`
+**Implementation**: `Nexus/nexus/models/nlp/reasoning/react.py`
 
 ---
 
@@ -112,7 +112,7 @@ Adaptive retrieval with self-reflection tokens for quality control.
 - [Retrieve], [IsRelevant], [IsSupported], [IsUseful]
 - +20.9% gain on PopQA
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/self_rag.py`
+**Implementation**: `Nexus/nexus/models/nlp/rag/self_rag.py`
 
 ---
 
@@ -127,7 +127,7 @@ Evaluates retrieval quality and takes corrective action.
 - Web search fallback
 - +15.2% gain on PubHealth
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/crag.py`
+**Implementation**: `Nexus/nexus/models/nlp/rag/crag.py`
 
 ---
 
@@ -142,7 +142,7 @@ Knowledge graph-based retrieval with community detection.
 - Community pre-summarization
 - Excels at global sensemaking queries
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/graph_rag.py`
+**Implementation**: `Nexus/nexus/models/nlp/rag/graph_rag.py`
 
 ---
 
@@ -157,7 +157,7 @@ Hierarchical tree-based retrieval via recursive clustering and summarization.
 - Recursive summarization
 - +8.5% gain on QuALITY
 
-**Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/raptor.py`
+**Implementation**: `Nexus/nexus/models/nlp/rag/raptor.py`
 
 ---
 

@@ -324,7 +324,7 @@ best = select_best(samples)
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/test_time/compute_optimal_scaling.py`:
+Implementation in `Nexus/nexus/models/test_time/compute_optimal_scaling.py`:
 
 ### Scaling Law Estimator
 

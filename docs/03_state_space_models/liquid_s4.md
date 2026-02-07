@@ -293,7 +293,7 @@ class JointModulator(nn.Module):
 
 ## Code Walkthrough
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/liquid_s4.py` for full implementation.
+See `Nexus/nexus/components/ssm/liquid_s4.py` for full implementation.
 
 ### Key Functions
 
@@ -598,4 +598,4 @@ When implementing Liquid-S4 from scratch:
 
 ---
 
-*For implementation reference, see `/Users/kevinyu/Projects/Nexus/nexus/components/ssm/liquid_s4.py`*
+*For implementation reference, see `Nexus/nexus/components/ssm/liquid_s4.py`*

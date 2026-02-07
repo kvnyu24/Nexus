@@ -881,7 +881,7 @@ PPO or SAC base algorithm
 
 ## Contributing
 
-See implementation files in `/Users/kevinyu/Projects/Nexus/nexus/models/rl/`
+See implementation files in `Nexus/nexus/models/rl/`
 
 Each method includes:
 - Clean PyTorch implementation

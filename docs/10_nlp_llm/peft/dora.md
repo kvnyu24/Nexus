@@ -148,7 +148,7 @@ model = apply_dora(model, config=config)
 
 ### DoRA Forward Pass
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/dora.py`
+Reference: `Nexus/nexus/models/compression/peft/dora.py`
 
 ```python
 class DoRALinear(NexusModule):
@@ -509,7 +509,7 @@ model = quantize_model(model, bits=4)  # May quantize DoRA params!
 
 4. **Normalization in Neural Networks**: Ba, J. L., et al. "Layer Normalization." arXiv 2016.
 
-5. **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/dora.py`
+5. **Nexus Implementation**: `Nexus/nexus/models/compression/peft/dora.py`
 
 ## See Also
 

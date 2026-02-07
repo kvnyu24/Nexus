@@ -150,7 +150,7 @@ E4 processes tok3, tok4
 ## Implementation Details
 
 ### Code Location
-- **File**: `/Users/kevinyu/Projects/Nexus/nexus/components/moe/expert.py`
+- **File**: `Nexus/nexus/components/moe/expert.py`
 - **Classes**: `MoELayer`, `ExpertLayer`, `SharedExpert`
 
 ### Key Parameters

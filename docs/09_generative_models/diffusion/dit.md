@@ -1137,7 +1137,7 @@ def unpatchify(self, x):
 
 **Nexus Implementation**:
 ```
-/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/dit.py
+Nexus/nexus/models/diffusion/dit.py
 ```
 
 ### Follow-up Work
@@ -1189,7 +1189,7 @@ def unpatchify(self, x):
 
 **Implementation Status**: ✅ Complete
 **Documentation**: ✅ Complete
-**File**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/dit.py`
-**Tests**: Available in `/Users/kevinyu/Projects/Nexus/tests/`
+**File**: `Nexus/nexus/models/diffusion/dit.py`
+**Tests**: Available in `Nexus/tests/`
 
 For questions or contributions, see the main generative models README.

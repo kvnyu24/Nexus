@@ -181,7 +181,7 @@ With scaling:
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/multi_head_attention.py`
+See `Nexus/nexus/components/attention/multi_head_attention.py`
 
 Key components:
 
@@ -601,6 +601,6 @@ for i in range(seq_len):
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/multi_head_attention.py`
-- **Base Class**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/base_attention.py`
-- **Tests**: `/Users/kevinyu/Projects/Nexus/tests/components/attention/test_multi_head_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/multi_head_attention.py`
+- **Base Class**: `Nexus/nexus/components/attention/base_attention.py`
+- **Tests**: `Nexus/tests/components/attention/test_multi_head_attention.py`

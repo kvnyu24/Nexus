@@ -418,7 +418,7 @@ torch.use_deterministic_algorithms(True)
 
 ### Research
 
-- **Nexus**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/quantization/`
+- **Nexus**: `Nexus/nexus/models/compression/quantization/`
 - **QuIP**: https://github.com/Cornell-RelaxML/quip-sharp
 - **AWQ**: https://github.com/mit-han-lab/llm-awq
 

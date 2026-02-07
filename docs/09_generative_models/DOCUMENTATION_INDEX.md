@@ -286,7 +286,7 @@ While individual docs are not yet created for every model, the comprehensive cat
 
 ## Model Implementation Status
 
-All models have working implementations in `/Users/kevinyu/Projects/Nexus/nexus/models/`:
+All models have working implementations in `Nexus/nexus/models/`:
 
 ### Diffusion Models ✅
 - base_diffusion.py

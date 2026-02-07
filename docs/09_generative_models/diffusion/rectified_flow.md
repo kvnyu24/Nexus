@@ -711,11 +711,11 @@ if straightness_improvement < 2.0:
 
 **Nexus Implementation**:
 ```
-/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/rectified_flow.py
+Nexus/nexus/models/diffusion/rectified_flow.py
 ```
 
 ---
 
 **Status**: ✅ Complete
-**File**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/rectified_flow.py`
+**File**: `Nexus/nexus/models/diffusion/rectified_flow.py`
 **Powers**: Stable Diffusion 3, FLUX

@@ -175,9 +175,9 @@ Normalized scores (higher is better):
 
 All implementations are in the Nexus repository:
 
-- **Decision Transformer**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/decision_transformer.py`
-- **Elastic DT**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/sequence/edt.py`
-- **Utilities**: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/sequence/__init__.py`
+- **Decision Transformer**: `Nexus/nexus/models/rl/decision_transformer.py`
+- **Elastic DT**: `Nexus/nexus/models/rl/sequence/edt.py`
+- **Utilities**: `Nexus/nexus/models/rl/sequence/__init__.py`
 
 ## Getting Help
 

@@ -189,7 +189,7 @@ Think of attention heads as a team:
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/grouped_query.py`
+See `Nexus/nexus/components/attention/grouped_query.py`
 
 ```python
 class GroupedQueryAttention(NexusModule):
@@ -515,6 +515,6 @@ past_key_value = (key_states, value_states)  # Before repetition!
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/grouped_query.py`
+- **Implementation**: `Nexus/nexus/components/attention/grouped_query.py`
 - **Models Using GQA**: Llama 2, Llama 3, Mistral, Qwen, Gemma, Yi, DeepSeek
 - **Production Stacks**: vLLM, TGI, TensorRT-LLM all optimize for GQA

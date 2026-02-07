@@ -138,7 +138,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/vit.py`
+Reference: `Nexus/nexus/models/cv/vit.py`
 
 ### 1. Patch Embedding
 
@@ -524,4 +524,4 @@ config = {"num_layers": 24, "layer_scale_init_value": 1e-6}
 ### Implementation
 - Official: https://github.com/google-research/vision_transformer
 - timm: https://github.com/huggingface/pytorch-image-models
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/vit.py`
+- Nexus: `Nexus/nexus/models/cv/vit.py`

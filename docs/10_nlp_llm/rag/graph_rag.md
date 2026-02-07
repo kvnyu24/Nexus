@@ -347,7 +347,7 @@ Generate answer from top-3 summaries:
 
 ### Architecture Components
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/graph_rag.py`
+Reference: `Nexus/nexus/models/nlp/rag/graph_rag.py`
 
 GraphRAG consists of:
 

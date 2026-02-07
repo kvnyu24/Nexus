@@ -335,7 +335,7 @@ robes, a cauldron, and his owl Hedwig."
 
 ### Architecture Components
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/raptor.py`
+Reference: `Nexus/nexus/models/nlp/rag/raptor.py`
 
 RAPTOR consists of:
 

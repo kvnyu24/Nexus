@@ -13,7 +13,7 @@ This supports more expressive reasoning patterns like merging parallel chains, i
 
 ## Operations
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/graph_of_thoughts.py`
+Reference: `Nexus/nexus/models/nlp/reasoning/graph_of_thoughts.py`
 
 ### 1. Generate Operation
 

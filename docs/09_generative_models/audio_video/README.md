@@ -410,4 +410,4 @@ nexus/models/
 
 ---
 
-*Implementations in `/Users/kevinyu/Projects/Nexus/nexus/models/video/` and `/Users/kevinyu/Projects/Nexus/nexus/models/audio/`*
+*Implementations in `Nexus/nexus/models/video/` and `Nexus/nexus/models/audio/`*

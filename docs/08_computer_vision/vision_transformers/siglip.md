@@ -230,7 +230,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/siglip.py`
+Reference: `Nexus/nexus/models/cv/siglip.py`
 
 ### 1. Vision Encoder
 
@@ -763,7 +763,7 @@ text_features = self.text_encoder(input_ids, attention_mask)
 
 ### Implementation
 - Official: https://github.com/google-research/big_vision
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/siglip.py`
+- Nexus: `Nexus/nexus/models/cv/siglip.py`
 - Hugging Face: https://huggingface.co/google/siglip-base-patch16-224
 
 ### Datasets

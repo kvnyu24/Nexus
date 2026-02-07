@@ -182,7 +182,7 @@ Attention complexity: O(K²)
 
 ### Architecture Modifications
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/sequence/edt.py`:
+From `Nexus/nexus/models/rl/sequence/edt.py`:
 
 ```python
 config = {
@@ -722,7 +722,7 @@ if K < seq_len:
 - Tay, Y., et al. (2020). **Efficient Transformers: A Survey.** ArXiv.
 
 ### Implementation Reference
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/sequence/edt.py`
+- Nexus Implementation: `Nexus/nexus/models/rl/sequence/edt.py`
 
 ---
 

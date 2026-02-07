@@ -765,10 +765,10 @@ v = network(x, t)
 
 **Nexus Implementation**:
 ```
-/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/flow_matching.py
+Nexus/nexus/models/diffusion/flow_matching.py
 ```
 
 ---
 
 **Status**: ✅ Complete
-**File**: `/Users/kevinyu/Projects/Nexus/nexus/models/diffusion/flow_matching.py`
+**File**: `Nexus/nexus/models/diffusion/flow_matching.py`

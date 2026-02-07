@@ -385,7 +385,7 @@ class MambaByte(NexusModule):
 
 ## 6. Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/tokenization/mambabyte.py`
+Reference: `Nexus/nexus/models/nlp/tokenization/mambabyte.py`
 
 ### Key Components
 
@@ -654,7 +654,7 @@ bytes = text.encode('utf-8')  # Handles all Unicode
 
 ### Code & Resources
 
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/tokenization/mambabyte.py`
+- Nexus Implementation: `Nexus/nexus/models/nlp/tokenization/mambabyte.py`
 - Mamba Official: https://github.com/state-spaces/mamba
 - MambaByte: https://github.com/lucidrains/mambabyte-pytorch (community)
 

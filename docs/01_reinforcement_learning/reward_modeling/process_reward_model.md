@@ -215,7 +215,7 @@ Just as Q-learning learns state-action values, PRM learns step values.
 
 ## 5. Implementation Details
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/reward_models/process_reward_model.py`:
+From `Nexus/nexus/models/rl/reward_models/process_reward_model.py`:
 
 ```python
 config = {
@@ -754,7 +754,7 @@ hard_negatives = find_plausible_but_wrong_steps(dataset)
 - Huang, W., et al. (2022). **Language Models as Zero-Shot Planners.** ArXiv.
 
 ### Implementation Reference
-- Nexus Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/reward_models/process_reward_model.py`
+- Nexus Implementation: `Nexus/nexus/models/rl/reward_models/process_reward_model.py`
 
 ---
 

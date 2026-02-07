@@ -1376,7 +1376,7 @@ except:
   - Practical examples and best practices
   - Prompt templates
 
-- **Nexus Implementation:** `/Users/kevinyu/Projects/Nexus/nexus/models/rl/reward_modeling/`
+- **Nexus Implementation:** `Nexus/nexus/models/rl/reward_modeling/`
   - Placeholder for future GRM implementation
   - Integration with existing reward modeling infrastructure
 

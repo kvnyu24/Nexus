@@ -139,7 +139,7 @@ MCTS typically improves play by 200-400 Elo over raw neural network.
 
 ## 5. Implementation Details
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/alphazero.py`:
+From `Nexus/nexus/models/rl/alphazero.py`:
 
 ```python
 config = {
@@ -452,7 +452,7 @@ Different strategies for opening/midgame/endgame.
 - Schrittwieser, J., et al. (2020). **Mastering Atari, Go, Chess and Shogi by Planning with a Learned Model.** Nature. (MuZero)
 
 ### Implementation
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/rl/alphazero.py`
+- Nexus: `Nexus/nexus/models/rl/alphazero.py`
 
 ---
 

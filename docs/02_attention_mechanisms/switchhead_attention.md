@@ -394,7 +394,7 @@ SwitchHead:
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/switch_attention.py`
+See `Nexus/nexus/components/attention/switch_attention.py`
 
 Key architecture components shown in ASCII diagram:
 
@@ -1215,9 +1215,9 @@ large_model = SwitchHeadAttention(
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/switch_attention.py`
-- **MoE Routing**: `/Users/kevinyu/Projects/Nexus/nexus/models/moe/gating.py`
-- **MoE Expert Layers**: `/Users/kevinyu/Projects/Nexus/nexus/models/moe/expert_layer.py`
+- **Implementation**: `Nexus/nexus/components/attention/switch_attention.py`
+- **MoE Routing**: `Nexus/nexus/models/moe/gating.py`
+- **MoE Expert Layers**: `Nexus/nexus/models/moe/expert_layer.py`
 - **Production Libraries**:
   - DeepSpeed-MoE: [github.com/microsoft/DeepSpeed](https://github.com/microsoft/DeepSpeed)
   - FairScale MoE: [github.com/facebookresearch/fairscale](https://github.com/facebookresearch/fairscale)

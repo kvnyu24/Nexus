@@ -386,7 +386,7 @@ This allows model to adapt to real image distribution.
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/cv/yolov10.py`.
+Implementation in `Nexus/nexus/models/cv/yolov10.py`.
 
 ### Decoupled Downsampling
 
@@ -1072,7 +1072,7 @@ if epoch < warmup_epochs:
 - Official PyTorch implementation: https://github.com/THU-MIG/yolov10
 - Ultralytics integration: https://github.com/ultralytics/ultralytics
 - ONNX export: https://github.com/THU-MIG/yolov10/blob/main/docs/export.md
-- Local implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/yolov10.py`
+- Local implementation: `Nexus/nexus/models/cv/yolov10.py`
 
 ### Deployment Resources
 

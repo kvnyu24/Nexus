@@ -233,7 +233,7 @@ model, metrics = quantizer.quantize_model(
 
 ### QuantizedLinear Layer
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/quantization/gptq.py`
+Reference: `Nexus/nexus/models/compression/quantization/gptq.py`
 
 ```python
 class QuantizedLinear(nn.Module):
@@ -544,7 +544,7 @@ x = x.to(torch.float16)  # Match dequantized weight dtype
 
 4. **exllama/exllamav2**: Fast INT4 inference kernels for GPTQ models.
 
-5. **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/quantization/gptq.py`
+5. **Nexus Implementation**: `Nexus/nexus/models/compression/quantization/gptq.py`
 
 ## See Also
 

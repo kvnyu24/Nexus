@@ -937,7 +937,7 @@ bias = RelativePositionalBias(
 
 ## Code from Nexus Implementation
 
-Full implementation at `/Users/kevinyu/Projects/Nexus/nexus/components/embeddings/relative_bias.py`:
+Full implementation at `Nexus/nexus/components/embeddings/relative_bias.py`:
 
 ```python
 """

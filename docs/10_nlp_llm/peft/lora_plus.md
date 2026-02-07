@@ -265,7 +265,7 @@ The scheduler scales both learning rates while maintaining the ratio.
 
 ### LoRAPlusLinear Implementation
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/lora_plus.py`
+Reference: `Nexus/nexus/models/compression/peft/lora_plus.py`
 
 ```python
 class LoRAPlusLinear(NexusModule):
@@ -692,7 +692,7 @@ warmup_scheduler = LinearLR(optimizer, start_factor=0.1, total_iters=500)
 
 5. **Learning Rate Schedules**: Loshchilov, I., & Hutter, F. "SGDR: Stochastic Gradient Descent with Warm Restarts." ICLR 2017.
 
-6. **Nexus Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/models/compression/peft/lora_plus.py`
+6. **Nexus Implementation**: `Nexus/nexus/models/compression/peft/lora_plus.py`
 
 7. **Parameter Groups in PyTorch**: https://pytorch.org/docs/stable/optim.html#per-parameter-options
 

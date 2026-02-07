@@ -361,7 +361,7 @@ COCO_SKELETON = [
 
 ## Code Walkthrough
 
-Implementation in `/Users/kevinyu/Projects/Nexus/nexus/models/cv/rcnn/keypoint_rcnn.py`.
+Implementation in `Nexus/nexus/models/cv/rcnn/keypoint_rcnn.py`.
 
 ### Keypoint Head
 
@@ -964,7 +964,7 @@ oks = exp(-d**2 / (2 * s**2 * kappa**2))
 - Detectron2: https://github.com/facebookresearch/detectron2
 - MMPose: https://github.com/open-mmlab/mmpose
 - PyTorch Keypoint R-CNN: https://pytorch.org/vision/stable/models.html#keypoint-r-cnn
-- Local: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/rcnn/keypoint_rcnn.py`
+- Local: `Nexus/nexus/models/cv/rcnn/keypoint_rcnn.py`
 
 ### Applications
 

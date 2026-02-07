@@ -139,7 +139,7 @@ DeepSeek MoE: All tokens get baseline (shared), routing adds specialized capacit
 ## Implementation Details
 
 ### Code Location
-- **File**: `/Users/kevinyu/Projects/Nexus/nexus/components/moe/deepseek_moe.py`
+- **File**: `Nexus/nexus/components/moe/deepseek_moe.py`
 - **Classes**: `DeepSeekMoELayer`, `FineGrainedExpert`, `DeepSeekMoE`
 
 ### Key Configuration

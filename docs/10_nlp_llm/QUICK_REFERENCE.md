@@ -327,12 +327,12 @@ config = {
 ## File Locations
 
 **Code Implementations**:
-- Reasoning: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/`
-- RAG: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/`
+- Reasoning: `Nexus/nexus/models/nlp/reasoning/`
+- RAG: `Nexus/nexus/models/nlp/rag/`
 
 **Documentation**:
-- Reasoning: `/Users/kevinyu/Projects/Nexus/docs/10_nlp_llm/reasoning/`
-- RAG: `/Users/kevinyu/Projects/Nexus/docs/10_nlp_llm/rag/`
+- Reasoning: `Nexus/docs/10_nlp_llm/reasoning/`
+- RAG: `Nexus/docs/10_nlp_llm/rag/`
 
 **Usage Examples**:
 - See individual method documentation for detailed examples

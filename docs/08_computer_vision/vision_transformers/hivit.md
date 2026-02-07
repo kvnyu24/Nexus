@@ -218,7 +218,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/hivit/hivit.py`
+Reference: `Nexus/nexus/models/cv/hivit/hivit.py`
 
 ### 1. Hierarchical Patch Embedding
 
@@ -794,5 +794,5 @@ final = sum(w * f for w, f in zip(weights, scale_features))
    Wang, L., et al., 2022
 
 ### Implementation
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/hivit/hivit.py`
+- Nexus: `Nexus/nexus/models/cv/hivit/hivit.py`
 - timm: https://github.com/huggingface/pytorch-image-models (partial support)

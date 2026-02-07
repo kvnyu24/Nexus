@@ -237,7 +237,7 @@ Many modern approaches combine multiple techniques:
 
 ## Implementation Notes
 
-All implementations are located in `/Users/kevinyu/Projects/Nexus/nexus/components/embeddings/`:
+All implementations are located in `Nexus/nexus/components/embeddings/`:
 
 - `sinusoidal.py`: Sinusoidal positional encoding
 - `learned_pe.py`: Learned absolute positional embeddings

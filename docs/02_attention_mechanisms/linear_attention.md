@@ -437,7 +437,7 @@ If your attention patterns look like:
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/linear_attention.py`
+See `Nexus/nexus/components/attention/linear_attention.py`
 
 Key components:
 
@@ -1491,11 +1491,11 @@ print(f"Linear: {benchmark_attention(linear, x):.2f} ms")
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/linear_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/linear_attention.py`
 - **FAVOR+ Implementation**: Same file, `FAVORPlusAttention` class
 - **Causal Linear Attention**: `CausalLinearAttention` wrapper
-- **Benchmark Scripts**: `/Users/kevinyu/Projects/Nexus/benchmarks/attention/`
-- **Tutorial Notebooks**: `/Users/kevinyu/Projects/Nexus/examples/attention/linear_attention.ipynb`
+- **Benchmark Scripts**: `Nexus/benchmarks/attention/`
+- **Tutorial Notebooks**: `Nexus/examples/attention/linear_attention.ipynb`
 
 ### Key Takeaways
 

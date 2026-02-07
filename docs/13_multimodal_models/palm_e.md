@@ -255,7 +255,7 @@ Inputs: Images, Robot State, Language Instructions
 
 ### 5.1 PaLM-E Core Implementation
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/palm_e.py`
+Reference: `Nexus/nexus/models/multimodal/palm_e.py`
 
 ```python
 import torch
@@ -903,14 +903,14 @@ else:
 
 ### Resources
 
-- Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/palm_e.py`
+- Implementation: `Nexus/nexus/models/multimodal/palm_e.py`
 - Google Research Blog: https://ai.googleblog.com/
 
 ### Related Models
 
-- **NVLM**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/nvlm.py`
-- **HiViLT**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/hivilt.py`
-- **Qwen2-VL**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/qwen2_vl.py`
+- **NVLM**: `Nexus/nexus/models/multimodal/nvlm.py`
+- **HiViLT**: `Nexus/nexus/models/multimodal/hivilt.py`
+- **Qwen2-VL**: `Nexus/nexus/models/multimodal/qwen2_vl.py`
 
 ### Robotics Platforms
 

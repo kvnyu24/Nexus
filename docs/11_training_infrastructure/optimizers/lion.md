@@ -124,7 +124,7 @@ Lion:
 
 ### Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/training/optimizers/lion.py`
+Reference: `Nexus/nexus/training/optimizers/lion.py`
 
 ```python
 class Lion(Optimizer):

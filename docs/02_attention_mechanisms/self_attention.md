@@ -231,7 +231,7 @@ This separation allows flexible matching and retrieval patterns.
 
 ### Core Implementation
 
-See `/Users/kevinyu/Projects/Nexus/nexus/components/attention/self_attention.py`
+See `Nexus/nexus/components/attention/self_attention.py`
 
 ```python
 class SelfAttention(BaseAttention):
@@ -731,6 +731,6 @@ attn = SelfAttention(is_causal=True)
 
 ## See Also
 
-- **Implementation**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/self_attention.py`
-- **Base Class**: `/Users/kevinyu/Projects/Nexus/nexus/components/attention/base_attention.py`
+- **Implementation**: `Nexus/nexus/components/attention/self_attention.py`
+- **Base Class**: `Nexus/nexus/components/attention/base_attention.py`
 - **Positional Encodings**: See `docs/05_positional_encodings/` for position information methods

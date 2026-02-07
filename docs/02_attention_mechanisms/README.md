@@ -421,7 +421,7 @@ Sequence Length (tokens)
 
 ## Contributing
 
-See implementation files in `/Users/kevinyu/Projects/Nexus/nexus/components/attention/`
+See implementation files in `Nexus/nexus/components/attention/`
 
 Each mechanism includes:
 - Clean PyTorch implementation

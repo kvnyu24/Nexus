@@ -231,7 +231,7 @@ This is much more effective than random selection.
 
 ## 5. Implementation Details
 
-From `/Users/kevinyu/Projects/Nexus/nexus/models/rl/reward_models/process_reward_model.py`:
+From `Nexus/nexus/models/rl/reward_models/process_reward_model.py`:
 
 ```python
 config = {
@@ -987,7 +987,7 @@ threshold = get_adaptive_threshold(input_difficulty)
 
 ### Implementation References
 
-- **Nexus Implementation:** `/Users/kevinyu/Projects/Nexus/nexus/models/rl/reward_models/process_reward_model.py`
+- **Nexus Implementation:** `Nexus/nexus/models/rl/reward_models/process_reward_model.py`
   - ORM implementation as `OutcomeRewardModel` class
   - Simple feedforward architecture
   - Binary classification training

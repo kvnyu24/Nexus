@@ -302,7 +302,7 @@ def dfs_search(problem, max_depth, branching_factor):
 
 ### Basic ToT Implementation
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/tree_of_thoughts.py`
+Reference: `Nexus/nexus/models/nlp/reasoning/tree_of_thoughts.py`
 
 ```python
 from nexus.models.nlp.reasoning.tree_of_thoughts import TreeOfThoughts

@@ -183,7 +183,7 @@ Notice how the gate values (0-1 range after Swish) control what passes through.
 ## Implementation Details
 
 ### Code Location
-- **File**: `/Users/kevinyu/Projects/Nexus/nexus/components/activations.py`
+- **File**: `Nexus/nexus/components/activations.py`
 - **Classes**: `SwiGLU`, `GLUVariant`, `SwiGLUFFN`
 
 ### Basic Implementation

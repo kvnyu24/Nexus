@@ -288,7 +288,7 @@ Vision Encoder Details:
 
 ### 5.1 M-RoPE Implementation
 
-Located in `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/qwen2_vl.py`:
+Located in `Nexus/nexus/models/multimodal/qwen2_vl.py`:
 
 ```python
 class MultimodalRotaryEmbedding(NexusModule):
@@ -1082,17 +1082,17 @@ lr = base_lr * min(step / warmup_steps, 1.0)
 
 ### Resources
 - Qwen Blog: https://qwenlm.github.io/blog/qwen2-vl/
-- Implementation: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/qwen2_vl.py`
+- Implementation: `Nexus/nexus/models/multimodal/qwen2_vl.py`
 - Hugging Face: https://huggingface.co/Qwen/Qwen2-VL-7B-Instruct
 - Official Code: https://github.com/QwenLM/Qwen2-VL
 
 ### Related Models in Nexus
 - **Qwen-VL** (predecessor): Basic vision-language model
-- **LLaVA-NeXT**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/llava_next.py`
+- **LLaVA-NeXT**: `Nexus/nexus/models/multimodal/llava_next.py`
 - **InternVL**: High-resolution vision-language model
-- **Phi-3-Vision**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/phi3_vision.py`
-- **NVLM**: `/Users/kevinyu/Projects/Nexus/docs/13_multimodal_models/nvlm.md`
-- **Molmo**: `/Users/kevinyu/Projects/Nexus/nexus/models/multimodal/molmo.py`
+- **Phi-3-Vision**: `Nexus/nexus/models/multimodal/phi3_vision.py`
+- **NVLM**: `Nexus/docs/13_multimodal_models/nvlm.md`
+- **Molmo**: `Nexus/nexus/models/multimodal/molmo.py`
 
 ### Benchmarks & Datasets
 - **MMBench**: https://github.com/open-compass/MMBench

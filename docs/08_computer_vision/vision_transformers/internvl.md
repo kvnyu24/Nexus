@@ -311,7 +311,7 @@ config = {
 
 ## Code Walkthrough
 
-Reference: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/intern_vl.py`
+Reference: `Nexus/nexus/models/cv/intern_vl.py`
 
 ### 1. InternVision Encoder
 
@@ -924,7 +924,7 @@ model_6b = InternVL(config)
 
 ### Implementation
 - Official: https://github.com/OpenGVLab/InternVL
-- Nexus: `/Users/kevinyu/Projects/Nexus/nexus/models/cv/intern_vl.py`
+- Nexus: `Nexus/nexus/models/cv/intern_vl.py`
 - Hugging Face: https://huggingface.co/OpenGVLab/InternVL
 
 ### Applications

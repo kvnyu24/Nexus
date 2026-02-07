@@ -113,9 +113,9 @@ Each method documentation includes:
 
 All documentation references actual code in the Nexus framework:
 
-- **Reasoning**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/reasoning/`
-- **RAG**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/rag/`
-- **Other methods**: `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/`
+- **Reasoning**: `Nexus/nexus/models/nlp/reasoning/`
+- **RAG**: `Nexus/nexus/models/nlp/rag/`
+- **Other methods**: `Nexus/nexus/models/nlp/`
 
 ### Decision Support
 
@@ -219,7 +219,7 @@ To add new method documentation:
 
 ## Support
 
-- **Code Issues**: See `/Users/kevinyu/Projects/Nexus/nexus/models/nlp/`
+- **Code Issues**: See `Nexus/nexus/models/nlp/`
 - **Documentation Issues**: Check individual method docs
 - **Quick Help**: Use [QUICK_REFERENCE.md](./QUICK_REFERENCE.md)
 
